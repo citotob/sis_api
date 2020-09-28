@@ -536,7 +536,7 @@ def uploadsite(request):
                 data_batch.sites.append(ObjectId(data_site.id))
                 data_batch.save()
             else:
-                lokasi_gagal = '{'+str(row[6].value)+', '+str(row[7].value)+'}, '
+                lokasi_gagal += '{'+str(row[6].value)+', '+str(row[7].value)+'}, '
 
         return Response.ok(
             values=[],
