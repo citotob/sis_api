@@ -2,7 +2,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from survey.models import *
-from userinfo.models import Surveyor, JenisSurvey, UserInfo, UserToken, Message
+from userinfo.models import batch
 from userinfo.views import authenticate_credentials
 from django.dispatch import receiver
 from django.db.models.signals import post_save
@@ -612,108 +612,55 @@ def uploadlokasikodesurvey(request):
         return JsonResponse({"state": "success"})
 
 
-def addlokasisurvey(request):
+def addbatch(request):
     # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
     # ret, user = authenticate_credentials(token)
     # if False == ret or None == user:
     #    return JsonResponse({"state": "fail"})
-    strjson = json.loads(request.body)
     if request.method == "POST":  # Add
-        # try:
-        # Duplicate filtering
-        jenis_ = strjson["jenis"].upper()
-        provinsi_ = strjson["provinsi"]
-        kecamatan_ = strjson["kecamatan"]
-        desa_ = strjson["desa"]
         try:
-            data_provinsi = provinsi.objects.filter(name=provinsi_).first()
-            if len(data_provinsi) == 0:
-                return Response.badRequest(
-                    values='null',
-                    message='Provinsi doesnt exists'
-                )
-            data_kecamatan = kecamatan.objects.filter(name=kecamatan_).first()
-            if len(data_kecamatan) == 0:
-                return Response.badRequest(
-                    values='null',
-                    message='Kecamatan doesnt exists'
-                )
-            data_desa = desa.objects.filter(name=desa_).first()
-            if len(data_desa) == 0:
-                return Response.badRequest(
-                    values='null',
-                    message='Desa doesnt exists'
-                )
-        except Exception as e:
-            print(e)
-            return Response.badRequest(
-                values='null',
-                message='Provinsi/Kabupaten/Kota/Kecamatan/Desa doesnt exists1'
-            )
-        try:
-            try:
-                kabupaten_kota = strjson["kabupaten"]
-                kabupaten_ = kabupaten.objects.filter(
-                    name=kabupaten_kota).first()
-                kab_kot = 'kab'
-                if len(kabupaten_) == 0:
-                    return Response.badRequest(
-                        values='null',
-                        message='Kabupaten doesnt exists'
-                    )
-                # LokasiSurvey_ = LokasiSurvey.objects.get(provinsi=provinsi,kabupaten=kabupaten_kota,
-                #                kecamatan=kecamatan,desa=desa)
-            except Exception as e:
-                return Response.badRequest(
-                    values='null',
-                    message='Provinsi/Kabupaten/Kota/Kecamatan/Desa doesnt exists2'
-                )
-        except:
-            try:
-                kabupaten_kota = strjson["kota"]
-                kota_ = kota.objects.filter(name=kabupaten_kota).first()
-                kab_kot = 'kota'
-                if len(kota_) == 0:
-                    return Response.badRequest(
-                        values='null',
-                        message='Kabupaten doesnt exists'
-                    )
-                # LokasiSurvey_ = LokasiSurvey.objects.get(provinsi=provinsi,kota=kabupaten_kota,
-                #                kecamatan=kecamatan,desa=desa)
-            except Exception as e:
-                return Response.badRequest(
-                    values='null',
-                    message='Provinsi/Kabupaten/Kota/Kecamatan/Desa doesnt exists3'
-                )
-        try:
-            if kab_kot == 'kab':
-                LokasiSurvey_ = LokasiSurvey.objects.get(provinsi=ObjectId(data_provinsi["id"]), kabupaten=ObjectId(kabupaten_["id"]),
-                                                         kecamatan=ObjectId(data_kecamatan["id"]), desa=ObjectId(data_desa["id"]), jenis=jenis_)
-            else:
-                LokasiSurvey_ = LokasiSurvey.objects.get(provinsi=ObjectId(data_provinsi["id"]), kota=ObjectId(kota_["id"]),
-                                                         kecamatan=ObjectId(data_kecamatan["id"]), desa=ObjectId(data_desa["id"]), jenis=jenis_)
-            return Response.badRequest(
-                values='null',
-                message='Lokasi exists'
-            )
-        except LokasiSurvey.DoesNotExist:
-            LokasiSurvey_ = LokasiSurvey()
-            LokasiSurvey_.user = ObjectId(strjson["user"])
-            LokasiSurvey_.provinsi = ObjectId(data_provinsi["id"])
-            try:
-                LokasiSurvey_.kabupaten = ObjectId(kabupaten_["id"])
-            except:
-                LokasiSurvey_.kota = ObjectId(kota_["id"])
-            LokasiSurvey_.kecamatan = ObjectId(data_kecamatan["id"])
-            LokasiSurvey_.desa = ObjectId(data_desa["id"])
-            LokasiSurvey_.jenis = strjson["jenis"].upper()
-            LokasiSurvey_.latitude = strjson["latitude"]
-            LokasiSurvey_.longitude = strjson["longitude"]
+            #file = request.FILES['doc']
+            #if not file:
+            #    return Response.badRequest(message='No File Upload')
 
-            LokasiSurvey_.save()
-            return JsonResponse({"state": "success"})
-        return JsonResponse({"state": "fail", "action": "add fail"})
-    return JsonResponse({"state": "fail", "action": "none"})
+            body_data = request.POST.dict()
+
+            judul = body_data.get('judul')
+            tanggal_mulai_undangan = body_data.get('tanggal_mulai_undangan')
+            tanggal_selesai_undangan = body_data.get('tanggal_selesai_undangan')
+            tanggal_mulai_kerja = body_data.get('tanggal_mulai_kerja')
+            tanggal_selesai_kerja = body_data.get('tanggal_selesai_kerja')
+            rfi = body_data.get('rfi')
+            type = body_data.get('type')
+            creator = body_data.get('creator')
+            penyedia_undang = body_data.get('penyedia_undang')
+
+            status_ = {'status': 'Dibuka', 'tanggal_pembuatan': datetime.utcnow(
+                    ) + timedelta(hours=7)}
+
+            data_batch = batch(
+                judul = judul,
+                type = type,
+                sites = [],
+                creator = creator,
+                rfi_no = rfi,
+                tanggal_mulai_undangan = tanggal_mulai_undangan,
+                tanggal_selesai_undangan = tanggal_selesai_undangan,
+                tanggal_mulai_kerja = tanggal_mulai_kerja,
+                tanggal_selesai_kerja = tanggal_selesai_kerja,
+                penyedia_undang = penyedia_undang.split(","),
+                created_at = DateTimeField(
+                    default=datetime.utcnow() + timedelta(hours=7)),
+                updated_at = DateTimeField(
+                    default=datetime.utcnow() + timedelta(hours=7))
+            )
+            data_batch.status.append(status_)
+            data_batch.save()
+        except Exception as e:
+            return Response.badRequest(message=str(e))
+
+    else:
+        return Response.badRequest(message='Hanya POST')
 
 
 def getlokasisurvey(request):

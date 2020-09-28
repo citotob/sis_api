@@ -155,20 +155,24 @@ class document_batch(Document):
 class batch(Document):
     #sites = ListField(required=True)
     #creator = ReferenceField(users)
+    #nomor = StringField(required=True, unique=True)
+    judul = StringField(required=True)
+    type = StringField(required=True, choices=[
+                         'VIP', 'Non-VIP'], default='Non-VIP')
     sites = ListField(ReferenceField(site_location))
     creator = StringField(required=True)
     rfi_no = StringField(required=True)
     rfi_doc = ReferenceField(document_batch)
-    tanggal_mulai_undangan = = DateTimeField(
+    tanggal_mulai_undangan = DateTimeField(
         default=datetime.utcnow() + timedelta(hours=7))
-    tanggal_selesai_undangan = = DateTimeField(
+    tanggal_selesai_undangan = DateTimeField(
         default=datetime.utcnow() + timedelta(hours=7))
-    tanggal_mulai_kerja = = DateTimeField(
+    tanggal_mulai_kerja = DateTimeField(
         default=datetime.utcnow() + timedelta(hours=7))
-    tanggal_selesai_kerja = = DateTimeField(
+    tanggal_selesai_kerja = DateTimeField(
         default=datetime.utcnow() + timedelta(hours=7))
     penyedia_undang = ListField(required=True)
-    penyedia_kerja = ListField(required=True)
+    penyedia_kerja = ListField()
     status = ListField(required=True)
     created_at = DateTimeField(
         default=datetime.utcnow() + timedelta(hours=7))
@@ -177,6 +181,6 @@ class batch(Document):
 
     #meta = {
     #    'indexes': [
-    #        {'fields': ('jenissurvey', 'lokasisurvey', 'nospk'), 'unique': True}       
+    #        {'fields': ('nomor'), 'unique': True}       
     #    ]
     #}
