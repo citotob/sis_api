@@ -741,7 +741,7 @@ def addsite(request):
             #    return Response.badRequest(message='Data sudah ada')
             req_fields = ['latitude', 'longitude','kecamatan']
             data_site_lok = site_location.objects.all().only(*req_fields)
-            radius = 500.00 # in kilometer
+            radius = 1.00 # in kilometer
             
             for dat in data_site_lok:
                 if dat.kecamatan.id != ObjectId(kecamatan):
