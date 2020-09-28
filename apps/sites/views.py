@@ -27,6 +27,7 @@ from sites.serializer import *
 from itertools import groupby
 from userinfo.utils.notification import Notification
 import calendar
+from math import radians, cos, sin, asin, sqrt
 
 
 def getLaporan(request):
@@ -695,6 +696,23 @@ def addbatch(request):
     else:
         return Response.badRequest(message='Hanya POST')
 
+
+def haversine(lon1, lat1, lon2, lat2):
+    """
+    Calculate the great circle distance between two points 
+    on the earth (specified in decimal degrees)
+    """
+    # convert decimal degrees to radians 
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+
+    # haversine formula 
+    dlon = lon2 - lon1 
+    dlat = lat2 - lat1 
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a)) 
+    r = 6371 # Radius of earth in kilometers. Use 3956 for miles
+    return c * r
+
 def addsite(request):
     # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
     # ret, user = authenticate_credentials(token)
@@ -715,12 +733,28 @@ def addsite(request):
             kode_pos = body_data.get('kode_pos')
 
             #try:
-            data_site_lok = site_location.objects.filter(latitude=latitude, longitude=longitude)
-            if len(data_site_lok)>0:
-                return Response.badRequest(message='Data sudah ada')
+            #data_site_lok = site_location.objects.filter(latitude=latitude, longitude=longitude)
+            #data_site_lok = site_location.objects.all()
+            #if len(data_site_lok)==0:
+            #    return Response.badRequest(message='Data sudah ada')
             #except site_location.DoesNotExist:
             #    return Response.badRequest(message='Data sudah ada')
-
+            req_fields = ['latitude', 'longitude','kecamatan']
+            data_site_lok = site_location.objects.all().only(*req_fields)
+            radius = 500.00 # in kilometer
+            
+            for dat in data_site_lok:
+                if dat.kecamatan.id != ObjectId(kecamatan):
+                    continue
+                a = haversine(float(dat.longitude), float(dat.latitude), float(longitude), float(latitude))
+                #print(a)
+                if a <= radius:
+                    return Response.ok(
+                        values=[],
+                        message='Data sudah ada'
+                    )
+                #else:
+                #    print('Outside the area')
             try:
                 data_kabupaten = kabupaten.objects.get(id=kab_kota)
                 data_kab_kota = 'kab'
