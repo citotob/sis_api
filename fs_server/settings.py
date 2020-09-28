@@ -200,8 +200,8 @@ DATABASES = {'default': {
 
 #SESSION_ENGINE = 'mongoengine.django.sessions'
 
-MONGO_NAME = 'survey_dev'
-MONGO_DATABASE_HOST = 'mongodb://survey:survey@202.182.55.252:27017/survey_dev'
+MONGO_NAME = 'sis'
+MONGO_DATABASE_HOST = 'mongodb://admin:admindtn2020@165.22.58.39:27017:27017/sis'
 mongoengine.connect(MONGO_NAME, host=MONGO_DATABASE_HOST)
 
 #MONGO_NAME = 'monev'
