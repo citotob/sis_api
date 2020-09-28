@@ -753,8 +753,7 @@ def addsite(request):
                         values=[],
                         message='Data sudah ada'
                     )
-                #else:
-                #    print('Outside the area')
+                    
             try:
                 data_kabupaten = kabupaten.objects.get(id=kab_kota)
                 data_kab_kota = 'kab'
