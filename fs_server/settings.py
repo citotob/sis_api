@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'z-q#mm1*k40u5t)20t*-4_)t1-!%1b_cdi59t5-#i2^5mev*3d_survey'
+SECRET_KEY = 'z-q#mm1*k40u5t)20t*-4_)t1-!%1b_cdi59t5-#i2^5mev*3d_sis'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -70,8 +70,10 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_framework_mongoengine',
     'corsheaders',
+    'site',
     'userinfo',
     'Location',
+    
     # 'configparser',
     'channels',
     'userinfo.utils',
@@ -121,70 +123,13 @@ TEMPLATES = [
         },
     },
 ]
-"""
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.contrib.auth.context_processors.auth',
-                'django.template.context_processors.debug',
-                'django.template.context_processors.i18n',
-                'django.template.context_processors.media',
-                'django.template.context_processors.static',
-                'django.template.context_processors.tz',
-                'django.contrib.messages.context_processors.messages',
-                'django.template.context_processors.request',
-                'django_messages.context_processors.inbox',
-                
-            ],
-        },
-    },
-]
-"""
+
 WSGI_APPLICATION = 'fs_server.wsgi.application'
 
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-# DATABASES = {
-#    'default': {
-#        'ENGINE': 'djongo',   # Database engine
-#        'NAME': 'monev',         # The name of the library where you want to store the data.
-#        'USER': 'monevdtn',         # database username
-#        'PASSWORD': 'monevdtn',     # password
-#        'HOST': 'mongodb://monevdtn:monevdtn@202.182.55.252:27017/monev',    # Host
-#    },
-# }
-
-# import MySQLdb
-# DATABASES = {
-# 'default': {
-#         'ENGINE': 'django.db.backends.mysql',   # 数据库引擎
-#         'NAME': 'survey',         # 你要存储数据的库名，事先要创建之
-#         'USER': 'root',         # 数据库用户名
-#         'PASSWORD': 'python123',     # 密码
-#         'HOST': '127.0.0.1',    # 主机
-#         'PORT': '3306',         # 数据库使用的端口
-#     }
-# }
-
-# MONGO_USER = 'monevdtn'
-# MONGO_PASS = 'monevdtn'
-# MONGO_HOST = '202.182.55.252:27017'
-# MONGO_NAME = 'monev'
-# MONGO_DATABASE_HOST = \
-# 'mongodb://%s:%s@%s/%s' \
-# % (MONGO_USER, MONGO_PASS, MONGO_HOST, MONGO_NAME)
-# mongoengine.connect(MONGO_NAME, host=MONGO_DATABASE_HOST)
-
-# DBNB_HOST = ''
-# DBNB_DATABASE = ''
-# DBNB_USER = ''
-# DBNB_PASSWORD = ''
 
 DATABASES = {'default': {
     'ENGINE': '', },
@@ -201,7 +146,7 @@ DATABASES = {'default': {
 #SESSION_ENGINE = 'mongoengine.django.sessions'
 
 MONGO_NAME = 'sis'
-MONGO_DATABASE_HOST = 'mongodb://admin:admindtn2020@165.22.58.39:27017:27017/sis'
+MONGO_DATABASE_HOST = 'mongodb://userSIS:usercaptive@165.22.58.39:27017/sis'
 mongoengine.connect(MONGO_NAME, host=MONGO_DATABASE_HOST)
 
 #MONGO_NAME = 'monev'
@@ -289,7 +234,7 @@ logging.config.dictConfig({
             'level': 'INFO',
             'class': 'logging.FileHandler',
             'formatter': 'file',
-            'filename': os.path.join(BASE_DIR, 'survej.log')
+            'filename': os.path.join(BASE_DIR, 'sis.log')
         }
     },
     'loggers': {

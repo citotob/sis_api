@@ -128,13 +128,68 @@ class site_location(Document):
     kabupaten = ReferenceField(kabupaten)
     kota = ReferenceField(kota)
     provinsi = ReferenceField(provinsi)
-    kode_pos StringField(required=True)
+    kode_pos = StringField(required=True,default='00000')
     created_at = DateTimeField(
         default=datetime.utcnow() + timedelta(hours=7))
     updated_at = DateTimeField(
         default=datetime.utcnow() + timedelta(hours=7))
     #status = ListField(required=True)
-
+    """
+    def serialize(self):
+        try:
+            return {
+                'id': str(self.id),
+                'provinsi': self.provinsi.serialize(),
+                'kabupaten': self.kabupaten.serialize(),
+                'kecamatan': self.kecamatan.serialize(),
+                'desa': self.desa.serialize(),
+                'latitude': str(self.latitude),
+                'longitude': str(self.longitude)
+            }
+        except:
+            return {
+                'id': str(self.id),
+                'provinsi': self.provinsi.serialize(),
+                'kota': self.kota.serialize(),
+                'kecamatan': self.kecamatan.serialize(),
+                'desa': self.desa.serialize(),
+                'latitude': str(self.latitude),
+                'longitude': str(self.longitude)
+            }
+    """
+    
+    def serialize(self):
+        try:
+            return {
+                'id': str(self.id),
+                'latitude': self.latitude,
+                'longitude': self.longitude,
+                'nama': self.nama,
+                'desa': self.desa.serialize(),
+                'kecamatan': self.kecamatan.serialize(),
+                'kabupaten': self.kabupaten.serialize(),
+                'provinsi': self.provinsi.serialize(),
+                'kode_pos': self.kode_pos,
+                'created_at': self.created_at,
+                'updated_at': self.updated_at
+            }
+        except:
+        #except Exception as e:
+            print(e)
+            return {
+                'id': str(self.id),
+                'latitude': self.latitude,
+                'longitude': self.longitude,
+                'nama': self.nama,
+                'desa': self.desa.serialize(),
+                'kecamatan': self.kecamatan.serialize(),
+                'kota': self.kota.serialize(),
+                'provinsi': self.provinsi.serialize(),
+                'kode_pos': self.kode_pos,
+                'created_at': self.created_at,
+                'updated_at': self.updated_at
+            }
+    
 
 class document_batch(Document):
     name = StringField()
@@ -155,7 +210,7 @@ class document_batch(Document):
 class batch(Document):
     #sites = ListField(required=True)
     #creator = ReferenceField(users)
-    #nomor = StringField(required=True, unique=True)
+    nomor = StringField(required=True, unique=True)
     judul = StringField(required=True)
     type = StringField(required=True, choices=[
                          'VIP', 'Non-VIP'], default='Non-VIP')
@@ -184,3 +239,23 @@ class batch(Document):
     #        {'fields': ('nomor'), 'unique': True}       
     #    ]
     #}
+    
+    def serialize(self):
+        return {
+            'id': str(self.id),
+            'nomor': self.nomor,
+            'judul': self.judul,
+            'type': self.type,
+            'creator': self.creator,
+            'rfi_no': self.rfi_no,
+            'rfi_doc': self.rfi_doc.serialize(),
+            'tanggal_mulai_undangan': str(self.tanggal_mulai_undangan),
+            'tanggal_selesai_undangan': str(self.tanggal_selesai_undangan),
+            'tanggal_mulai_kerja': str(self.tanggal_mulai_kerja),
+            'tanggal_selesai_kerja': str(self.tanggal_selesai_kerja),
+            'penyedia_undang': self.penyedia_undang,
+            'penyedia_kerja': self.penyedia_kerja,
+            'status': self.status,
+            'created_at': str(self.created_at),
+            'updated_at': str(self.updated_at),
+        }

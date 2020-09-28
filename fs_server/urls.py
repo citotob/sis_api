@@ -27,7 +27,7 @@ urlpatterns = [
     # url('fcm/', include('fcm.urls')),
     path('admin/', admin.site.urls),
     path('user/', include('userinfo.urls')),
-    path('site/', include('survey.urls')),
+    path('site/', include('sites.urls')),
     path('location/', include('Location.urls')),
 ]
 

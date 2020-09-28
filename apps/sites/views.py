@@ -1,8 +1,8 @@
 
 from django.shortcuts import render
 from django.http import JsonResponse
-from survey.models import *
-from userinfo.models import batch
+from sites.models import *
+#from userinfo.models import batch
 from userinfo.views import authenticate_credentials
 from django.dispatch import receiver
 from django.db.models.signals import post_save
@@ -22,7 +22,7 @@ import requests
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 from django.core import serializers
-from survey.serializer import *
+from sites.serializer import *
 
 from itertools import groupby
 from userinfo.utils.notification import Notification
@@ -628,8 +628,24 @@ def addbatch(request):
             judul = body_data.get('judul')
             tanggal_mulai_undangan = body_data.get('tanggal_mulai_undangan')
             tanggal_selesai_undangan = body_data.get('tanggal_selesai_undangan')
+            if tanggal_mulai_undangan < tanggal_selesai_undangan:
+                return Response.badRequest(
+                    values='null',
+                    message='tanggal_selesai_undangan harus lebih besar dari tanggal_mulai_undangan'
+                )
+
             tanggal_mulai_kerja = body_data.get('tanggal_mulai_kerja')
+            if tanggal_mulai_kerja < tanggal_selesai_undangan:
+                return Response.badRequest(
+                    values='null',
+                    message='tanggal_mulai_kerja harus lebih besar dari tanggal_selesai_undangan'
+                )
             tanggal_selesai_kerja = body_data.get('tanggal_selesai_kerja')
+            if tanggal_selesai_kerja < tanggal_mulai_kerja:
+                return Response.badRequest(
+                    values='null',
+                    message='tanggal_selesai_kerja harus lebih besar dari tanggal_mulai_kerja'
+                )
             rfi = body_data.get('rfi')
             type = body_data.get('type')
             creator = body_data.get('creator')
@@ -638,7 +654,18 @@ def addbatch(request):
             status_ = {'status': 'Dibuka', 'tanggal_pembuatan': datetime.utcnow(
                     ) + timedelta(hours=7)}
 
+            try:
+                #data_nomor_batch = batch.objects.latest('nomor')
+                data_nomor_batch = batch.objects.order_by('-nomor').first()
+                nomor_batch = int(data_nomor_batch.nomor) + 1
+                nomor_batch = str(nomor_batch).zfill(5)
+            #except:
+            except Exception as e:
+                print(e)
+                nomor_batch = '1'.zfill(5)
+
             data_batch = batch(
+                nomor = nomor_batch,
                 judul = judul,
                 type = type,
                 sites = [],
@@ -649,19 +676,176 @@ def addbatch(request):
                 tanggal_mulai_kerja = tanggal_mulai_kerja,
                 tanggal_selesai_kerja = tanggal_selesai_kerja,
                 penyedia_undang = penyedia_undang.split(","),
-                created_at = DateTimeField(
-                    default=datetime.utcnow() + timedelta(hours=7)),
-                updated_at = DateTimeField(
-                    default=datetime.utcnow() + timedelta(hours=7))
+                created_at = datetime.utcnow() + timedelta(hours=7),
+                updated_at = datetime.utcnow() + timedelta(hours=7)
             )
             data_batch.status.append(status_)
             data_batch.save()
+            #results = batch.objects.get(id=ObjectId(data_batch.id))
+            serializer = BatchSerializer(data_batch)
+            result = serializer.data
+            
+            return Response.ok(
+                values=result,
+                message='Berhasil'
+            )
         except Exception as e:
             return Response.badRequest(message=str(e))
 
     else:
         return Response.badRequest(message='Hanya POST')
 
+def addsite(request):
+    # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
+    # ret, user = authenticate_credentials(token)
+    # if False == ret or None == user:
+    #    return JsonResponse({"state": "fail"})
+    if request.method == "POST":  # Add
+        try:
+            body_data = json.loads(request.body)
+
+            batch_id = body_data.get('batch')
+            nama = body_data.get('nama')
+            provinsi = body_data.get('provinsi')
+            kab_kota = body_data.get('kab_kota')
+            kecamatan = body_data.get('kecamatan')
+            desa = body_data.get('desa')
+            longitude = body_data.get('longitude')
+            latitude = body_data.get('latitude')
+            kode_pos = body_data.get('kode_pos')
+
+            #try:
+            data_site_lok = site_location.objects.filter(latitude=latitude, longitude=longitude)
+            if len(data_site_lok)>0:
+                return Response.badRequest(message='Data sudah ada')
+            #except site_location.DoesNotExist:
+            #    return Response.badRequest(message='Data sudah ada')
+
+            try:
+                data_kabupaten = kabupaten.objects.get(id=kab_kota)
+                data_kab_kota = 'kab'
+            except kabupaten.DoesNotExist:
+                data_kabupaten = kota.objects.get(id=kab_kota)
+                data_kab_kota = 'kota'
+            
+            data_site = site_location(
+                latitude = latitude,
+                longitude = longitude,
+                nama = nama,
+                desa = ObjectId(desa),
+                kecamatan = ObjectId(kecamatan),
+                provinsi = ObjectId(provinsi),
+                kode_pos = kode_pos,
+                created_at = datetime.utcnow() + timedelta(hours=7),
+                updated_at = datetime.utcnow() + timedelta(hours=7)
+            )
+            if data_kab_kota == 'kab':
+                data_site.kabupaten = data_kabupaten.id
+            else:
+                data_site.kota = data_kabupaten.id
+            data_site.save()
+
+            try:
+                data_batch = batch.objects.get(id=ObjectId(batch_id))
+                data_batch.sites.append(ObjectId(data_site.id))
+                data_batch.save()
+            except batch.DoesNotExist:
+                return Response.badRequest(message='Batch tidak ada')
+            results = site_location.objects.get(id=ObjectId(data_site.id))
+            
+            result = results.serialize()
+            
+            return Response.ok(
+                values=result,
+                message='Berhasil'
+            )
+        except Exception as e:
+            return Response.badRequest(message=str(e))
+
+    else:
+        return Response.badRequest(message='Hanya POST')
+
+def editbatch(request):
+    # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
+    # ret, user = authenticate_credentials(token)
+    # if False == ret or None == user:
+    #    return JsonResponse({"state": "fail"})
+    if request.method == "POST":  # Add
+        #try:
+        file = request.FILES['doc']
+        if not file:
+            return Response.badRequest(message='Doc tidak boleh kosong')
+        fs = FileSystemStorage(
+                location=f'{settings.MEDIA_ROOT}/site/rfi/',
+                base_url=f'{settings.MEDIA_URL}/site/rfi/'
+            )
+
+        body_data = request.POST.dict()
+
+        batch_id = body_data.get('batch')
+        tanggal_mulai_undangan = body_data.get('tanggal_mulai_undangan')
+        tanggal_selesai_undangan = body_data.get('tanggal_selesai_undangan')
+        status_ = body_data.get('status')
+
+        if status_=='Selesai':
+            return Response.ok(
+                values=[],
+                message='Status sudah selesai'
+            )
+        
+        try:
+            data_batch = batch.objects.get(id=ObjectId(batch_id))
+        except batch.DoesNotExist:
+            return Response.ok(message='Batch tidak ada')
+
+        data_batch.tanggal_mulai_undangan = tanggal_mulai_undangan
+        data_batch.tanggal_selesai_undangan = tanggal_selesai_undangan
+        if status_=='Dibuka':
+            status__ = {'status': status_, 'tanggal_pembuatan': datetime.utcnow(
+                    ) + timedelta(hours=7)}
+
+            data_batch.status.clear()
+            data_batch.status.append(status__)
+        else:
+            status_buka = {'status': 'Dibuka', 'tanggal_pembuatan': datetime.utcnow(
+                    ) + timedelta(hours=7)}
+
+            data_batch.status.clear()
+            data_batch.status.append(status_buka)
+            status_tunda = {'status': status_, 'tanggal_pembuatan': datetime.utcnow(
+                    ) + timedelta(hours=7)}
+            data_batch.status.append(status_tunda)
+        data_batch.save()
+
+        filename = fs.save(file.name, file)
+        file_path = fs.url(filename)
+        doc = document_batch(
+            name=file.name,
+            path=file_path,
+            create_date=datetime.utcnow() + timedelta(hours=7),
+            update_date=datetime.utcnow() + timedelta(hours=7)
+        )
+        doc.save()
+
+        data_batch.rfi_doc = ObjectId(doc.id)
+        data_batch.updated_at = datetime.utcnow() + timedelta(hours=7)
+        data_batch.save()
+
+        result = batch.objects.get(id=ObjectId(data_batch.id)).serialize()
+        #result = data_batch.serialize()
+        
+        #serializer = BatchSerializer(data_batch)
+        #result = serializer.data
+        
+        return Response.ok(
+            values=result,
+            message='Berhasil'
+        )
+        #except Exception as e:
+        #    return Response.badRequest(message=str(e))
+
+    else:
+        return Response.badRequest(message='Hanya POST')
 
 def getlokasisurvey(request):
     # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
