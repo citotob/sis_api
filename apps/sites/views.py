@@ -229,7 +229,7 @@ def uploadlokasi(request):
         excel_data = list()
         # iterating over the rows and
         # getting value from each cell in row
-        lokasi_gagal = 'Lokasi gagal : '
+        lokasi_gagal = ''
 
         for row in worksheet.iter_rows():
             if str(row[1].value) == 'None':
@@ -365,9 +365,74 @@ def uploadlokasi(request):
         # return JsonResponse({"state": "success","gagal": lokasi_gagal})
 
 
-def uploadlokasikodesurvey(request):
+def uploadsite(request):
     if request.method == 'POST':
         import openpyxl
+        lokasi_gagal = ''
+        body_data = request.POST.dict()
+
+        judul = body_data.get('judul')
+        tanggal_mulai_undangan = datetime.strptime(body_data.get('tanggal_mulai_undangan'), '%Y-%m-%d 00:00:00')
+        tanggal_selesai_undangan = datetime.strptime(body_data.get('tanggal_selesai_undangan'), '%Y-%m-%d 23:59:59')
+        if tanggal_selesai_undangan < tanggal_mulai_undangan:
+            return Response.badRequest(
+                values='null',
+                message='tanggal_selesai_undangan harus lebih besar dari tanggal_mulai_undangan'
+            )
+
+        tanggal_mulai_kerja = datetime.strptime(body_data.get('tanggal_mulai_kerja'), '%Y-%m-%d 00:00:00')
+        if tanggal_mulai_kerja < tanggal_selesai_undangan:
+            return Response.badRequest(
+                values='null',
+                message='tanggal_mulai_kerja harus lebih besar dari tanggal_selesai_undangan'
+            )
+        tanggal_selesai_kerja = datetime.strptime(body_data.get('tanggal_selesai_kerja'), '%Y-%m-%d 23:59:59')
+        if tanggal_selesai_kerja < tanggal_mulai_kerja:
+            return Response.badRequest(
+                values='null',
+                message='tanggal_selesai_kerja harus lebih besar dari tanggal_mulai_kerja'
+            )
+        rfi = body_data.get('rfi')
+        type = body_data.get('type')
+        creator = body_data.get('creator')
+        #penyedia_undang = body_data.get('penyedia_undang')
+
+        status_ = {'status': 'Dibuka', 'tanggal_pembuatan': datetime.utcnow(
+                ) + timedelta(hours=7)}
+
+        try:
+            #data_nomor_batch = batch.objects.latest('nomor')
+            data_nomor_batch = batch.objects.order_by('-nomor').first()
+            nomor_batch = int(data_nomor_batch.nomor) + 1
+            nomor_batch = str(nomor_batch).zfill(5)
+        #except:
+        except Exception as e:
+            print(e)
+            nomor_batch = '1'.zfill(5)
+
+        data_batch = batch(
+            nomor = nomor_batch,
+            judul = judul,
+            type = type,
+            sites = [],
+            creator = creator,
+            rfi_no = rfi,
+            tanggal_mulai_undangan = tanggal_mulai_undangan,
+            tanggal_selesai_undangan = tanggal_selesai_undangan,
+            tanggal_mulai_kerja = tanggal_mulai_kerja,
+            tanggal_selesai_kerja = tanggal_selesai_kerja,
+            #penyedia_undang = penyedia_undang.split(","),
+            created_at = datetime.utcnow() + timedelta(hours=7),
+            updated_at = datetime.utcnow() + timedelta(hours=7)
+        )
+        data_batch.status.append(status_)
+        data_batch.save()
+
+        req_fields = ['latitude', 'longitude','kecamatan']
+        data_site_lok = site_location.objects.all().only(*req_fields)
+        radius = 1.00 # in kilometer
+
+        new_data_site_lok = []
         excel_file = request.FILES["excel_file"]
 
         # you may put validations here to check extension or file size
@@ -382,16 +447,14 @@ def uploadlokasikodesurvey(request):
         # getting value from each cell in row
 
         for row in worksheet.iter_rows():
+            lanjut=True
             if str(row[1].value) == 'None':
                 break
             if str(row[0].value) == 'NO':
                 continue
-            # try:
             data_provinsi = provinsi.objects.filter(
                 name=str(row[2].value).upper()).first()
-            # if len(data_provinsi) == 0:
             if data_provinsi is None:
-                # continue
                 data_provinsi = provinsi(
                     name=str(row[2].value).upper()
                 )
@@ -400,9 +463,7 @@ def uploadlokasikodesurvey(request):
             if str(row[3].value)[0:3].upper() == 'KAB':
                 kabupaten_ = kabupaten.objects.filter(
                     name=str(row[3].value).upper()).first()
-                # if len(kabupaten_) == 0:
                 if kabupaten_ is None:
-                    # continue
                     kabupaten_ = kabupaten(
                         name=str(row[3].value).upper(),
                         provinsi=ObjectId(data_provinsi.id)
@@ -411,9 +472,7 @@ def uploadlokasikodesurvey(request):
             else:
                 kota_ = kota.objects.filter(
                     name=str(row[3].value).upper()).first()
-                # if len(kota_) == 0:
                 if kota_ is None:
-                    # continue
                     kota_ = kota(
                         name=str(row[3].value).upper(),
                         provinsi=ObjectId(data_provinsi.id)
@@ -421,9 +480,7 @@ def uploadlokasikodesurvey(request):
                     kota_.save()
             data_kecamatan = kecamatan.objects.filter(
                 name=str(row[4].value).upper()).first()
-            # if len(data_kecamatan) == 0:
             if data_kecamatan is None:
-                # continue
                 try:
                     data_kecamatan = kecamatan(
                         name=str(row[4].value).upper(),
@@ -438,9 +495,7 @@ def uploadlokasikodesurvey(request):
                     data_kecamatan.save()
             data_desa = desa.objects.filter(
                 name=str(row[5].value).upper()).first()
-            # if len(data_desa) == 0:
             if data_desa is None:
-                # continue
                 data_desa = desa(
                     name=str(row[5].value).upper(),
                     kecamatan=ObjectId(data_kecamatan.id)
@@ -449,168 +504,44 @@ def uploadlokasikodesurvey(request):
             if str(row[1].value).upper() == 'PERMOHONAN AKSES INTERNET':
                 jns = 'AI'
             else:
-                jns = 'BTS'
+                jns = 'AI'
 
-            try:
-                #data_jenis = JenisSurvey.objects.get(jenis=kode_jns)
-                data_jenis = JenisSurvey.objects.get(jenis=jns)
-            except JenisSurvey.DoesNotExist:
-                return Response.badRequest(
-                    values='null',
-                    message='jenissurvey not found'
+            for dat in data_site_lok:
+                if dat.kecamatan.id != data_kecamatan.id:
+                    continue
+                
+                a = haversine(float(dat.longitude), float(dat.latitude), float(str(row[7].value)), float(str(row[6].value)))
+                #print(a)
+                if a <= radius:
+                    lanjut=False
+                    break
+            if lanjut: 
+                data_site = site_location(
+                    latitude = str(row[6].value),
+                    longitude = str(row[7].value),
+                    nama = str(row[8].value),
+                    desa = data_desa.id,
+                    kecamatan = data_kecamatan.id,
+                    provinsi = data_provinsi.id,
+                    kode_pos = str(row[9].value),
+                    created_at = datetime.utcnow() + timedelta(hours=7),
+                    updated_at = datetime.utcnow() + timedelta(hours=7)
                 )
+                if str(row[3].value)[0:3].upper() == 'KAB':                 
+                    data_site.kabupaten = kabupaten_.id
+                else:
+                    data_site.kota = kota_.id
+                data_site.save()
 
-            status = {'status': 'created', 'date': datetime.utcnow(
-            ) + timedelta(hours=7)}
-            status_assigned = {'status': 'assigned', 'date': datetime.utcnow(
-            ) + timedelta(hours=7)}
-            LokasiSurvey_ = LokasiSurvey.objects.filter(latitude=str(
-                row[6].value).upper(), longitude=str(row[7].value).upper(), jenis=jns)
-            if len(LokasiSurvey_) == 0:
-                LokasiSurvey_ = LokasiSurvey()
-                LokasiSurvey_.provinsi = ObjectId(data_provinsi["id"])
-                try:
-                    LokasiSurvey_.kabupaten = ObjectId(kabupaten_["id"])
-                except:
-                    LokasiSurvey_.kota = ObjectId(kota_["id"])
-                LokasiSurvey_.kecamatan = ObjectId(data_kecamatan["id"])
-                LokasiSurvey_.desa = ObjectId(data_desa["id"])
-                LokasiSurvey_.jenis = jns
-                LokasiSurvey_.latitude = str(row[6].value).upper()
-                LokasiSurvey_.longitude = str(row[7].value).upper()
-                LokasiSurvey_.status.append(status)
-                LokasiSurvey_.status.append(status_assigned)
+                data_batch.sites.append(ObjectId(data_site.id))
+                data_batch.save()
+            else:
+                lokasi_gagal = '{'+str(row[6].value)+', '+str(row[7].value)+'}, '
 
-                LokasiSurvey_.save()
-
-                # try:
-                file = request.FILES['doc']
-                if not file:
-                    return Response.badRequest(message='No File Upload')
-                fs = FileSystemStorage(
-                    location=f'{settings.MEDIA_ROOT}/survey/spk/',
-                    base_url=f'{settings.MEDIA_URL}/survey/spk/'
-                )
-
-                status = {'status': 'created', 'date': datetime.utcnow(
-                ) + timedelta(hours=7)}
-                # Duplicate filtering
-
-                # for i in range(2):
-                # if i == 0:
-                #    kode_survey1 = 'AI-'+str(row[8].value).upper()
-                #    kode_jns = 'AI'
-                # else:
-                #    kode_survey1 = 'BTS-'+str(row[8].value).upper()
-                #    kode_jns = 'BTS'
-                kode_survey1 = jns+'-'+str(row[8].value).upper()
-                try:
-                    kode_survey = Penugasan.objects(
-                        kode__startswith=kode_survey1.upper()).order_by('-kode').first()
-                    lst_kode = kode_survey['kode'].split('-')
-                    if len(lst_kode) > 0:
-                        kode_Penugasan = str(int(lst_kode[2])+1).zfill(5)
-                    else:
-                        kode_Penugasan = str(
-                            int(kode_survey['kode'])+1).zfill(5)
-                except:
-                    kode_Penugasan = '1'.zfill(5)
-
-                # try:
-                #    #data_jenis = JenisSurvey.objects.get(jenis=kode_jns)
-                #    data_jenis = JenisSurvey.objects.get(jenis=jns)
-                # except JenisSurvey.DoesNotExist:
-                #    return Response.badRequest(
-                #        values='null',
-                #        message='jenissurvey not found'
-                #    )
-
-                try:
-                    try:
-                        pt_survey = Surveyor.objects.get(
-                            name=str(row[9].value).upper())
-                        pt_surveyid = pt_survey.id
-                    except:
-                        pt_surveyid = "5f1fb680171eb8928f9e7a4b"
-                except Surveyor.DoesNotExist:
-                    return Response.badRequest(
-                        values='null',
-                        message='Surveyor not found'
-                    )
-                print(data_provinsi.name, kabupaten_.name, data_kecamatan.name, data_desa.name, str(
-                    row[6].value).upper(), str(row[7].value).upper(), kode_survey1+'-'+kode_Penugasan)
-                # print(LokasiSurvey_.id)
-
-                try:
-                    filename = fs.save(file.name, file)
-                    file_path = fs.url(filename)
-                except:
-                    pass
-                doc = DocumentPenugasan(
-                    name=file.name,
-                    path=file_path,
-                    create_date=datetime.utcnow() + timedelta(hours=7),
-                    update_date=datetime.utcnow() + timedelta(hours=7)
-                )
-                doc.save()
-
-                Penugasan_ = Penugasan(
-                    user=ObjectId(request.POST.get('user')),
-                    kode=kode_survey1+'-'+kode_Penugasan,
-                    jenissurvey=ObjectId(data_jenis.id),
-                    surveyor=ObjectId(pt_surveyid),
-                    lokasisurvey=ObjectId(LokasiSurvey_.id),
-                    tanggal_penugasan=datetime.strptime(request.POST.get(
-                        'tanggal_penugasan'), '%Y-%m-%d 00:00:00'),
-                    target=datetime.strptime(
-                        request.POST.get('sla'), '%Y-%m-%d 00:00:00'),
-                    nospk=kode_Penugasan,
-                    spk=ObjectId(doc.id)
-                )
-
-                Penugasan_.status.append(status)
-                Penugasan_.status.append(status_assigned)
-                Penugasan_.save()
-                #filename = fs.save(file.name, file)
-                #file_path = fs.url(filename)
-                # doc = DocumentPenugasan(
-                #    name=file.name,
-                #    path=file_path,
-                # )
-                # doc.save()
-
-                # add status assigned di tabel lokasisurvey
-                # try:
-                #    lok_survey = LokasiSurvey.objects.get(id=request.POST.get('lokasisurvey'))
-                #    status = {'status': 'assigned', 'date': datetime.utcnow(
-                #        ) + timedelta(hours=7)}
-                # except LokasiSurvey.DoesNotExist:
-                #    lok_survey = None
-
-                # if not lok_survey:
-                #    return Response.badRequest(
-                #        values='null',
-                #        message='Lokasi Survey not found'
-                #    )
-                # status = {'status': 'assigned', 'date': datetime.utcnow(
-                #        ) + timedelta(hours=7)}
-                #statuspenugasan = [i for i,x in enumerate(lok_survey.status) if x['status']=='assigned']
-                # if not statuspenugasan:
-                #    lok_survey.status.append(status)
-                #    lok_survey.save()
-                # =============
-                #Penugasan_.spk = ObjectId(doc.id)
-                Penugasan_.save()
-
-                #result = Penugasan.objects.get(id=ObjectId(Penugasan_.id)).serialize()
-                # return Response.ok(
-                #    values=result,
-                #    message='Penugasan Created'
-                # )
-                # except Exception as e:
-                #    return Response.badRequest(message=str(e))
-
-        return JsonResponse({"state": "success"})
+        return Response.ok(
+            values=[],
+            message=lokasi_gagal
+        )
 
 
 def addbatch(request):
@@ -629,7 +560,7 @@ def addbatch(request):
             judul = body_data.get('judul')
             tanggal_mulai_undangan = body_data.get('tanggal_mulai_undangan')
             tanggal_selesai_undangan = body_data.get('tanggal_selesai_undangan')
-            if tanggal_mulai_undangan < tanggal_selesai_undangan:
+            if tanggal_selesai_undangan < tanggal_mulai_undangan:
                 return Response.badRequest(
                     values='null',
                     message='tanggal_selesai_undangan harus lebih besar dari tanggal_mulai_undangan'
@@ -697,22 +628,6 @@ def addbatch(request):
         return Response.badRequest(message='Hanya POST')
 
 
-def haversine(lon1, lat1, lon2, lat2):
-    """
-    Calculate the great circle distance between two points 
-    on the earth (specified in decimal degrees)
-    """
-    # convert decimal degrees to radians 
-    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
-
-    # haversine formula 
-    dlon = lon2 - lon1 
-    dlat = lat2 - lat1 
-    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-    c = 2 * asin(sqrt(a)) 
-    r = 6371 # Radius of earth in kilometers. Use 3956 for miles
-    return c * r
-
 def addsite(request):
     # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
     # ret, user = authenticate_credentials(token)
@@ -753,7 +668,7 @@ def addsite(request):
                         values=[],
                         message='Data sudah ada'
                     )
-                    
+
             try:
                 data_kabupaten = kabupaten.objects.get(id=kab_kota)
                 data_kab_kota = 'kab'

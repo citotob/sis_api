@@ -226,7 +226,7 @@ class batch(Document):
         default=datetime.utcnow() + timedelta(hours=7))
     tanggal_selesai_kerja = DateTimeField(
         default=datetime.utcnow() + timedelta(hours=7))
-    penyedia_undang = ListField(required=True)
+    penyedia_undang = ListField()
     penyedia_kerja = ListField()
     status = ListField(required=True)
     created_at = DateTimeField(

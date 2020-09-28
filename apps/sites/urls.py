@@ -8,4 +8,5 @@ urlpatterns = [
     path('addbatch/', views.addbatch),
     path('addsite/', views.addsite),
     path('editbatch/', views.editbatch),
+    path('uploadsite/', views.uploadsite),
 ]
