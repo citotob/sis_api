@@ -9,4 +9,5 @@ urlpatterns = [
     path('addsite/', views.addsite),
     path('editbatch/', views.editbatch),
     path('uploadsite/', views.uploadsite),
+    path('getbatch/', views.getbatch),
 ]

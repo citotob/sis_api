@@ -795,224 +795,53 @@ def editbatch(request):
     else:
         return Response.badRequest(message='Hanya POST')
 
-def getlokasisurvey(request):
+def getbatch(request):
     # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
     # ret, user = authenticate_credentials(token)
     # if False == ret or None == user:
     #    return JsonResponse({"state": "fail"})
-    strjson = json.loads(request.body)
-    field = strjson["field"].lower()
-    value_ = strjson["value"].upper()
-    jenis = strjson.get("jenis", None)
-    pp_jenis = []
-    if jenis:
-        # try:
-        #data_jenis = JenisSurvey.objects.get(jenis=jenis.upper())
-        pp_jenis = [{
-            '$match': {
-                'jenis': jenis.upper()
-            }
-        }]
-        # except JenisSurvey.DoesNotExist:
-        #    return Response.badRequest(
-        #        values=[],
-        #        message='Jenis Survey not found'
-        #    )
+    body_data = json.loads(request.body)
+    batch_id = body_data.get('batch')
 
-    page = int(strjson.get('page', 0)) - 1
+    page = int(body_data.get('page', 0)) - 1
     skip = []
     if page >= 0:
         skip = [{'$skip': 20 * page},
                 {'$limit': 20}]
 
-    pipeline = pp_jenis + [
+    pipeline = [
+        {
+            '$match': {
+                '_id': ObjectId(batch_id)
+            }
+        }, 
         {
             '$lookup': {
-                'from': 'provinsi',
-                'localField': 'provinsi',
-                'foreignField': '_id',
-                'as': 'provinsi'
+                'from': 'site_location', 
+                'localField': 'sites', 
+                'foreignField': '_id', 
+                'as': 'sitelist'
             }
         }, {
             '$unwind': {
-                'path': '$provinsi',
-                'preserveNullAndEmptyArrays': True
-            }
-        }, {
-            '$lookup': {
-                'from': 'kabupaten',
-                'localField': 'kabupaten',
-                'foreignField': '_id',
-                'as': 'kabupaten'
-            }
-        }, {
-            '$unwind': {
-                'path': '$kabupaten',
-                'preserveNullAndEmptyArrays': True
-            }
-        }, {
-            '$lookup': {
-                'from': 'kota',
-                'localField': 'kota',
-                'foreignField': '_id',
-                'as': 'kota'
-            }
-        }, {
-            '$unwind': {
-                'path': '$kota',
-                'preserveNullAndEmptyArrays': True
-            }
-        }, {
-            '$lookup': {
-                'from': 'kecamatan',
-                'localField': 'kecamatan',
-                'foreignField': '_id',
-                'as': 'kecamatan'
-            }
-        }, {
-            '$unwind': {
-                'path': '$kecamatan',
-                'preserveNullAndEmptyArrays': True
-            }
-        }, {
-            '$lookup': {
-                'from': 'desa',
-                'localField': 'desa',
-                'foreignField': '_id',
-                'as': 'desa'
-            }
-        }, {
-            '$unwind': {
-                'path': '$desa',
+                'path': '$sitelist', 
                 'preserveNullAndEmptyArrays': True
             }
         }
     ]
 
-    if field == 'all':
-        pipe = pipeline + skip
-        agg_cursor = LokasiSurvey.objects.aggregate(*pipe)
+    pipe = pipeline + skip
+    agg_cursor = batch.objects.aggregate(*pipe)
 
-        LokasiSurvey_ = list(agg_cursor)
-    else:
-        if field == 'provinsi':
-            try:
-                data_ = provinsi.objects.get(name=value_)
-                value_ = ObjectId(data_.id)
-            except provinsi.DoesNotExist:
-                return Response.badRequest(
-                    values=[],
-                    message='Lokasi Survey not found'
-                )
-            match = [{
-                '$match': {
-                    'provinsi': ObjectId(data_.id)
-                }
-            }]
-        if field == 'kabupaten':
-            try:
-                data_ = kabupaten.objects.get(name=value_)
-                value_ = ObjectId(data_.id)
-            except kabupaten.DoesNotExist:
-                return Response.badRequest(
-                    values=[],
-                    message='Lokasi Survey not found'
-                )
-            match = [{
-                '$match': {
-                    'kabupaten': ObjectId(data_.id)
-                }
-            }]
-        if field == 'kota':
-            try:
-                data_ = kota.objects.get(name=value_)
-                value_ = ObjectId(data_.id)
-            except kota.DoesNotExist:
-                return Response.badRequest(
-                    values=[],
-                    message='Lokasi Survey not found'
-                )
-            match = [{
-                '$match': {
-                    'kota': ObjectId(data_.id)
-                }
-            }]
-        if field == 'kecamatan':
-            try:
-                data_ = kecamatan.objects.get(name=value_)
-                value_ = ObjectId(data_.id)
-            except kecamatan.DoesNotExist:
-                return Response.badRequest(
-                    values=[],
-                    message='Lokasi Survey not found'
-                )
-            match = [{
-                '$match': {
-                    'kecamatan': ObjectId(data_.id)
-                }
-            }]
-        if field == 'desa':
-            try:
-                data_ = desa.objects.get(name=value_)
-                value_ = ObjectId(data_.id)
-            except desa.DoesNotExist:
-                return Response.badRequest(
-                    values=[],
-                    message='Lokasi Survey not found'
-                )
-            match = [{
-                '$match': {
-                    'desa': ObjectId(data_.id)
-                }
-            }]
-        # try:
-        if field == 'status':
-            match = [{
-                '$addFields': {
-                    'last': {
-                        '$arrayElemAt': [
-                            '$status', -1
-                        ]
-                    }
-                }
-            }, {
-                '$match': {
-                    'last.status': value_.lower()
-                }
-            }, {
-                '$project': {
-                    'last': 0
-                }
-            }]
-            # if value_.lower()=='created':
-            #    LokasiSurvey_ = LokasiSurvey.objects.filter(status__0__status=value_.lower(),status__1__exists=False)
-            # else:
-            #    LokasiSurvey_ = LokasiSurvey.objects.filter(status__status=value_.lower())
-            # else:
-            #    LokasiSurvey_ = LokasiSurvey.objects.filter(**{field: value_})
-        if field == 'jenis':
-            match = [{
-                '$match': {
-                    'jenis': value_.upper()
-                }
-            }]
-        # except LokasiSurvey.DoesNotExist:
-        #    return Response.badRequest(
-        #        values=[],
-        #        message='Lokasi Survey not found'
-        #    )
-        pipe = match + pipeline + skip
-        agg_cursor = LokasiSurvey.objects.aggregate(*pipe)
+    batch_list = list(agg_cursor)
 
-        LokasiSurvey_ = list(agg_cursor)
-
-    if len(LokasiSurvey_) > 0:
+    if len(batch_list) > 0:
         return Response.ok(
-            values=json.loads(json.dumps(LokasiSurvey_, default=str)),
-            message=f'{len(LokasiSurvey_)} Data'
+            values=json.loads(json.dumps(batch_list, default=str)),
+            message=f'{len(batch_list)} Data'
         )
     else:
-        return Response.badRequest(
+        return Response.ok(
             values=[],
-            message='Lokasi Survey not found'
+            message='Data tidak ada'
         )
