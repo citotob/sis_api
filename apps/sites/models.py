@@ -8,7 +8,25 @@ import datetime
 from bson import ObjectId
 from datetime import timedelta ,datetime
 #from userinfo.models import UserInfo, Surveyor, JenisSurvey
+"""
+class company(Document):
+    name = StringField(required=True, unique=True)
+    created_at = DateTimeField(
+        default=datetime.utcnow() + timedelta(hours=7))
+    updated_at = DateTimeField(
+        default=datetime.utcnow() + timedelta(hours=7))
+    #meta = {
+    #    'indexes': [
+    #        {'fields': ('name'), 'unique': True}
+    #    ]
+    #}
 
+    def serialize(self):
+        return {
+            'id': str(self.id),
+            'name': str(self.name),
+        }
+"""
 class provinsi(Document):
     #user = ReferenceField(UserInfo)
     name = StringField(required=True)

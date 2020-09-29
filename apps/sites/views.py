@@ -2,6 +2,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from sites.models import *
+from vendor.models import *
 #from userinfo.models import batch
 from userinfo.views import authenticate_credentials
 from django.dispatch import receiver
@@ -596,6 +597,7 @@ def addbatch(request):
                 print(e)
                 nomor_batch = '1'.zfill(5)
 
+            vendor_list = penyedia_undang.split(",")
             data_batch = batch(
                 nomor = nomor_batch,
                 judul = judul,
@@ -607,12 +609,29 @@ def addbatch(request):
                 tanggal_selesai_undangan = tanggal_selesai_undangan,
                 tanggal_mulai_kerja = tanggal_mulai_kerja,
                 tanggal_selesai_kerja = tanggal_selesai_kerja,
-                penyedia_undang = penyedia_undang.split(","),
+                penyedia_undang = vendor_list,
                 created_at = datetime.utcnow() + timedelta(hours=7),
                 updated_at = datetime.utcnow() + timedelta(hours=7)
             )
             data_batch.status.append(status_)
             data_batch.save()
+            
+            for vn in vendor_list:
+                try:
+                    comp = company.objects.get(id=ObjectId(vn))
+                except company.DoesNotExist:
+                    return Response.ok(
+                        values=[],
+                        message='Penyedia tidak ada'
+                    )
+                data_batch_vendor = batch_vendor(
+                    vendor = comp.id,
+                    batch_id = data_batch.id,
+                    created_at = datetime.utcnow() + timedelta(hours=7),
+                    updated_at = datetime.utcnow() + timedelta(hours=7)
+                )
+                data_batch_vendor.status.append(status_)
+                data_batch_vendor.save()
             #results = batch.objects.get(id=ObjectId(data_batch.id))
             serializer = BatchSerializer(data_batch)
             result = serializer.data
@@ -697,6 +716,23 @@ def addsite(request):
                 data_batch = batch.objects.get(id=ObjectId(batch_id))
                 data_batch.sites.append(ObjectId(data_site.id))
                 data_batch.save()
+
+                for vn in data_batch.penyedia_undang:
+                    try:
+                        comp = company.objects.get(id=ObjectId(vn))
+                    except company.DoesNotExist:
+                        return Response.ok(
+                            values=[],
+                            message='Penyedia tidak ada'
+                        )
+                    data_site_vendor = site_vendor(
+                        vendor = comp.id,
+                        batch_id = data_batch.id,
+                        site_id = ObjectId(data_site.id),
+                        created_at = datetime.utcnow() + timedelta(hours=7),
+                        updated_at = datetime.utcnow() + timedelta(hours=7)
+                    )
+                    data_site_vendor.save()
             except batch.DoesNotExist:
                 return Response.badRequest(message='Batch tidak ada')
             results = site_location.objects.get(id=ObjectId(data_site.id))
@@ -822,15 +858,66 @@ def getbatch(request):
                 'foreignField': '_id', 
                 'as': 'sitelist'
             }
-        }, {
-            '$unwind': {
-                'path': '$sitelist', 
-                'preserveNullAndEmptyArrays': True
-            }
-        }
+        }#, {
+        #    '$unwind': {
+        #        'path': '$sitelist', 
+        #        'preserveNullAndEmptyArrays': True
+        #    }
+        #}
     ]
 
     pipe = pipeline + skip
+    agg_cursor = batch.objects.aggregate(*pipe)
+
+    batch_list = list(agg_cursor)
+
+    if len(batch_list) > 0:
+        return Response.ok(
+            values=json.loads(json.dumps(batch_list, default=str)),
+            message=f'{len(batch_list)} Data'
+        )
+    else:
+        return Response.ok(
+            values=[],
+            message='Data tidak ada'
+        )
+
+def getallbatch(request):
+    # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
+    # ret, user = authenticate_credentials(token)
+    # if False == ret or None == user:
+    #    return JsonResponse({"state": "fail"})
+    #body_data = json.loads(request.body)
+    #batch_id = body_data.get('batch')
+
+    #page = int(body_data.get('page', 0)) - 1
+    #skip = []
+    #if page >= 0:
+    #    skip = [{'$skip': 20 * page},
+    #            {'$limit': 20}]
+
+    pipeline = [
+        #{
+        #    '$match': {
+        #        '_id': ObjectId(batch_id)
+        #    }
+        #}, 
+        {
+            '$lookup': {
+                'from': 'site_location', 
+                'localField': 'sites', 
+                'foreignField': '_id', 
+                'as': 'sitelist'
+            }
+        }#, {
+        #    '$unwind': {
+        #        'path': '$sitelist', 
+        #        'preserveNullAndEmptyArrays': True
+        #    }
+        #}
+    ]
+
+    pipe = pipeline #+ skip
     agg_cursor = batch.objects.aggregate(*pipe)
 
     batch_list = list(agg_cursor)
