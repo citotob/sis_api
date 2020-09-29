@@ -37,76 +37,151 @@ def respon(request):
     # if False == ret or None == user:
     #    return JsonResponse({"state": "fail"})
     if request.method == "POST":  # Add
-        #try:
-        file = request.FILES['doc']
-        if not file:
-            return Response.badRequest(message='Doc tidak boleh kosong')
-        fs = FileSystemStorage(
-                location=f'{settings.MEDIA_ROOT}/site/rfi/',
-                base_url=f'{settings.MEDIA_URL}/site/rfi/'
-            )
-
-        body_data = request.POST.dict()
-
-        vendor = body_data.get('company')
-        batchid = body_data.get('batch')
-        rfi_no = body_data.get('rfi_no')
-        tanggal_mulai_sla = body_data.get('tanggal_mulai_sla')
-        tanggal_selesai_sla = body_data.get('tanggal_selesai_sla')
-
-        #if status_=='Selesai':
-        #    return Response.ok(
-        #        values=[],
-        #        message='Status sudah selesai'
-        #    )
         try:
-            comp = company.objects.get(id=ObjectId(vendor))
-        except company.DoesNotExist:
-            return Response.ok(
-                values=[],
-                message='Penyedia tidak ada'
+            file = request.FILES['doc']
+            if not file:
+                return Response.badRequest(message='Doc tidak boleh kosong')
+            fs = FileSystemStorage(
+                    location=f'{settings.MEDIA_ROOT}/site/rfi/',
+                    base_url=f'{settings.MEDIA_URL}/site/rfi/'
+                )
+
+            body_data = request.POST.dict()
+
+            vendor = body_data.get('company')
+            batchid = body_data.get('batch')
+            rfi_no = body_data.get('rfi_no')
+            tanggal_mulai_sla = body_data.get('tanggal_mulai_sla')
+            tanggal_selesai_sla = body_data.get('tanggal_selesai_sla')
+
+            #if status_=='Selesai':
+            #    return Response.ok(
+            #        values=[],
+            #        message='Status sudah selesai'
+            #    )
+            try:
+                comp = company.objects.get(id=ObjectId(vendor))
+            except company.DoesNotExist:
+                return Response.ok(
+                    values=[],
+                    message='Penyedia tidak ada'
+                )
+
+            try:
+                data_batch_vendor = batch_vendor.objects.get(batch_id=ObjectId(batchid), vendor=ObjectId(comp.id))
+            except batch_vendor.DoesNotExist:
+                return Response.ok(message='Batch tidak ada')
+
+            cek_status = [i for i, x in enumerate(
+                data_batch_vendor.status) if x['status'] == 'Respon']
+            if cek_status:
+                result = data_batch_vendor.serialize()
+                return Response.ok(
+                    values=result,
+                    message='Berhasil'
+                )
+            data_batch_vendor.rfi_no = rfi_no
+            data_batch_vendor.tanggal_mulai_sla = tanggal_mulai_sla
+            data_batch_vendor.tanggal_selesai_sla = tanggal_selesai_sla
+            
+            cek_status = [i for i, x in enumerate(
+                    data_batch_vendor.status) if x['status'] == 'Respon']
+            if not cek_status:
+                status_respon = {'status': 'Respon', 'tanggal_pembuatan': datetime.utcnow(
+                        ) + timedelta(hours=7)}
+                data_batch_vendor.status.append(status_respon)
+            data_batch_vendor.save()
+
+            filename = fs.save(file.name, file)
+            file_path = fs.url(filename)
+            doc = document_batch_vendor(
+                name=file.name,
+                path=file_path,
+                create_date=datetime.utcnow() + timedelta(hours=7),
+                update_date=datetime.utcnow() + timedelta(hours=7)
             )
+            doc.save()
 
-        try:
-            data_batch_vendor = batch_vendor.objects.get(batch_id=ObjectId(batchid), vendor=ObjectId(comp.id))
-        except batch_vendor.DoesNotExist:
-            return Response.ok(message='Batch tidak ada')
+            data_batch_vendor.rfi_doc = ObjectId(doc.id)
+            data_batch_vendor.updated_at = datetime.utcnow() + timedelta(hours=7)
+            data_batch_vendor.save()
 
-        cek_status = [i for i, x in enumerate(
-            data_batch_vendor.status) if x['status'] == 'Respon']
-        if cek_status:
-            result = data_batch_vendor.serialize()
+            result = batch_vendor.objects.get(id=ObjectId(data_batch_vendor.id)).serialize()
+            
             return Response.ok(
                 values=result,
                 message='Berhasil'
             )
-        data_batch_vendor.rfi_no = rfi_no
-        data_batch_vendor.tanggal_mulai_sla = tanggal_mulai_sla
-        data_batch_vendor.tanggal_selesai_sla = tanggal_selesai_sla
-        
+        except Exception as e:
+            return Response.badRequest(message=str(e))
+
+    else:
+        return Response.badRequest(message='Hanya POST')
+
+def penawaran(request):
+    # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
+    # ret, user = authenticate_credentials(token)
+    # if False == ret or None == user:
+    #    return JsonResponse({"state": "fail"})
+    if request.method == "POST":  # Add
+        #try:
+        body_data = json.loads(request.body)
+
+        #vendor = body_data.get('company')
+        #batchid = body_data.get('batch')
+
+        id_ = body_data.get('id')
+
+        rekomen_tek = body_data.get('teknologi')
+        tanggal_mulai_material = body_data.get('tanggal_mulai_material')
+        tanggal_selesai_material = body_data.get('tanggal_selesai_material')
+        tanggal_mulai_installation = body_data.get('tanggal_mulai_installation')
+        tanggal_selesai_installation = body_data.get('tanggal_selesai_installation')
+        tanggal_mulai_onair = body_data.get('tanggal_mulai_onair')
+        tanggal_selesai_onair = body_data.get('tanggal_selesai_onair')
+        tanggal_mulai_ir = body_data.get('tanggal_mulai_ir')
+        tanggal_selesai_ir = body_data.get('tanggal_selesai_ir')
+
+        try:
+            data_site_vendor = site_vendor.objects.get(id=ObjectId(id_))
+        except site_vendor.DoesNotExist:
+            return Response.ok(message='Site tidak ada')
+
         cek_status = [i for i, x in enumerate(
-                data_batch_vendor.status) if x['status'] == 'Respon']
-        if not cek_status:
-            status_respon = {'status': 'Respon', 'tanggal_pembuatan': datetime.utcnow(
-                    ) + timedelta(hours=7)}
-            data_batch_vendor.status.append(status_respon)
-        data_batch_vendor.save()
+            data_site_vendor.status) if x['status'] == 'Penawaran']
+        if cek_status:
+            result = data_site_vendor.serialize()
+            return Response.ok(
+                values=result,
+                message='Berhasil'
+            )
+        data_site_vendor.rekomen_teknologi = rekomen_tek
+        data_site_vendor.tanggal_mulai_material = tanggal_mulai_material
+        data_site_vendor.tanggal_selesai_material = tanggal_selesai_material
+        data_site_vendor.tanggal_mulai_installation = tanggal_mulai_installation
+        data_site_vendor.tanggal_selesai_installation = tanggal_selesai_installation
+        data_site_vendor.tanggal_mulai_onair = tanggal_mulai_onair
+        data_site_vendor.tanggal_selesai_onair = tanggal_selesai_onair
+        data_site_vendor.tanggal_mulai_ir = tanggal_mulai_ir
+        data_site_vendor.tanggal_selesai_ir = tanggal_selesai_ir
+        
+        #cek_status = [i for i, x in enumerate(
+        #        data_batch_vendor.status) if x['status'] == 'Respon']
+        #if not cek_status:
+        status_ = {'status': 'Penawaran', 'tanggal_pembuatan': datetime.utcnow(
+            ) + timedelta(hours=7)}
+        data_site_vendor.status.append(status_)
+        #data_site_vendor.save()
 
-        filename = fs.save(file.name, file)
-        file_path = fs.url(filename)
-        doc = document_batch_vendor(
-            name=file.name,
-            path=file_path,
-            create_date=datetime.utcnow() + timedelta(hours=7),
-            update_date=datetime.utcnow() + timedelta(hours=7)
-        )
-        doc.save()
+        data_site_vendor.updated_at = datetime.utcnow() + timedelta(hours=7)
+        data_site_vendor.save()
 
-        data_batch_vendor.rfi_doc = ObjectId(doc.id)
-        data_batch_vendor.updated_at = datetime.utcnow() + timedelta(hours=7)
-        data_batch_vendor.save()
+        #try:
+        #        data_batch_vendor = batch_vendor.objects.get(batch_id=ObjectId(batchid), vendor=ObjectId(comp.id))
+        #    except batch_vendor.DoesNotExist:
+        #        return Response.ok(message='Batch tidak ada')
 
-        result = batch_vendor.objects.get(id=ObjectId(data_batch_vendor.id)).serialize()
+        result = site_vendor.objects.get(id=ObjectId(data_site_vendor.id)).serialize()
         
         return Response.ok(
             values=result,
@@ -117,6 +192,7 @@ def respon(request):
 
     else:
         return Response.badRequest(message='Hanya POST')
+
 
 def getbatch(request):
     # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
