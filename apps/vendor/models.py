@@ -25,7 +25,24 @@ class document_batch_vendor(Document):
             "create_date": self.create_date,
             "update_date": self.update_date,
         }
-
+"""
+nomor = StringField(required=True, unique=True)
+    judul = StringField(required=True)
+    type = StringField(required=True, choices=[
+                         'VIP', 'Non-VIP'], default='Non-VIP')
+    sites = ListField(ReferenceField(site_location))
+    creator = StringField(required=True)
+    rfi_no = StringField(required=True)
+    rfi_doc = ReferenceField(document_batch)
+    tanggal_mulai_undangan = DateTimeField(
+        default=datetime.utcnow() + timedelta(hours=7))
+    tanggal_selesai_undangan = DateTimeField(
+        default=datetime.utcnow() + timedelta(hours=7))
+    tanggal_mulai_kerja = DateTimeField(
+        default=datetime.utcnow() + timedelta(hours=7))
+    tanggal_selesai_kerja = DateTimeField(
+        default=datetime.utcnow() + timedelta(hours=7))
+"""
 class batch_vendor(Document):
     vendor = ReferenceField(company)
     batch_id = ReferenceField(batch)

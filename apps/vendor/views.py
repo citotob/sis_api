@@ -199,16 +199,16 @@ def getbatch(request):
     # ret, user = authenticate_credentials(token)
     # if False == ret or None == user:
     #    return JsonResponse({"state": "fail"})
-    #body_data = json.loads(request.body)
+    body_data = json.loads(request.body)
     #batch_id = body_data.get('batch')
-    #vendor_id = body_data.get('vendor')
+    vendor_id = body_data.get('penyedia')
 
     #page = int(body_data.get('page', 0)) - 1
     #skip = []
     #if page >= 0:
     #    skip = [{'$skip': 20 * page},
     #            {'$limit': 20}]
-
+    """
     pipeline = [
         {
             '$lookup': {
@@ -245,11 +245,54 @@ def getbatch(request):
             }
         }
     ]
-
+    """
+    pipeline = [
+        {
+            '$lookup': {
+                'from': 'site_vendor', 
+                'localField': '_id', 
+                'foreignField': 'batch_id', 
+                'as': 'site_vendor'
+            }
+        }, {
+            '$unwind': {
+                'path': '$site_vendor'
+            }
+        }, {
+            '$match': {
+                'site_vendor.vendor': ObjectId(vendor_id)
+            }
+        }, {
+            '$project': {
+                'judul': '$judul', 
+                'rfiNo': '$rfi_no', 
+                'tanggal_mulai_undangan': '$tanggal_mulai_undangan', 
+                'tanggal_selesai_undangan': '$tanggal_selesai_undangan'
+            }
+        }, {
+            '$group': {
+                '_id': '$judul', 
+                'rfi_no': {
+                    '$first': '$rfiNo'
+                }, 
+                'tanggal_mulai_undangan': {
+                    '$first': '$tanggal_mulai_undangan'
+                }, 
+                'tanggal_selesai_undangan': {
+                    '$first': '$tanggal_selesai_undangan'
+                }, 
+                'jumlahTitik': {
+                    '$sum': 1
+                }
+            }
+        }
+    ]
     pipe = pipeline #+ skip
     agg_cursor = batch.objects.aggregate(*pipe)
 
     batch_list = list(agg_cursor)
+
+    #for btc in batch_list:
 
     if len(batch_list) > 0:
         return Response.ok(
