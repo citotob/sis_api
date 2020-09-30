@@ -304,3 +304,73 @@ def getbatch(request):
             values=[],
             message='Data tidak ada'
         )
+
+def getsite(request):
+    # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
+    # ret, user = authenticate_credentials(token)
+    # if False == ret or None == user:
+    #    return JsonResponse({"state": "fail"})
+    body_data = json.loads(request.body)
+    #batch_id = body_data.get('batch')
+    vendor_id = body_data.get('penyedia')
+
+    pipeline = [
+        {
+        '$lookup': {
+            'from': 'site_vendor', 
+            'localField': '_id', 
+            'foreignField': 'batch_id', 
+            'as': 'site_vendor'
+        }
+    }, {
+        '$unwind': {
+            'path': '$site_vendor'
+        }
+    }, {
+        '$match': {
+            'site_vendor.vendor': ObjectId('5f72abf33113499853fef31b'), 
+            'site_vendor.batch_id': ObjectId('5f72c85a9b06082354daa321')
+        }
+    }, {
+        '$project': {
+            'judul': '$judul', 
+            'rfiNo': '$rfi_no', 
+            'tanggal_mulai_undangan': '$tanggal_mulai_undangan', 
+            'tanggal_selesai_undangan': '$tanggal_selesai_undangan'
+        }
+    }, {
+        '$group': {
+            '_id': '$judul', 
+            'rfi_no': {
+                '$first': '$rfiNo'
+            }, 
+            'tanggal_mulai_undangan': {
+                '$first': '$tanggal_mulai_undangan'
+            }, 
+            'tanggal_selesai_undangan': {
+                '$first': '$tanggal_selesai_undangan'
+            }, 
+            'jumlahTitik': {
+                '$sum': 1
+            }
+        }
+    }
+
+    ]
+    pipe = pipeline #+ skip
+    agg_cursor = site_vendor.objects.aggregate(*pipe)
+
+    site_list = list(agg_cursor)
+
+    #for btc in batch_list:
+
+    if len(site_list) > 0:
+        return Response.ok(
+            values=json.loads(json.dumps(site_list, default=str)),
+            message=f'{len(site_list)} Data'
+        )
+    else:
+        return Response.ok(
+            values=[],
+            message='Data tidak ada'
+        )

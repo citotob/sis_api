@@ -8,4 +8,5 @@ urlpatterns = [
     path('respon/', views.respon),
     path('penawaran/', views.penawaran),
     path('getbatch/', views.getbatch),
+    path('getsite/', views.getsite),
 ]
