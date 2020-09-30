@@ -149,8 +149,10 @@ def getUserByRole(request):
 
 def getUser(request):
     # try:
-    param = request.GET.get('status', None)
-    page = int(request.GET.get('page', 0)) - 1
+    body_data = json.loads(request.body)
+    
+    param = body_data.get('status', None)
+    page = int(body_data.get('page', 0)) - 1
     skip = []
     if page >= 0:
         skip = [{'$skip': 20 * page},
