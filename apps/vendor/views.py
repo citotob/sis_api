@@ -199,37 +199,54 @@ def getbatch(request):
     # ret, user = authenticate_credentials(token)
     # if False == ret or None == user:
     #    return JsonResponse({"state": "fail"})
-    body_data = json.loads(request.body)
-    batch_id = body_data.get('batch')
+    #body_data = json.loads(request.body)
+    #batch_id = body_data.get('batch')
+    #vendor_id = body_data.get('vendor')
 
-    page = int(body_data.get('page', 0)) - 1
-    skip = []
-    if page >= 0:
-        skip = [{'$skip': 20 * page},
-                {'$limit': 20}]
+    #page = int(body_data.get('page', 0)) - 1
+    #skip = []
+    #if page >= 0:
+    #    skip = [{'$skip': 20 * page},
+    #            {'$limit': 20}]
 
     pipeline = [
         {
-            '$match': {
-                '_id': ObjectId(batch_id)
-            }
-        }, 
-        {
             '$lookup': {
-                'from': 'site_location', 
-                'localField': 'sites', 
-                'foreignField': '_id', 
-                'as': 'sitelist'
+                'from': 'batch_vendor', 
+                'localField': '_id', 
+                'foreignField': 'batch_id', 
+                'as': 'batchVendor'
             }
         }, {
             '$unwind': {
-                'path': '$sitelist', 
-                'preserveNullAndEmptyArrays': True
+                'path': '$batchVendor'
+            }
+        }, {
+            '$lookup': {
+                'from': 'site_vendor', 
+                'localField': 'batchVendor.batch_id', 
+                'foreignField': 'batch_id', 
+                'as': 'siteVendor'
+            }
+        }, {
+            '$unwind': {
+                'path': '$siteVendor'
+            }
+        }, {
+            '$lookup': {
+                'from': 'site_location', 
+                'localField': 'siteVendor.site_id', 
+                'foreignField': '_id', 
+                'as': 'siteLocation'
+            }
+        }, {
+            '$unwind': {
+                'path': '$siteLocation'
             }
         }
     ]
 
-    pipe = pipeline + skip
+    pipe = pipeline #+ skip
     agg_cursor = batch.objects.aggregate(*pipe)
 
     batch_list = list(agg_cursor)

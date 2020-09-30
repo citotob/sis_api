@@ -10,25 +10,6 @@ from datetime import timedelta ,datetime
 #from userinfo.models import UserInfo, Surveyor, JenisSurvey
 from sites.models import batch, site_location
 
-class company(Document):
-    name = StringField(required=True, unique=True)
-    #jenissurvey = ReferenceField(JenisSurvey)
-    created_at = DateTimeField(
-        default=datetime.utcnow() + timedelta(hours=7))
-    updated_at = DateTimeField(
-        default=datetime.utcnow() + timedelta(hours=7))
-    #meta = {
-    #    'indexes': [
-    #        {'fields': ('name'), 'unique': True}
-    #    ]
-    #}
-
-    def serialize(self):
-        return {
-            'id': str(self.id),
-            'name': str(self.name),
-        }
-
 class document_batch_vendor(Document):
     name = StringField()
     path = StringField()

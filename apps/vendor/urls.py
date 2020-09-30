@@ -7,4 +7,5 @@ urlpatterns = [
     # path('login/', tokenview.obtain_auth_token),
     path('respon/', views.respon),
     path('penawaran/', views.penawaran),
+    path('getbatch/', views.getbatch),
 ]

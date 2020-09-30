@@ -10,37 +10,30 @@ from django.contrib.auth.models import AbstractUser
 import random
 
 
-# Create your models here.
-class JenisSurvey(Document):
-    #user = ReferenceField(UserInfo)
-    user = StringField(required=False)
-    jenis = StringField(required=True)
+class company(Document):
+    name = StringField(required=True, unique=True)
+    teknologi = ListField()
+    latitude = StringField(required=True)
+    longitude = StringField(required=True)
+    nilai = FloatField()
+    created_at = DateTimeField(
+        default=datetime.utcnow() + timedelta(hours=7))
+    updated_at = DateTimeField(
+        default=datetime.utcnow() + timedelta(hours=7))
+    #meta = {
+    #    'indexes': [
+    #        {'fields': ('name'), 'unique': True}
+    #    ]
+    #}
 
     def serialize(self):
         return {
             'id': str(self.id),
-            #'user': str(self.user),
-            'jenis': str(self.jenis),
-        }
-
-class Surveyor(Document):
-    #user = ReferenceField(UserInfo)
-    #user = StringField(required=False)
-    name = StringField(required=True)
-    jenissurvey = ReferenceField(JenisSurvey)
-
-    meta = {
-        'indexes': [
-            {'fields': ('name', 'jenissurvey'), 'unique': True}
-        ]
-    }
-
-    def serialize(self):
-        return {
-            'id': str(self.id),
-            #'user': str(self.user),
-            'jenissurvey': self.jenissurvey.serialize(),
             'name': str(self.name),
+            'teknologi': self.teknologi,
+            'latitude': self.latitude,
+            'longitude': self.longitude,
+            'nilai': str(self.nilai),
         }
 
 class UserRole(Document):
@@ -80,10 +73,10 @@ class DocumentUser(Document):
 class UserInfo(Document):
     username = StringField(required=True, unique=True)
     password = StringField(required=True)
-    name = StringField(required=True)
-    organization = ReferenceField(Surveyor)
+    name = StringField(required=True, default='-')
+    company = ReferenceField(company)
     email = StringField(required=True, unique=True)
-    phone = StringField(required=True)
+    phone = StringField(required=True, default='-')
     status = StringField(required=True, choices=[
                          'requested', 'verified', 'declined'], default='requested')
     comment = StringField(required=False)
@@ -103,25 +96,14 @@ class UserInfo(Document):
             "id": str(self.id),
             "username": self.username,
             "name": self.name,
-            "organization": self.organization.serialize(),
+            "company": self.company.serialize(),
             "email": self.email,
             "phone": self.phone,
             "status": self.status,
             "comment": self.comment,
-            #"surveyor": self.surveyor,
             "role": self.role.serialize(),
             "doc": self.doc.serialize(),
         }
-
-    # def hashPassword(self, password):
-    #    return make_password(password, settings.SECRET_KEY)
-
-    # def checkPassword(self, password):
-    #    return check_password(password, self.password, 'pbkdf2_sha256')
-
-    # def clean(self):
-    #     self.password = self.hashPassword(self.password)
-    #     print(self.checkPassword(self.password))
 
 
 class UserToken(Document):
