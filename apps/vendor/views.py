@@ -311,51 +311,37 @@ def getsite(request):
     # if False == ret or None == user:
     #    return JsonResponse({"state": "fail"})
     body_data = json.loads(request.body)
-    #batch_id = body_data.get('batch')
+    batch_id = body_data.get('batch')
     vendor_id = body_data.get('penyedia')
 
     pipeline = [
         {
-        '$lookup': {
-            'from': 'site_vendor', 
-            'localField': '_id', 
-            'foreignField': 'batch_id', 
-            'as': 'site_vendor'
-        }
-    }, {
-        '$unwind': {
-            'path': '$site_vendor'
-        }
-    }, {
-        '$match': {
-            'site_vendor.vendor': ObjectId('5f72abf33113499853fef31b'), 
-            'site_vendor.batch_id': ObjectId('5f72c85a9b06082354daa321')
-        }
-    }, {
-        '$project': {
-            'judul': '$judul', 
-            'rfiNo': '$rfi_no', 
-            'tanggal_mulai_undangan': '$tanggal_mulai_undangan', 
-            'tanggal_selesai_undangan': '$tanggal_selesai_undangan'
-        }
-    }, {
-        '$group': {
-            '_id': '$judul', 
-            'rfi_no': {
-                '$first': '$rfiNo'
-            }, 
-            'tanggal_mulai_undangan': {
-                '$first': '$tanggal_mulai_undangan'
-            }, 
-            'tanggal_selesai_undangan': {
-                '$first': '$tanggal_selesai_undangan'
-            }, 
-            'jumlahTitik': {
-                '$sum': 1
+            '$lookup': {
+                'from': 'site_location', 
+                'localField': 'site_id', 
+                'foreignField': '_id', 
+                'as': 'site_location'
+            }
+        }, {
+            '$unwind': {
+                'path': '$site_location'
+            }
+        }, {
+            '$match': {
+                'vendor': ObjectId(vendor_id), 
+                'batch_id': ObjectId(batch_id)
+            }
+        }, {
+            '$project': {
+                'kodeTitik': '$site_location.kode_pos', 
+                'provinsi': '$site_location.provinsi', 
+                'kabupaten/kota': '$site_location.kabupaten', 
+                'kecamatan': '$site_location.kecamatan', 
+                'desa': '$site_location.desa', 
+                'longitude': '$site_location.longitude', 
+                'latitude': '$site_location.latitude'
             }
         }
-    }
-
     ]
     pipe = pipeline #+ skip
     agg_cursor = site_vendor.objects.aggregate(*pipe)
