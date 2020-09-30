@@ -7,7 +7,7 @@ from mongoengine import signals
 import datetime
 from bson import ObjectId
 from datetime import timedelta ,datetime
-#from userinfo.models import UserInfo, Surveyor, JenisSurvey
+from userinfo.models import *
 from sites.models import batch, site_location
 
 class document_batch_vendor(Document):

@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from sites.models import *
 from vendor.models import *
-#from userinfo.models import batch
+from userinfo.models import *
 from userinfo.views import authenticate_credentials
 from django.dispatch import receiver
 from django.db.models.signals import post_save

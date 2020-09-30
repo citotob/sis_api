@@ -12,7 +12,7 @@ urlpatterns = [
     path('getbyrole/', views.getUserByRole),
     path('verify/', views.verifyUser),
     path('decline/', views.declineUser),
-    path('removeuser/', views.removeuser),
+    path('remove/', views.removeuser),
     path('regist/', views.register),  # register
     # path('register/', views.register),  # register
     path('addrole/', views.createRole),
