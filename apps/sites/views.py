@@ -818,7 +818,7 @@ def editbatch(request):
         result = batch.objects.get(id=ObjectId(data_batch.id)).serialize()
         #result = data_batch.serialize()
         
-        #serializer = BatchSerializer(data_batch)
+        #serializer = BatchSerializer(result,many=True)
         #result = serializer.data
         
         return Response.ok(

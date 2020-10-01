@@ -8,6 +8,8 @@ import datetime
 from bson import ObjectId
 from datetime import timedelta ,datetime
 from userinfo.models import UserInfo, company
+from rest_framework_mongoengine import serializers as drfm_serializers
+from rest_framework import serializers as drf_serializers
 """
 class company(Document):
     name = StringField(required=True, unique=True)
@@ -259,20 +261,29 @@ class batch(Document):
     #}
     
     def serialize(self):
+        print(len(self.penyedia_undang))
+        penyedia_=[]
+        for pu in self.penyedia_undang:
+            penyedia_.append(pu.serialize())
+        penyedia_k=[]
+        for pk in self.penyedia_kerja:
+            penyedia_k.append(pk.serialize())
         return {
             'id': str(self.id),
             'nomor': self.nomor,
             'judul': self.judul,
             'type': self.type,
-            'creator': self.creator,
+            'creator': self.creator.serialize(),
             'rfi_no': self.rfi_no,
             'rfi_doc': self.rfi_doc.serialize(),
             'tanggal_mulai_undangan': str(self.tanggal_mulai_undangan),
             'tanggal_selesai_undangan': str(self.tanggal_selesai_undangan),
             'tanggal_mulai_kerja': str(self.tanggal_mulai_kerja),
             'tanggal_selesai_kerja': str(self.tanggal_selesai_kerja),
-            'penyedia_undang': self.penyedia_undang,
-            'penyedia_kerja': self.penyedia_kerja,
+            'penyedia_undang': penyedia_,
+            #'penyedia_undang': drf_serializers.ListField(child=self.penyedia_undang),
+            #'penyedia_kerja': drf_serializers.ListField(child=self.penyedia_kerja),
+            'penyedia_kerja': penyedia_k,
             'status': self.status,
             'created_at': str(self.created_at),
             'updated_at': str(self.updated_at),

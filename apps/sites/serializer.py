@@ -6,7 +6,7 @@ class BatchSerializer(DocumentSerializer):
     class Meta:
         model = batch
         fields = '__all__'
-        #depth = 2
+        depth = 2
 
 class SiteSerializer(DocumentSerializer):
     class Meta:
