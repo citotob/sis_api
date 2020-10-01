@@ -7,7 +7,7 @@ from mongoengine import signals
 import datetime
 from bson import ObjectId
 from datetime import timedelta ,datetime
-#from userinfo.models import UserInfo, Surveyor, JenisSurvey
+from userinfo.models import UserInfo, company
 """
 class company(Document):
     name = StringField(required=True, unique=True)
@@ -233,7 +233,7 @@ class batch(Document):
     type = StringField(required=True, choices=[
                          'VIP', 'Non-VIP'], default='Non-VIP')
     sites = ListField(ReferenceField(site_location))
-    creator = StringField(required=True)
+    creator = ReferenceField(UserInfo)
     rfi_no = StringField(required=True)
     rfi_doc = ReferenceField(document_batch)
     tanggal_mulai_undangan = DateTimeField(
@@ -244,8 +244,8 @@ class batch(Document):
         default=datetime.utcnow() + timedelta(hours=7))
     tanggal_selesai_kerja = DateTimeField(
         default=datetime.utcnow() + timedelta(hours=7))
-    penyedia_undang = ListField()
-    penyedia_kerja = ListField()
+    penyedia_undang = ListField(ReferenceField(company))
+    penyedia_kerja = ListField(ReferenceField(company))
     status = ListField(required=True)
     created_at = DateTimeField(
         default=datetime.utcnow() + timedelta(hours=7))
