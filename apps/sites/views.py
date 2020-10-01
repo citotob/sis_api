@@ -719,7 +719,7 @@ def addsite(request):
 
                 for vn in data_batch.penyedia_undang:
                     try:
-                        comp = company.objects.get(id=ObjectId(vn))
+                        comp = company.objects.get(id=vn.id)
                     except company.DoesNotExist:
                         return Response.ok(
                             values=[],
