@@ -261,7 +261,6 @@ class batch(Document):
     #}
     
     def serialize(self):
-        print(len(self.penyedia_undang))
         penyedia_=[]
         for pu in self.penyedia_undang:
             penyedia_.append(pu.serialize())
