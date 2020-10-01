@@ -396,7 +396,7 @@ def uploadsite(request):
         rfi = body_data.get('rfi')
         type = body_data.get('type')
         creator = body_data.get('creator')
-        #penyedia_undang = body_data.get('penyedia_undang')
+        penyedia_undang = body_data.get('penyedia_undang')
 
         status_ = {'status': 'Dibuka', 'tanggal_pembuatan': datetime.utcnow(
                 ) + timedelta(hours=7)}
@@ -411,6 +411,7 @@ def uploadsite(request):
             print(e)
             nomor_batch = '1'.zfill(5)
 
+        vendor_list = penyedia_undang.split(",")
         data_batch = batch(
             nomor = nomor_batch,
             judul = judul,
@@ -422,13 +423,29 @@ def uploadsite(request):
             tanggal_selesai_undangan = tanggal_selesai_undangan,
             tanggal_mulai_kerja = tanggal_mulai_kerja,
             tanggal_selesai_kerja = tanggal_selesai_kerja,
-            #penyedia_undang = penyedia_undang.split(","),
+            penyedia_undang = penyedia_undang.split(","),
             created_at = datetime.utcnow() + timedelta(hours=7),
             updated_at = datetime.utcnow() + timedelta(hours=7)
         )
         data_batch.status.append(status_)
         data_batch.save()
 
+        for vn in vendor_list:
+            try:
+                comp = company.objects.get(id=ObjectId(vn))
+            except company.DoesNotExist:
+                return Response.ok(
+                    values=[],
+                    message='Penyedia tidak ada'
+                )
+            data_batch_vendor = batch_vendor(
+                vendor = comp.id,
+                batch_id = data_batch.id,
+                created_at = datetime.utcnow() + timedelta(hours=7),
+                updated_at = datetime.utcnow() + timedelta(hours=7)
+            )
+            data_batch_vendor.status.append(status_)
+            data_batch_vendor.save()
         req_fields = ['latitude', 'longitude','kecamatan']
         data_site_lok = site_location.objects.all().only(*req_fields)
         radius = 1.00 # in kilometer
@@ -536,6 +553,16 @@ def uploadsite(request):
 
                 data_batch.sites.append(ObjectId(data_site.id))
                 data_batch.save()
+
+                for vn in vendor_list:
+                    data_site_vendor = site_vendor(
+                        vendor = ObjectId(vn),
+                        batch_id = data_batch.id,
+                        site_id = ObjectId(data_site.id),
+                        created_at = datetime.utcnow() + timedelta(hours=7),
+                        updated_at = datetime.utcnow() + timedelta(hours=7)
+                    )
+                data_site_vendor.save()
             else:
                 lokasi_gagal += '{'+str(row[6].value)+', '+str(row[7].value)+'}, '
 
