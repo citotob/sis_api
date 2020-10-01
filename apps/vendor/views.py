@@ -130,7 +130,7 @@ def penawaran(request):
         #vendor = body_data.get('company')
         #batchid = body_data.get('batch')
 
-        id_ = body_data.get('id')
+        id_ = body_data.get('id_site')
 
         rekomen_tek = body_data.get('teknologi')
         tanggal_mulai_material = body_data.get('tanggal_mulai_material')
