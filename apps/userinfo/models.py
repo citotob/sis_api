@@ -10,7 +10,7 @@ from django.contrib.auth.models import AbstractUser
 import random
 
 
-class company(Document):
+class vendor(Document):
     name = StringField(required=True, unique=True)
     teknologi = ListField()
     latitude = StringField(required=True)

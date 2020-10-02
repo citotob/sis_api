@@ -10,6 +10,57 @@ from datetime import timedelta ,datetime
 from userinfo.models import *
 from sites.models import batch, site_location
 
+class rfi_doc(Document):
+    name = StringField()
+    path = StringField()
+    create_date = DateTimeField(
+        default=datetime.utcnow() + timedelta(hours=7))
+    update_date = DateTimeField(
+        default=datetime.utcnow() + timedelta(hours=7))
+
+    def serialize(self):
+        return {
+            "name": self.name,
+            "path": self.path,
+            "create_date": self.create_date,
+            "update_date": self.update_date,
+        }
+
+class rfi_score(Document):
+    rfi_doc = ReferenceField(rfi_doc)
+    rekomendasi_teknologi = StringField(required=True,default='-')
+    material_on_site = DateTimeField(default=datetime.utcnow() + timedelta(hours=7))
+    installation = DateTimeField(default=datetime.utcnow() + timedelta(hours=7))
+    on_air = DateTimeField(default=datetime.utcnow() + timedelta(hours=7))
+    integration = DateTimeField(default=datetime.utcnow() + timedelta(hours=7))
+    days_material_on_site = IntField(required=True,default=0)
+    days_installation = IntField(required=True,default=0)
+    days_on_air = IntField(required=True,default=0)
+    created_at = DateTimeField(default=datetime.utcnow() + timedelta(hours=7))
+    updated_at = DateTimeField(default=datetime.utcnow() + timedelta(hours=7))
+
+class vp_score(Document):
+  kecepatan = IntField(required=True,default=0)
+  ketepatan = IntField(required=True,default=0)
+  kualitas = IntField(required=True,default=0)
+  vendor = ReferenceField(vendor)
+
+class total_calc(Document):
+    rfi = IntField(required=True,default=0)
+    vp = IntField(required=True,default=0)
+    teknologi = IntField(required=True,default=0)
+    created_at = DateTimeField(default=datetime.utcnow() + timedelta(hours=7))
+    updated_at = DateTimeField(default=datetime.utcnow() + timedelta(hours=7))
+
+class vendor_application(Document):
+    users = ReferenceField(UserInfo)
+    rfi_score = ReferenceField(rfi_score)
+    vp_score = ReferenceField(vp_score)
+    total_calc = ReferenceField(total_calc)
+    rank = IntField(required=True,default=0)
+    created_at = DateTimeField(default=datetime.utcnow() + timedelta(hours=7))
+    updated_at = DateTimeField(default=datetime.utcnow() + timedelta(hours=7))
+
 class document_batch_vendor(Document):
     name = StringField()
     path = StringField()

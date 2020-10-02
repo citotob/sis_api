@@ -139,9 +139,15 @@ class desa(Document):
             'tanggal_perubahan': str(self.tanggal_perubahan),
         }
 
-class site_location(Document):
+class rekomendasi_teknologi(Document):
+  jarak_ODP = IntField(required=True,default=0)
+  teknologi = StringField(required=True,default='-')
+
+class site(Document):
+    unik_id = IntField(required=True,unique=True)
     latitude = StringField(required=True)
     longitude = StringField(required=True)
+    rekomendasi_teknologi = ReferenceField(rekomendasi_teknologi)
     nama = StringField(required=True)
     desa = ReferenceField(desa)
     kecamatan = ReferenceField(kecamatan)
@@ -149,6 +155,7 @@ class site_location(Document):
     kota = ReferenceField(kota)
     provinsi = ReferenceField(provinsi)
     kode_pos = StringField(required=True,default='00000')
+    site_matchmaking ListField(ReferenceField(site_matchmaking))
     created_at = DateTimeField(
         default=datetime.utcnow() + timedelta(hours=7))
     updated_at = DateTimeField(
@@ -209,7 +216,6 @@ class site_location(Document):
                 'created_at': self.created_at,
                 'updated_at': self.updated_at
             }
-    
 
 class document_batch(Document):
     name = StringField()
@@ -287,3 +293,10 @@ class batch(Document):
             'created_at': str(self.created_at),
             'updated_at': str(self.updated_at),
         }
+
+class site_matchmaking(Document):
+    site = ReferenceField(site)
+    batch = ReferenceField(batch)
+    applicants array [ref: > vendor_application.id]
+    created_at timestamp
+    updated_at timestamp
