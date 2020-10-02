@@ -432,8 +432,8 @@ def uploadsite(request):
 
         for vn in vendor_list:
             try:
-                comp = company.objects.get(id=ObjectId(vn))
-            except company.DoesNotExist:
+                comp = vendor.objects.get(id=ObjectId(vn))
+            except vendor.DoesNotExist:
                 return Response.ok(
                     values=[],
                     message='Penyedia tidak ada'
@@ -578,97 +578,114 @@ def addbatch(request):
     # if False == ret or None == user:
     #    return JsonResponse({"state": "fail"})
     if request.method == "POST":  # Add
-        try:
-            #file = request.FILES['doc']
-            #if not file:
-            #    return Response.badRequest(message='No File Upload')
+        #try:
+        file = request.FILES['doc']
+        if not file:
+            return Response.badRequest(message='Doc tidak boleh kosong')
+        fs = FileSystemStorage(
+            location=f'{settings.MEDIA_ROOT}/site/rfi/',
+            base_url=f'{settings.MEDIA_URL}/site/rfi/'
+        )
 
-            body_data = request.POST.dict()
+        body_data = request.POST.dict()
 
-            judul = body_data.get('judul')
-            tanggal_mulai_undangan = body_data.get('tanggal_mulai_undangan')
-            tanggal_selesai_undangan = body_data.get('tanggal_selesai_undangan')
-            if tanggal_selesai_undangan < tanggal_mulai_undangan:
-                return Response.badRequest(
-                    values='null',
-                    message='tanggal_selesai_undangan harus lebih besar dari tanggal_mulai_undangan'
-                )
+        judul = body_data.get('judul')
+        tanggal_mulai_undangan = body_data.get('tanggal_mulai_undangan')
+        tanggal_selesai_undangan = body_data.get('tanggal_selesai_undangan')
+        if tanggal_selesai_undangan < tanggal_mulai_undangan:
+            return Response.badRequest(
+                values='null',
+                message='tanggal_selesai_undangan harus lebih besar dari tanggal_mulai_undangan'
+            )
 
-            tanggal_mulai_kerja = body_data.get('tanggal_mulai_kerja')
-            if tanggal_mulai_kerja < tanggal_selesai_undangan:
-                return Response.badRequest(
-                    values='null',
-                    message='tanggal_mulai_kerja harus lebih besar dari tanggal_selesai_undangan'
-                )
-            tanggal_selesai_kerja = body_data.get('tanggal_selesai_kerja')
-            if tanggal_selesai_kerja < tanggal_mulai_kerja:
-                return Response.badRequest(
-                    values='null',
-                    message='tanggal_selesai_kerja harus lebih besar dari tanggal_mulai_kerja'
-                )
-            rfi = body_data.get('rfi')
-            type = body_data.get('type')
-            creator = body_data.get('creator')
-            penyedia_undang = body_data.get('penyedia_undang')
+        tanggal_mulai_kerja = body_data.get('tanggal_mulai_kerja')
+        if tanggal_mulai_kerja < tanggal_selesai_undangan:
+            return Response.badRequest(
+                values='null',
+                message='tanggal_mulai_kerja harus lebih besar dari tanggal_selesai_undangan'
+            )
+        tanggal_selesai_kerja = body_data.get('tanggal_selesai_kerja')
+        if tanggal_selesai_kerja < tanggal_mulai_kerja:
+            return Response.badRequest(
+                values='null',
+                message='tanggal_selesai_kerja harus lebih besar dari tanggal_mulai_kerja'
+            )
+        rfi = body_data.get('rfi')
+        type = body_data.get('type')
+        creator = body_data.get('creator')
+        #penyedia_undang = body_data.get('penyedia_undang')
 
-            status_ = {'status': 'Dibuka', 'tanggal_pembuatan': datetime.utcnow(
+        status_ = {'status': 'Dibuka', 'tanggal_pembuatan': datetime.utcnow(
                     ) + timedelta(hours=7)}
 
-            try:
-                #data_nomor_batch = batch.objects.latest('nomor')
-                data_nomor_batch = batch.objects.order_by('-nomor').first()
-                nomor_batch = int(data_nomor_batch.nomor) + 1
-                nomor_batch = str(nomor_batch).zfill(5)
-            #except:
-            except Exception as e:
-                print(e)
-                nomor_batch = '1'.zfill(5)
-
-            vendor_list = penyedia_undang.split(",")
-            data_batch = batch(
-                nomor = nomor_batch,
-                judul = judul,
-                type = type,
-                sites = [],
-                creator = creator,
-                rfi_no = rfi,
-                tanggal_mulai_undangan = tanggal_mulai_undangan,
-                tanggal_selesai_undangan = tanggal_selesai_undangan,
-                tanggal_mulai_kerja = tanggal_mulai_kerja,
-                tanggal_selesai_kerja = tanggal_selesai_kerja,
-                penyedia_undang = vendor_list,
-                created_at = datetime.utcnow() + timedelta(hours=7),
-                updated_at = datetime.utcnow() + timedelta(hours=7)
-            )
-            data_batch.status.append(status_)
-            data_batch.save()
-            
-            for vn in vendor_list:
-                try:
-                    comp = company.objects.get(id=ObjectId(vn))
-                except company.DoesNotExist:
-                    return Response.ok(
-                        values=[],
-                        message='Penyedia tidak ada'
-                    )
-                data_batch_vendor = batch_vendor(
-                    vendor = comp.id,
-                    batch_id = data_batch.id,
-                    created_at = datetime.utcnow() + timedelta(hours=7),
-                    updated_at = datetime.utcnow() + timedelta(hours=7)
-                )
-                data_batch_vendor.status.append(status_)
-                data_batch_vendor.save()
-            #results = batch.objects.get(id=ObjectId(data_batch.id))
-            serializer = BatchSerializer(data_batch)
-            result = serializer.data
-            
-            return Response.ok(
-                values=result,
-                message='Berhasil'
-            )
+        try:
+            #data_nomor_batch = batch.objects.latest('nomor')
+            data_nomor_batch = batch.objects.order_by('-nomor').first()
+            nomor_batch = int(data_nomor_batch.nomor) + 1
+            nomor_batch = str(nomor_batch).zfill(5)
+        #except:
         except Exception as e:
-            return Response.badRequest(message=str(e))
+            print(e)
+            nomor_batch = '1'.zfill(5)
+
+        #vendor_list = penyedia_undang.split(",")
+        data_batch = batch(
+            nomor = nomor_batch,
+            judul = judul,
+            type = type,
+            sites = [],
+            creator = creator,
+            rfi_no = rfi,
+            tanggal_mulai_undangan = tanggal_mulai_undangan,
+            tanggal_selesai_undangan = tanggal_selesai_undangan,
+            tanggal_mulai_kerja = tanggal_mulai_kerja,
+            tanggal_selesai_kerja = tanggal_selesai_kerja
+            #penyedia_undang = vendor_list,
+            #created_at = datetime.utcnow() + timedelta(hours=7),
+            #updated_at = datetime.utcnow() + timedelta(hours=7)
+        )
+        data_batch.status.append(status_)
+        data_batch.save()
+        
+        filename = fs.save(file.name, file)
+        file_path = fs.url(filename)
+        doc = document_batch(
+            name=file.name,
+            path=file_path
+            #create_date=datetime.utcnow() + timedelta(hours=7),
+            #update_date=datetime.utcnow() + timedelta(hours=7)
+        )
+        doc.save()
+
+        data_batch.rfi_doc = ObjectId(doc.id)
+        data_batch.save()
+
+        #for vn in vendor_list:
+        #    try:
+        #        comp = vendor.objects.get(id=ObjectId(vn))
+        #    except vendor.DoesNotExist:
+        #        return Response.ok(
+        #            values=[],
+        #            message='Penyedia tidak ada'
+        #        )
+        #    data_batch_vendor = batch_vendor(
+        #        vendor = comp.id,
+        #        batch_id = data_batch.id,
+        #        created_at = datetime.utcnow() + timedelta(hours=7),
+        #        updated_at = datetime.utcnow() + timedelta(hours=7)
+        #    )
+        #    data_batch_vendor.status.append(status_)
+        #    data_batch_vendor.save()
+        result = batch.objects.get(id=ObjectId(data_batch.id)).serialize()
+        #serializer = BatchSerializer(data_batch)
+        #result = serializer.data
+        
+        return Response.ok(
+            values=result,
+            message='Berhasil'
+        )
+        #except Exception as e:
+        #    return Response.badRequest(message=str(e))
 
     else:
         return Response.badRequest(message='Hanya POST')
@@ -680,98 +697,93 @@ def addsite(request):
     # if False == ret or None == user:
     #    return JsonResponse({"state": "fail"})
     if request.method == "POST":  # Add
+        #try:
+        body_data = json.loads(request.body)
+
+        batch_id = body_data.get('batch')
+        nama = body_data.get('nama')
+        provinsi = body_data.get('provinsi')
+        kab_kota = body_data.get('kab_kota')
+        kecamatan = body_data.get('kecamatan')
+        desa = body_data.get('desa')
+        longitude = body_data.get('longitude')
+        latitude = body_data.get('latitude')
+        kode_pos = body_data.get('kode_pos')
+
+        req_fields = ['latitude', 'longitude','kecamatan']
+        data_site_lok = site.objects.all().only(*req_fields)
+        radius = 1.00 # in kilometer
+        
+        for dat in data_site_lok:
+            if dat.kecamatan.id != ObjectId(kecamatan):
+                continue
+            a = haversine(float(dat.longitude), float(dat.latitude), float(longitude), float(latitude))
+            #print(a)
+            if a <= radius:
+                return Response.ok(
+                    values=[],
+                    message='Data sudah ada'
+                )
+
         try:
-            body_data = json.loads(request.body)
-
-            batch_id = body_data.get('batch')
-            nama = body_data.get('nama')
-            provinsi = body_data.get('provinsi')
-            kab_kota = body_data.get('kab_kota')
-            kecamatan = body_data.get('kecamatan')
-            desa = body_data.get('desa')
-            longitude = body_data.get('longitude')
-            latitude = body_data.get('latitude')
-            kode_pos = body_data.get('kode_pos')
-
-            #try:
-            #data_site_lok = site_location.objects.filter(latitude=latitude, longitude=longitude)
-            #data_site_lok = site_location.objects.all()
-            #if len(data_site_lok)==0:
-            #    return Response.badRequest(message='Data sudah ada')
-            #except site_location.DoesNotExist:
-            #    return Response.badRequest(message='Data sudah ada')
-            req_fields = ['latitude', 'longitude','kecamatan']
-            data_site_lok = site_location.objects.all().only(*req_fields)
-            radius = 1.00 # in kilometer
-            
-            for dat in data_site_lok:
-                if dat.kecamatan.id != ObjectId(kecamatan):
-                    continue
-                a = haversine(float(dat.longitude), float(dat.latitude), float(longitude), float(latitude))
-                #print(a)
-                if a <= radius:
-                    return Response.ok(
-                        values=[],
-                        message='Data sudah ada'
-                    )
-
-            try:
-                data_kabupaten = kabupaten.objects.get(id=kab_kota)
-                data_kab_kota = 'kab'
-            except kabupaten.DoesNotExist:
-                data_kabupaten = kota.objects.get(id=kab_kota)
-                data_kab_kota = 'kota'
-            
-            data_site = site_location(
-                latitude = latitude,
-                longitude = longitude,
-                nama = nama,
-                desa = ObjectId(desa),
-                kecamatan = ObjectId(kecamatan),
-                provinsi = ObjectId(provinsi),
-                kode_pos = kode_pos,
-                created_at = datetime.utcnow() + timedelta(hours=7),
-                updated_at = datetime.utcnow() + timedelta(hours=7)
-            )
-            if data_kab_kota == 'kab':
-                data_site.kabupaten = data_kabupaten.id
-            else:
-                data_site.kota = data_kabupaten.id
-            data_site.save()
-
-            try:
-                data_batch = batch.objects.get(id=ObjectId(batch_id))
-                data_batch.sites.append(ObjectId(data_site.id))
-                data_batch.save()
-
-                for vn in data_batch.penyedia_undang:
-                    try:
-                        comp = company.objects.get(id=vn.id)
-                    except company.DoesNotExist:
-                        return Response.ok(
-                            values=[],
-                            message='Penyedia tidak ada'
-                        )
-                    data_site_vendor = site_vendor(
-                        vendor = comp.id,
-                        batch_id = data_batch.id,
-                        site_id = ObjectId(data_site.id),
-                        created_at = datetime.utcnow() + timedelta(hours=7),
-                        updated_at = datetime.utcnow() + timedelta(hours=7)
-                    )
-                    data_site_vendor.save()
-            except batch.DoesNotExist:
-                return Response.badRequest(message='Batch tidak ada')
-            results = site_location.objects.get(id=ObjectId(data_site.id))
-            
-            result = results.serialize()
-            
-            return Response.ok(
-                values=result,
-                message='Berhasil'
-            )
+            data_kabupaten = kabupaten.objects.get(id=kab_kota)
+            data_kab_kota = 'kab'
+        except kabupaten.DoesNotExist:
+            data_kabupaten = kota.objects.get(id=kab_kota)
+            data_kab_kota = 'kota'
+        
+        try:
+            data_nomor_site = site.objects.order_by('-unik_id').first()
+            nomor_site = int(data_nomor_site.nomor) + 1
+            nomor_site = str(nomor_site).zfill(5)
         except Exception as e:
-            return Response.badRequest(message=str(e))
+            print(e)
+            nomor_site = '1'.zfill(5)
+
+        data_site = site(
+            unik_id = nomor_site,
+            latitude = latitude,
+            longitude = longitude,
+            rekomendasi_teknologi = ObjectId('5f76db81f845e6b39081e278'),
+            nama = nama,
+            desa = ObjectId(desa),
+            kecamatan = ObjectId(kecamatan),
+            provinsi = ObjectId(provinsi),
+            kode_pos = kode_pos,
+            #created_at = datetime.utcnow() + timedelta(hours=7),
+            #updated_at = datetime.utcnow() + timedelta(hours=7)
+        )
+        if data_kab_kota == 'kab':
+            data_site.kabupaten = data_kabupaten.id
+        else:
+            data_site.kota = data_kabupaten.id
+        data_site.save()
+
+        data_site_matchmaking = site_matchmaking(
+            site = data_site.id,
+            batch = ObjectId(batch_id)
+        )
+        data_site_matchmaking.save()
+
+        data_site.site_matchmaking.append(data_site_matchmaking.id)
+        data_site.save()
+        try:
+            data_batch = batch.objects.get(id=ObjectId(batch_id))
+            data_batch.sites.append(ObjectId(data_site_matchmaking.id))
+            data_batch.save()
+        except batch.DoesNotExist:
+            return Response.badRequest(message='Batch tidak ada')
+        
+        results = site.objects.get(id=ObjectId(data_site.id))
+        
+        result = results.serialize()
+        
+        return Response.ok(
+            values=result,
+            message='Berhasil'
+        )
+        #except Exception as e:
+        #    return Response.badRequest(message=str(e))
 
     else:
         return Response.badRequest(message='Hanya POST')

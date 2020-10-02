@@ -1,7 +1,7 @@
 
 from django.shortcuts import render
 from django.http import JsonResponse
-from userinfo.models import UserInfo, UserRole, UserToken, DocumentUser, company, Message
+from userinfo.models import UserInfo, UserRole, UserToken, DocumentUser, vendor, Message
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.conf import settings
@@ -184,7 +184,7 @@ def getUser(request):
             }
         }, {
             '$lookup': {
-                'from': 'surveyor',
+                'from': 'vendor',
                 'localField': 'company',
                 'foreignField': '_id',
                 'as': 'company'
@@ -407,17 +407,17 @@ def register(request):
             )
             
             try:
-                data_company = company.objects.get(
+                data_vendor = vendor.objects.get(
                     name__iexact=request.POST.get('company'))
-            except company.DoesNotExist:
-                data_company = company(
+            except vendor.DoesNotExist:
+                data_vendor = vendor(
                     name=request.POST.get('company'),
                     latitude='0',
                     longitude='0',
                     created_at=datetime.datetime.utcnow() + datetime.timedelta(hours=7),
                     updated_at=datetime.datetime.utcnow() + datetime.timedelta(hours=7)
                 )
-                data_company.save()
+                data_vendor.save()
             user = UserInfo(
                 name=request.POST.get('name'),
                 username=request.POST.get('username').lower(),
@@ -425,7 +425,7 @@ def register(request):
                     request.POST.get('password'), settings.SECRET_KEY, 'pbkdf2_sha256'),
                 email=request.POST.get('email').lower(),
                 phone=request.POST.get('phone'),
-                company=ObjectId(data_company.id),
+                company=ObjectId(data_vendor.id),
                 role=ObjectId(request.POST.get('role')),
                 create_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7),
                 update_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7)

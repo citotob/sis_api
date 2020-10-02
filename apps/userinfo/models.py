@@ -74,7 +74,7 @@ class UserInfo(Document):
     username = StringField(required=True, unique=True)
     password = StringField(required=True)
     name = StringField(required=True, default='-')
-    company = ReferenceField(company)
+    company = ReferenceField(vendor)
     email = StringField(required=True, unique=True)
     phone = StringField(required=True, default='-')
     status = StringField(required=True, choices=[

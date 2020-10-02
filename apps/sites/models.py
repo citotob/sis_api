@@ -7,7 +7,8 @@ from mongoengine import signals
 import datetime
 from bson import ObjectId
 from datetime import timedelta ,datetime
-from userinfo.models import UserInfo, company
+from userinfo.models import UserInfo, vendor
+from vendor.models import *
 from rest_framework_mongoengine import serializers as drfm_serializers
 from rest_framework import serializers as drf_serializers
 """
@@ -32,10 +33,8 @@ class company(Document):
 class provinsi(Document):
     #user = ReferenceField(UserInfo)
     name = StringField(required=True)
-    tanggal_pembuatan = DateTimeField(
-        default=(datetime.utcnow() + timedelta(hours=7)))
-    tanggal_perubahan = DateTimeField(
-        default=(datetime.utcnow() + timedelta(hours=7)))
+    tanggal_pembuatan = DateTimeField(required=True, default=datetime.now)
+    tanggal_perubahan = DateTimeField(required=True, default=datetime.now)
     prefix = StringField(required=True)
     meta = {
         'strict': False,
@@ -53,10 +52,8 @@ class provinsi(Document):
 class kabupaten(Document):
     name = StringField(required=True)
     provinsi = ReferenceField(provinsi)
-    tanggal_pembuatan = DateTimeField(
-        default=(datetime.utcnow() + timedelta(hours=7)))
-    tanggal_perubahan = DateTimeField(
-        default=(datetime.utcnow() + timedelta(hours=7)))
+    tanggal_pembuatan = DateTimeField(required=True, default=datetime.now)
+    tanggal_perubahan = DateTimeField(required=True, default=datetime.now)
 
     meta = {
         'strict': False,
@@ -75,10 +72,8 @@ class kabupaten(Document):
 class kota(Document):
     name = StringField(required=True)
     provinsi = ReferenceField(provinsi)
-    tanggal_pembuatan = DateTimeField(
-        default=(datetime.utcnow() + timedelta(hours=7)))
-    tanggal_perubahan = DateTimeField(
-        default=(datetime.utcnow() + timedelta(hours=7)))
+    tanggal_pembuatan = DateTimeField(required=True, default=datetime.now)
+    tanggal_perubahan = DateTimeField(required=True, default=datetime.now)
 
     meta = {
         'strict': False,
@@ -98,10 +93,8 @@ class kecamatan(Document):
     name = StringField(required=True)
     kabupaten = ReferenceField(kabupaten)
     kota = ReferenceField(kota)
-    tanggal_pembuatan = DateTimeField(
-        default=(datetime.utcnow() + timedelta(hours=7)))
-    tanggal_perubahan = DateTimeField(
-        default=(datetime.utcnow() + timedelta(hours=7)))
+    tanggal_pembuatan = DateTimeField(required=True, default=datetime.now)
+    tanggal_perubahan = DateTimeField(required=True, default=datetime.now)
 
     meta = {
         'strict': False,
@@ -121,10 +114,8 @@ class kecamatan(Document):
 class desa(Document):
     name = StringField(required=True)
     kecamatan = ReferenceField(kecamatan)
-    tanggal_pembuatan = DateTimeField(
-        default=(datetime.utcnow() + timedelta(hours=7)))
-    tanggal_perubahan = DateTimeField(
-        default=(datetime.utcnow() + timedelta(hours=7)))
+    tanggal_pembuatan = DateTimeField(required=True, default=datetime.now)
+    tanggal_perubahan = DateTimeField(required=True, default=datetime.now)
 
     meta = {
         'strict': False,
@@ -140,7 +131,7 @@ class desa(Document):
         }
 
 class rekomendasi_teknologi(Document):
-  jarak_ODP = IntField(required=True,default=0)
+  jarak_odp = IntField(required=True,default=0)
   teknologi = StringField(required=True,default='-')
 
 class site(Document):
@@ -155,11 +146,10 @@ class site(Document):
     kota = ReferenceField(kota)
     provinsi = ReferenceField(provinsi)
     kode_pos = StringField(required=True,default='00000')
-    site_matchmaking ListField(ReferenceField(site_matchmaking))
-    created_at = DateTimeField(
-        default=datetime.utcnow() + timedelta(hours=7))
-    updated_at = DateTimeField(
-        default=datetime.utcnow() + timedelta(hours=7))
+    #site_matchmaking = ListField(ReferenceField(site_matchmaking))
+    site_matchmaking = ListField()
+    created_at = DateTimeField(required=True, default=datetime.now)
+    updated_at = DateTimeField(required=True, default=datetime.now)
     #status = ListField(required=True)
     """
     def serialize(self):
@@ -220,10 +210,8 @@ class site(Document):
 class document_batch(Document):
     name = StringField()
     path = StringField()
-    create_date = DateTimeField(
-        default=datetime.utcnow() + timedelta(hours=7))
-    update_date = DateTimeField(
-        default=datetime.utcnow() + timedelta(hours=7))
+    create_date = DateTimeField(required=True, default=datetime.now)
+    update_date = DateTimeField(required=True, default=datetime.now)
 
     def serialize(self):
         return {
@@ -233,6 +221,7 @@ class document_batch(Document):
             "update_date": self.update_date,
         }
 
+
 class batch(Document):
     #sites = ListField(required=True)
     #creator = ReferenceField(users)
@@ -240,25 +229,20 @@ class batch(Document):
     judul = StringField(required=True)
     type = StringField(required=True, choices=[
                          'VIP', 'Non-VIP'], default='Non-VIP')
-    sites = ListField(ReferenceField(site_location))
+    #sites = ListField(ReferenceField(site_matchmaking))
+    sites = ListField()
     creator = ReferenceField(UserInfo)
     rfi_no = StringField(required=True)
     rfi_doc = ReferenceField(document_batch)
-    tanggal_mulai_undangan = DateTimeField(
-        default=datetime.utcnow() + timedelta(hours=7))
-    tanggal_selesai_undangan = DateTimeField(
-        default=datetime.utcnow() + timedelta(hours=7))
-    tanggal_mulai_kerja = DateTimeField(
-        default=datetime.utcnow() + timedelta(hours=7))
-    tanggal_selesai_kerja = DateTimeField(
-        default=datetime.utcnow() + timedelta(hours=7))
-    penyedia_undang = ListField(ReferenceField(company))
-    penyedia_kerja = ListField(ReferenceField(company))
+    tanggal_mulai_undangan = DateTimeField(required=True, default=datetime.now)
+    tanggal_selesai_undangan = DateTimeField(required=True, default=datetime.now)
+    tanggal_mulai_kerja = DateTimeField(required=True, default=datetime.now)
+    tanggal_selesai_kerja = DateTimeField(required=True, default=datetime.now)
+    #penyedia_undang = ListField(ReferenceField(vendor))
+    #penyedia_kerja = ListField(ReferenceField(vendor))
     status = ListField(required=True)
-    created_at = DateTimeField(
-        default=datetime.utcnow() + timedelta(hours=7))
-    updated_at = DateTimeField(
-        default=datetime.utcnow() + timedelta(hours=7))
+    created_at = DateTimeField(required=True, default=datetime.now)
+    updated_at = DateTimeField(required=True, default=datetime.now)
 
     #meta = {
     #    'indexes': [
@@ -267,12 +251,12 @@ class batch(Document):
     #}
     
     def serialize(self):
-        penyedia_=[]
-        for pu in self.penyedia_undang:
-            penyedia_.append(pu.serialize())
-        penyedia_k=[]
-        for pk in self.penyedia_kerja:
-            penyedia_k.append(pk.serialize())
+        #penyedia_=[]
+        #for pu in self.penyedia_undang:
+        #    penyedia_.append(pu.serialize())
+        #penyedia_k=[]
+        #for pk in self.penyedia_kerja:
+        #    penyedia_k.append(pk.serialize())
         return {
             'id': str(self.id),
             'nomor': self.nomor,
@@ -285,10 +269,10 @@ class batch(Document):
             'tanggal_selesai_undangan': str(self.tanggal_selesai_undangan),
             'tanggal_mulai_kerja': str(self.tanggal_mulai_kerja),
             'tanggal_selesai_kerja': str(self.tanggal_selesai_kerja),
-            'penyedia_undang': penyedia_,
+            #'penyedia_undang': penyedia_,
             #'penyedia_undang': drf_serializers.ListField(child=self.penyedia_undang),
             #'penyedia_kerja': drf_serializers.ListField(child=self.penyedia_kerja),
-            'penyedia_kerja': penyedia_k,
+            #'penyedia_kerja': penyedia_k,
             'status': self.status,
             'created_at': str(self.created_at),
             'updated_at': str(self.updated_at),
@@ -297,6 +281,6 @@ class batch(Document):
 class site_matchmaking(Document):
     site = ReferenceField(site)
     batch = ReferenceField(batch)
-    applicants array [ref: > vendor_application.id]
-    created_at timestamp
-    updated_at timestamp
+    applicants = ListField(ReferenceField(vendor_application))
+    created_at = DateTimeField(required=True, default=datetime.now)
+    updated_at = DateTimeField(required=True, default=datetime.now)

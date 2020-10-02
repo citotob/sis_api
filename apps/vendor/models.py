@@ -8,15 +8,13 @@ import datetime
 from bson import ObjectId
 from datetime import timedelta ,datetime
 from userinfo.models import *
-from sites.models import batch, site_location
+from sites.models import *
 
 class rfi_doc(Document):
     name = StringField()
     path = StringField()
-    create_date = DateTimeField(
-        default=datetime.utcnow() + timedelta(hours=7))
-    update_date = DateTimeField(
-        default=datetime.utcnow() + timedelta(hours=7))
+    create_date = DateTimeField(required=True, default=datetime.now)
+    update_date = DateTimeField(required=True, default=datetime.now)
 
     def serialize(self):
         return {
@@ -29,28 +27,28 @@ class rfi_doc(Document):
 class rfi_score(Document):
     rfi_doc = ReferenceField(rfi_doc)
     rekomendasi_teknologi = StringField(required=True,default='-')
-    material_on_site = DateTimeField(default=datetime.utcnow() + timedelta(hours=7))
-    installation = DateTimeField(default=datetime.utcnow() + timedelta(hours=7))
-    on_air = DateTimeField(default=datetime.utcnow() + timedelta(hours=7))
-    integration = DateTimeField(default=datetime.utcnow() + timedelta(hours=7))
+    material_on_site = DateTimeField(required=True, default=datetime.now)
+    installation = DateTimeField(required=True, default=datetime.now)
+    on_air = DateTimeField(required=True, default=datetime.now)
+    integration = DateTimeField(required=True, default=datetime.now)
     days_material_on_site = IntField(required=True,default=0)
     days_installation = IntField(required=True,default=0)
     days_on_air = IntField(required=True,default=0)
-    created_at = DateTimeField(default=datetime.utcnow() + timedelta(hours=7))
-    updated_at = DateTimeField(default=datetime.utcnow() + timedelta(hours=7))
+    created_at = DateTimeField(required=True, default=datetime.now)
+    updated_at = DateTimeField(required=True, default=datetime.now)
 
 class vp_score(Document):
-  kecepatan = IntField(required=True,default=0)
-  ketepatan = IntField(required=True,default=0)
-  kualitas = IntField(required=True,default=0)
-  vendor = ReferenceField(vendor)
+    kecepatan = IntField(required=True,default=0)
+    ketepatan = IntField(required=True,default=0)
+    kualitas = IntField(required=True,default=0)
+    vendor = ReferenceField(vendor)
 
 class total_calc(Document):
     rfi = IntField(required=True,default=0)
     vp = IntField(required=True,default=0)
     teknologi = IntField(required=True,default=0)
-    created_at = DateTimeField(default=datetime.utcnow() + timedelta(hours=7))
-    updated_at = DateTimeField(default=datetime.utcnow() + timedelta(hours=7))
+    created_at = DateTimeField(required=True, default=datetime.now)
+    updated_at = DateTimeField(required=True, default=datetime.now)
 
 class vendor_application(Document):
     users = ReferenceField(UserInfo)
@@ -58,9 +56,9 @@ class vendor_application(Document):
     vp_score = ReferenceField(vp_score)
     total_calc = ReferenceField(total_calc)
     rank = IntField(required=True,default=0)
-    created_at = DateTimeField(default=datetime.utcnow() + timedelta(hours=7))
-    updated_at = DateTimeField(default=datetime.utcnow() + timedelta(hours=7))
-
+    created_at = DateTimeField(required=True, default=datetime.now)
+    updated_at = DateTimeField(required=True, default=datetime.now)
+"""
 class document_batch_vendor(Document):
     name = StringField()
     path = StringField()
@@ -76,6 +74,7 @@ class document_batch_vendor(Document):
             "create_date": self.create_date,
             "update_date": self.update_date,
         }
+"""
 """
 nomor = StringField(required=True, unique=True)
     judul = StringField(required=True)
@@ -94,8 +93,9 @@ nomor = StringField(required=True, unique=True)
     tanggal_selesai_kerja = DateTimeField(
         default=datetime.utcnow() + timedelta(hours=7))
 """
+"""
 class batch_vendor(Document):
-    vendor = ReferenceField(company)
+    vendor = ReferenceField(vendor)
     batch_id = ReferenceField(batch)
     rfi_no = StringField(required=True,default='-')
     rfi_doc = ReferenceField(document_batch_vendor)
@@ -130,7 +130,7 @@ class batch_vendor(Document):
         }
 
 class site_vendor(Document):
-    vendor = ReferenceField(company)
+    vendor = ReferenceField(vendor)
     batch_id = ReferenceField(batch)
     site_id = ReferenceField(site_location)
     rekomen_teknologi = StringField(required=True,default='-')
@@ -181,3 +181,4 @@ class site_vendor(Document):
             'created_at': str(self.created_at),
             'updated_at': str(self.updated_at),
         }
+"""

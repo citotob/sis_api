@@ -60,8 +60,8 @@ def respon(request):
             #        message='Status sudah selesai'
             #    )
             try:
-                comp = company.objects.get(id=ObjectId(vendor))
-            except company.DoesNotExist:
+                comp = vendor.objects.get(id=ObjectId(vendor))
+            except vendor.DoesNotExist:
                 return Response.ok(
                     values=[],
                     message='Penyedia tidak ada'
