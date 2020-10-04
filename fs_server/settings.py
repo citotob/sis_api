@@ -70,9 +70,10 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_framework_mongoengine',
     'corsheaders',
-    'site',
     'userinfo',
-    'Location',
+    #'sites',
+    #'Location',
+    #'vendor',
     
     # 'configparser',
     'channels',

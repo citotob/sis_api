@@ -2,7 +2,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from sites.models import *
-from vendor.models import *
+#from vendor.models import *
 #from userinfo.models import batch
 from userinfo.views import authenticate_credentials
 from django.dispatch import receiver
@@ -37,69 +37,73 @@ def respon(request):
     # if False == ret or None == user:
     #    return JsonResponse({"state": "fail"})
     if request.method == "POST":  # Add
+        #try:
+        file = request.FILES['doc']
+        if not file:
+            return Response.badRequest(message='Doc tidak boleh kosong')
+        fs = FileSystemStorage(
+                location=f'{settings.MEDIA_ROOT}/site/rfi/',
+                base_url=f'{settings.MEDIA_URL}/site/rfi/'
+            )
+
+        body_data = request.POST.dict()
+
+        #vendor = body_data.get('company')
+        userid = body_data.get('userid')
+        batchid = body_data.get('batch')
+        rfi_no = body_data.get('rfi_no')
+        tanggal_mulai_sla = body_data.get('tanggal_mulai_sla')
+        tanggal_selesai_sla = body_data.get('tanggal_selesai_sla')
+
         try:
-            file = request.FILES['doc']
-            if not file:
-                return Response.badRequest(message='Doc tidak boleh kosong')
-            fs = FileSystemStorage(
-                    location=f'{settings.MEDIA_ROOT}/site/rfi/',
-                    base_url=f'{settings.MEDIA_URL}/site/rfi/'
-                )
-
-            body_data = request.POST.dict()
-
-            #vendor = body_data.get('company')
-            userid = body_data.get('userid')
-            batchid = body_data.get('batch')
-            rfi_no = body_data.get('rfi_no')
-            tanggal_mulai_sla = body_data.get('tanggal_mulai_sla')
-            tanggal_selesai_sla = body_data.get('tanggal_selesai_sla')
-
-            try:
-                data_user = UserInfo.objects.get(id=ObjectId(userid))
-            except UserInfo.DoesNotExist:
-                return Response.ok(
-                    values=[],
-                    message='User tidak ada'
-                )
-
-            data_vp_score = vp_score.objects.filter(vendor=ObjectId(data_user.company.id)).first()
-            if not data_vp_score:
-                return Response.ok(
-                    values=[],
-                    message='vp_score tidak ada'
-                )
-            data_vendor_application = vendor_application(
-                users=userid,
-                vp_score = data_vp_score.id,
-                rank = 1,
-                rfi_no = rfi_no,
-                tanggal_mulai_sla = tanggal_mulai_sla,
-                tanggal_akhir_sla = tanggal_selesai_sla
-            )
-
-            data_vendor_application.save()
-
-            filename = fs.save(file.name, file)
-            file_path = fs.url(filename)
-            doc = rfi_doc(
-                name=file.name,
-                path=file_path
-            )
-            doc.save()
-
-            data_vendor_application.rfi_doc = ObjectId(doc.id)
-            data_vendor_application.save()
-
-            data_result = vendor_application.objects.get(id=ObjectId(data_vendor_application.id))#.serialize()
-            serializer = vendor_applicationSerializer(data_result)
-            result = serializer.data
+            data_user = UserInfo.objects.get(id=ObjectId(userid))
+        except UserInfo.DoesNotExist:
             return Response.ok(
-                values=result,
-                message='Berhasil'
+                values=[],
+                message='User tidak ada'
             )
-        except Exception as e:
-            return Response.badRequest(message=str(e))
+
+        data_vp_score = vp_score.objects.filter(vendorid=ObjectId(data_user.company.id)).first()
+        if not data_vp_score:
+            return Response.ok(
+                values=[],
+                message='vp_score tidak ada'
+            )
+        data_vendor_application = vendor_application(
+            users=userid,
+            vendorid=data_user.company,
+            batchid=ObjectId(batchid),
+            vp_score_id = data_vp_score.id,
+            rank = 1,
+            rfi_no = rfi_no,
+            tanggal_mulai_sla = tanggal_mulai_sla,
+            tanggal_akhir_sla = tanggal_selesai_sla
+        )
+
+        data_vendor_application.save()
+
+        filename = fs.save(file.name, file)
+        file_path = fs.url(filename)
+        doc = rfi_doc(
+            name=file.name,
+            path=file_path
+        )
+        doc.save()
+
+        data_vendor_application.rfi_doc = ObjectId(doc.id)
+        data_vendor_application.save()
+
+        #data_smm = site_matchmaking.objects.(batch=batchid)
+
+        data_result = vendor_application.objects.get(id=ObjectId(data_vendor_application.id))#.serialize()
+        serializer = vendor_applicationResponSerializer(data_result)
+        result = serializer.data
+        return Response.ok(
+            values=result,
+            message='Berhasil'
+        )
+        #except Exception as e:
+        #    return Response.badRequest(message=str(e))
 
     else:
         return Response.badRequest(message='Hanya POST')
@@ -116,8 +120,9 @@ def penawaran(request):
         #vendor = body_data.get('company')
         #batchid = body_data.get('batch')
 
-        id_ = body_data.get('id_site')
+        siteid = body_data.get('siteid')
         batchid = body_data.get('batchid')
+        vendorid = body_data.get('vendorid')
 
         rekomen_tek = body_data.get('teknologi')
         tanggal_mulai_material = datetime.strptime(body_data.get('tanggal_mulai_material'), '%Y-%m-%d 00:00:00')
@@ -135,17 +140,38 @@ def penawaran(request):
                 installation = tanggal_mulai_installation,
                 on_air = tanggal_mulai_onair,
                 integration = tanggal_mulai_ir,
-                days_material_on_site = tanggal_selesai_material.date() - tanggal_mulai_material.date(),
-                days_installation = tanggal_selesai_installation.date() - tanggal_mulai_installation.date(),
-                days_on_air = tanggal_selesai_onair.date() - tanggal_mulai_onair.date(),
-                days_on_integration = = tanggal_selesai_ir.date() - tanggal_mulai_ir.date()
+                days_material_on_site = (tanggal_selesai_material.date() - tanggal_mulai_material.date()).days,
+                days_installation = (tanggal_selesai_installation.date() - tanggal_mulai_installation.date()).days,
+                days_on_air = (tanggal_selesai_onair.date() - tanggal_mulai_onair.date()).days,
+                days_on_integration = (tanggal_selesai_ir.date() - tanggal_mulai_ir.date()).days
             )
 
         data_rfi_score.save()
 
-        data_vendor_application = vendor_application.objects.get()
+        try:
+            data_vendor_application = vendor_application.objects.get(batchid=batchid,vendorid=vendorid)
+        except vendor_application.DoesNotExist:
+            return Response.ok(
+                values=[],
+                message='vendor_application tidak ada'
+            )
+        data_vendor_application.rfi_score_id = data_rfi_score.id
+        data_vendor_application.save()
 
-        result = site_vendor.objects.get(id=ObjectId(data_site_vendor.id)).serialize()
+        try:
+            data_smm = site_matchmaking.objects.get(batchid=batchid,siteid=siteid)
+        except site_matchmaking.DoesNotExist:
+            return Response.ok(
+                values=[],
+                message='Site_matchmaking tidak ada'
+            )
+
+        data_smm.applicants.append(data_vendor_application.id)
+        data_smm.save()
+
+        #result = site_vendor.objects.get(id=ObjectId(data_site_vendor.id)).serialize()
+        serializer = rfi_scoreSerializer(data_rfi_score)
+        result = serializer.data
         
         return Response.ok(
             values=result,

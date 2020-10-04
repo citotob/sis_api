@@ -5,7 +5,7 @@ from userinfo.models import UserInfo, UserRole, UserToken, DocumentUser, vendor,
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.conf import settings
-from rest_framework.authtoken.models import Token
+#from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
 import json
 from django.core.files.storage import default_storage

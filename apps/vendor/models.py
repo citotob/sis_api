@@ -1,3 +1,4 @@
+"""
 from django.db import models
 import random
 from django.conf import settings
@@ -8,7 +9,7 @@ import datetime
 from bson import ObjectId
 from datetime import timedelta ,datetime
 from userinfo.models import *
-from sites.models import *
+from sites.models import batch
 
 class rfi_doc(Document):
     name = StringField()
@@ -24,6 +25,7 @@ class rfi_doc(Document):
             "update_date": self.update_date,
         }
 
+
 class rfi_score(Document):
     #rfi_doc = ReferenceField(rfi_doc)
     rekomendasi_teknologi = StringField(required=True,default='-')
@@ -37,7 +39,8 @@ class rfi_score(Document):
     days_on_integration = IntField(required=True,default=0)
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
-    """
+"""
+"""
     def serialize(self):
         return {
             "id": str(self.id),
@@ -52,7 +55,8 @@ class rfi_score(Document):
             "created_at": str(self.created_at),
             "updated_at": str(self.updated_at),
         }
-    """
+"""
+"""
 class vp_score(Document):
     kecepatan = IntField(required=True,default=0)
     ketepatan = IntField(required=True,default=0)
@@ -68,6 +72,9 @@ class total_calc(Document):
 
 class vendor_application(Document):
     users = ReferenceField(UserInfo)
+    vendorid = ReferenceField(vendor)
+    batchid = ReferenceField(batch)
+    #site = ReferenceField(site)
     rfi_score = ReferenceField(rfi_score)
     vp_score = ReferenceField(vp_score)
     total_calc = ReferenceField(total_calc)
@@ -93,6 +100,7 @@ class vendor_application(Document):
             "created_at": str(self.created_at),
             "updated_at": str(self.updated_at),
         }
+"""
 """
 class document_batch_vendor(Document):
     name = StringField()

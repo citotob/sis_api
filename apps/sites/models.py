@@ -8,7 +8,7 @@ import datetime
 from bson import ObjectId
 from datetime import timedelta ,datetime
 from userinfo.models import UserInfo, vendor
-from vendor.models import *
+#from vendor.models import *
 from rest_framework_mongoengine import serializers as drfm_serializers
 from rest_framework import serializers as drf_serializers
 """
@@ -130,6 +130,20 @@ class desa(Document):
             'tanggal_perubahan': str(self.tanggal_perubahan),
         }
 
+class rfi_doc(Document):
+    name = StringField()
+    path = StringField()
+    create_date = DateTimeField(required=True, default=datetime.now)
+    update_date = DateTimeField(required=True, default=datetime.now)
+
+    def serialize(self):
+        return {
+            "name": self.name,
+            "path": self.path,
+            "create_date": self.create_date,
+            "update_date": self.update_date,
+        }
+
 class rekomendasi_teknologi(Document):
   jarak_odp = IntField(required=True,default=0)
   teknologi = StringField(required=True,default='-')
@@ -233,7 +247,7 @@ class batch(Document):
     sites = ListField()
     creator = ReferenceField(UserInfo)
     rfi_no = StringField(required=True)
-    rfi_doc = ReferenceField(document_batch)
+    rfi_doc_id = ReferenceField(document_batch)
     tanggal_mulai_undangan = DateTimeField(required=True, default=datetime.now)
     tanggal_selesai_undangan = DateTimeField(required=True, default=datetime.now)
     tanggal_mulai_kerja = DateTimeField(required=True, default=datetime.now)
@@ -264,7 +278,7 @@ class batch(Document):
             'type': self.type,
             'creator': self.creator.serialize(),
             'rfi_no': self.rfi_no,
-            'rfi_doc': self.rfi_doc.serialize(),
+            'rfi_doc_id': self.rfi_doc_id.serialize(),
             'tanggal_mulai_undangan': str(self.tanggal_mulai_undangan),
             'tanggal_selesai_undangan': str(self.tanggal_selesai_undangan),
             'tanggal_mulai_kerja': str(self.tanggal_mulai_kerja),
@@ -278,9 +292,69 @@ class batch(Document):
             'updated_at': str(self.updated_at),
         }
 
+class rfi_score(Document):
+    #rfi_doc = ReferenceField(rfi_doc)
+    rekomendasi_teknologi = StringField(required=True,default='-')
+    material_on_site = DateTimeField(required=True, default=datetime.now)
+    installation = DateTimeField(required=True, default=datetime.now)
+    on_air = DateTimeField(required=True, default=datetime.now)
+    integration = DateTimeField(required=True, default=datetime.now)
+    days_material_on_site = IntField(required=True,default=0)
+    days_installation = IntField(required=True,default=0)
+    days_on_air = IntField(required=True,default=0)
+    days_on_integration = IntField(required=True,default=0)
+    created_at = DateTimeField(required=True, default=datetime.now)
+    updated_at = DateTimeField(required=True, default=datetime.now)
+
+class vp_score(Document):
+    kecepatan = IntField(required=True,default=0)
+    ketepatan = IntField(required=True,default=0)
+    kualitas = IntField(required=True,default=0)
+    vendorid = ReferenceField(vendor)
+
+class total_calc(Document):
+    rfi = IntField(required=True,default=0)
+    vp = IntField(required=True,default=0)
+    teknologi = IntField(required=True,default=0)
+    created_at = DateTimeField(required=True, default=datetime.now)
+    updated_at = DateTimeField(required=True, default=datetime.now)
+
+class vendor_application(Document):
+    users = ReferenceField(UserInfo)
+    vendorid = ReferenceField(vendor, unique=True)
+    batchid = ReferenceField(batch, unique=True)
+    #siteid = ReferenceField(site_matchmaking)
+    rfi_score_id = ReferenceField(rfi_score)
+    vp_score_id = ReferenceField(vp_score)
+    total_calc_id = ReferenceField(total_calc)
+    rank = IntField(required=True,default=0)
+    rfi_no = StringField(required=True,default='-')
+    rfi_doc_id = ReferenceField(rfi_doc)
+    tanggal_mulai_sla = DateTimeField(required=True, default=datetime.now)
+    tanggal_akhir_sla = DateTimeField(required=True, default=datetime.now)
+    created_at = DateTimeField(required=True, default=datetime.now)
+    updated_at = DateTimeField(required=True, default=datetime.now)
+    
+    def serialize(self):
+        return {
+            "id": str(self.id),
+            "users": self.users.serialize(),
+            "vp_score_id": self.vp_score_id.serialize(),
+            "total_calc": self.total_calc.serialize(),
+            "rank": str(self.rank),
+            "rfi_no": self.rfi_no,
+            "rfi_doc_id": self.rfi_doc_id.serialize(),
+            "tanggal_mulai_sla": str(self.tanggal_mulai_sla),
+            "tanggal_akhir_sla": str(self.tanggal_akhir_sla),
+            "created_at": str(self.created_at),
+            "updated_at": str(self.updated_at),
+        }
+
+
 class site_matchmaking(Document):
-    site = ReferenceField(site)
-    batch = ReferenceField(batch)
+    siteid = ReferenceField(site)
+    batchid = ReferenceField(batch)
     applicants = ListField(ReferenceField(vendor_application))
+    applicants = ListField()
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)

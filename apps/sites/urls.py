@@ -1,6 +1,6 @@
 from django.urls import path
 from sites import views
-from rest_framework.authtoken import views as tokenview
+#from rest_framework.authtoken import views as tokenview
 
 
 urlpatterns = [
