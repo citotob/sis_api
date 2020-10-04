@@ -23,7 +23,7 @@ import requests
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 from django.core import serializers
-from sites.serializer import *
+from vendor.serializer import *
 
 from itertools import groupby
 from userinfo.utils.notification import Notification
@@ -48,66 +48,52 @@ def respon(request):
 
             body_data = request.POST.dict()
 
-            vendor = body_data.get('company')
+            #vendor = body_data.get('company')
+            userid = body_data.get('userid')
             batchid = body_data.get('batch')
             rfi_no = body_data.get('rfi_no')
             tanggal_mulai_sla = body_data.get('tanggal_mulai_sla')
             tanggal_selesai_sla = body_data.get('tanggal_selesai_sla')
 
-            #if status_=='Selesai':
-            #    return Response.ok(
-            #        values=[],
-            #        message='Status sudah selesai'
-            #    )
             try:
-                comp = vendor.objects.get(id=ObjectId(vendor))
-            except vendor.DoesNotExist:
+                data_user = UserInfo.objects.get(id=ObjectId(userid))
+            except UserInfo.DoesNotExist:
                 return Response.ok(
                     values=[],
-                    message='Penyedia tidak ada'
+                    message='User tidak ada'
                 )
 
-            try:
-                data_batch_vendor = batch_vendor.objects.get(batch_id=ObjectId(batchid), vendor=ObjectId(comp.id))
-            except batch_vendor.DoesNotExist:
-                return Response.ok(message='Batch tidak ada')
-
-            cek_status = [i for i, x in enumerate(
-                data_batch_vendor.status) if x['status'] == 'Respon']
-            if cek_status:
-                result = data_batch_vendor.serialize()
+            data_vp_score = vp_score.objects.filter(vendor=ObjectId(data_user.company.id)).first()
+            if not data_vp_score:
                 return Response.ok(
-                    values=result,
-                    message='Berhasil'
+                    values=[],
+                    message='vp_score tidak ada'
                 )
-            data_batch_vendor.rfi_no = rfi_no
-            data_batch_vendor.tanggal_mulai_sla = tanggal_mulai_sla
-            data_batch_vendor.tanggal_selesai_sla = tanggal_selesai_sla
-            
-            cek_status = [i for i, x in enumerate(
-                    data_batch_vendor.status) if x['status'] == 'Respon']
-            if not cek_status:
-                status_respon = {'status': 'Respon', 'tanggal_pembuatan': datetime.utcnow(
-                        ) + timedelta(hours=7)}
-                data_batch_vendor.status.append(status_respon)
-            data_batch_vendor.save()
+            data_vendor_application = vendor_application(
+                users=userid,
+                vp_score = data_vp_score.id,
+                rank = 1,
+                rfi_no = rfi_no,
+                tanggal_mulai_sla = tanggal_mulai_sla,
+                tanggal_akhir_sla = tanggal_selesai_sla
+            )
+
+            data_vendor_application.save()
 
             filename = fs.save(file.name, file)
             file_path = fs.url(filename)
-            doc = document_batch_vendor(
+            doc = rfi_doc(
                 name=file.name,
-                path=file_path,
-                create_date=datetime.utcnow() + timedelta(hours=7),
-                update_date=datetime.utcnow() + timedelta(hours=7)
+                path=file_path
             )
             doc.save()
 
-            data_batch_vendor.rfi_doc = ObjectId(doc.id)
-            data_batch_vendor.updated_at = datetime.utcnow() + timedelta(hours=7)
-            data_batch_vendor.save()
+            data_vendor_application.rfi_doc = ObjectId(doc.id)
+            data_vendor_application.save()
 
-            result = batch_vendor.objects.get(id=ObjectId(data_batch_vendor.id)).serialize()
-            
+            data_result = vendor_application.objects.get(id=ObjectId(data_vendor_application.id))#.serialize()
+            serializer = vendor_applicationSerializer(data_result)
+            result = serializer.data
             return Response.ok(
                 values=result,
                 message='Berhasil'
@@ -131,55 +117,33 @@ def penawaran(request):
         #batchid = body_data.get('batch')
 
         id_ = body_data.get('id_site')
+        batchid = body_data.get('batchid')
 
         rekomen_tek = body_data.get('teknologi')
-        tanggal_mulai_material = body_data.get('tanggal_mulai_material')
-        tanggal_selesai_material = body_data.get('tanggal_selesai_material')
-        tanggal_mulai_installation = body_data.get('tanggal_mulai_installation')
-        tanggal_selesai_installation = body_data.get('tanggal_selesai_installation')
-        tanggal_mulai_onair = body_data.get('tanggal_mulai_onair')
-        tanggal_selesai_onair = body_data.get('tanggal_selesai_onair')
-        tanggal_mulai_ir = body_data.get('tanggal_mulai_ir')
-        tanggal_selesai_ir = body_data.get('tanggal_selesai_ir')
+        tanggal_mulai_material = datetime.strptime(body_data.get('tanggal_mulai_material'), '%Y-%m-%d 00:00:00')
+        tanggal_selesai_material = datetime.strptime(body_data.get('tanggal_selesai_material'), '%Y-%m-%d 23:59:59')
+        tanggal_mulai_installation = datetime.strptime(body_data.get('tanggal_mulai_installation'), '%Y-%m-%d 00:00:00')
+        tanggal_selesai_installation = datetime.strptime(body_data.get('tanggal_selesai_installation'), '%Y-%m-%d 23:59:59')
+        tanggal_mulai_onair = datetime.strptime(body_data.get('tanggal_mulai_onair'), '%Y-%m-%d 00:00:00')
+        tanggal_selesai_onair = datetime.strptime(body_data.get('tanggal_selesai_onair'), '%Y-%m-%d 23:59:59')
+        tanggal_mulai_ir = datetime.strptime(body_data.get('tanggal_mulai_ir'), '%Y-%m-%d 00:00:00')
+        tanggal_selesai_ir = datetime.strptime(body_data.get('tanggal_selesai_ir'), '%Y-%m-%d 23:59:59')
 
-        try:
-            data_site_vendor = site_vendor.objects.get(id=ObjectId(id_))
-        except site_vendor.DoesNotExist:
-            return Response.ok(message='Site tidak ada')
-
-        cek_status = [i for i, x in enumerate(
-            data_site_vendor.status) if x['status'] == 'Penawaran']
-        if cek_status:
-            result = data_site_vendor.serialize()
-            return Response.ok(
-                values=result,
-                message='Berhasil'
+        data_rfi_score = rfi_score(
+                rekomendasi_teknologi=rekomen_tek,
+                material_on_site = tanggal_mulai_material,
+                installation = tanggal_mulai_installation,
+                on_air = tanggal_mulai_onair,
+                integration = tanggal_mulai_ir,
+                days_material_on_site = tanggal_selesai_material.date() - tanggal_mulai_material.date(),
+                days_installation = tanggal_selesai_installation.date() - tanggal_mulai_installation.date(),
+                days_on_air = tanggal_selesai_onair.date() - tanggal_mulai_onair.date(),
+                days_on_integration = = tanggal_selesai_ir.date() - tanggal_mulai_ir.date()
             )
-        data_site_vendor.rekomen_teknologi = rekomen_tek
-        data_site_vendor.tanggal_mulai_material = tanggal_mulai_material
-        data_site_vendor.tanggal_selesai_material = tanggal_selesai_material
-        data_site_vendor.tanggal_mulai_installation = tanggal_mulai_installation
-        data_site_vendor.tanggal_selesai_installation = tanggal_selesai_installation
-        data_site_vendor.tanggal_mulai_onair = tanggal_mulai_onair
-        data_site_vendor.tanggal_selesai_onair = tanggal_selesai_onair
-        data_site_vendor.tanggal_mulai_ir = tanggal_mulai_ir
-        data_site_vendor.tanggal_selesai_ir = tanggal_selesai_ir
-        
-        #cek_status = [i for i, x in enumerate(
-        #        data_batch_vendor.status) if x['status'] == 'Respon']
-        #if not cek_status:
-        status_ = {'status': 'Penawaran', 'tanggal_pembuatan': datetime.utcnow(
-            ) + timedelta(hours=7)}
-        data_site_vendor.status.append(status_)
-        #data_site_vendor.save()
 
-        data_site_vendor.updated_at = datetime.utcnow() + timedelta(hours=7)
-        data_site_vendor.save()
+        data_rfi_score.save()
 
-        #try:
-        #        data_batch_vendor = batch_vendor.objects.get(batch_id=ObjectId(batchid), vendor=ObjectId(comp.id))
-        #    except batch_vendor.DoesNotExist:
-        #        return Response.ok(message='Batch tidak ada')
+        data_vendor_application = vendor_application.objects.get()
 
         result = site_vendor.objects.get(id=ObjectId(data_site_vendor.id)).serialize()
         

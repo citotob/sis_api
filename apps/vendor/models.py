@@ -25,7 +25,7 @@ class rfi_doc(Document):
         }
 
 class rfi_score(Document):
-    rfi_doc = ReferenceField(rfi_doc)
+    #rfi_doc = ReferenceField(rfi_doc)
     rekomendasi_teknologi = StringField(required=True,default='-')
     material_on_site = DateTimeField(required=True, default=datetime.now)
     installation = DateTimeField(required=True, default=datetime.now)
@@ -34,9 +34,25 @@ class rfi_score(Document):
     days_material_on_site = IntField(required=True,default=0)
     days_installation = IntField(required=True,default=0)
     days_on_air = IntField(required=True,default=0)
+    days_on_integration = IntField(required=True,default=0)
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
-
+    """
+    def serialize(self):
+        return {
+            "id": str(self.id),
+            "rekomendasi_teknologi": self.rekomendasi_teknologi,
+            "material_on_site": str(self.material_on_site),
+            "installation": str(self.installation),
+            "on_air": str(self.on_air),
+            "integration": str(self.integration),
+            "rfi_doc": self.rfi_doc.serialize(),
+            "tanggal_mulai_sla": str(self.tanggal_mulai_sla),
+            "tanggal_akhir_sla": str(self.tanggal_akhir_sla),
+            "created_at": str(self.created_at),
+            "updated_at": str(self.updated_at),
+        }
+    """
 class vp_score(Document):
     kecepatan = IntField(required=True,default=0)
     ketepatan = IntField(required=True,default=0)
@@ -56,8 +72,27 @@ class vendor_application(Document):
     vp_score = ReferenceField(vp_score)
     total_calc = ReferenceField(total_calc)
     rank = IntField(required=True,default=0)
+    rfi_no = StringField(required=True,default='-')
+    rfi_doc = ReferenceField(rfi_doc)
+    tanggal_mulai_sla = DateTimeField(required=True, default=datetime.now)
+    tanggal_akhir_sla = DateTimeField(required=True, default=datetime.now)
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
+
+    def serialize(self):
+        return {
+            "id": str(self.id),
+            "users": self.users.serialize(),
+            "vp_score": self.vp_score.serialize(),
+            "total_calc": self.total_calc.serialize(),
+            "rank": str(self.rank),
+            "rfi_no": self.rfi_no,
+            "rfi_doc": self.rfi_doc.serialize(),
+            "tanggal_mulai_sla": str(self.tanggal_mulai_sla),
+            "tanggal_akhir_sla": str(self.tanggal_akhir_sla),
+            "created_at": str(self.created_at),
+            "updated_at": str(self.updated_at),
+        }
 """
 class document_batch_vendor(Document):
     name = StringField()
