@@ -63,7 +63,7 @@ def respon(request):
                     message='User tidak ada'
                 )
             
-            data_vp_score = vp_score.objects.filter(vendorid=data_user.company.id).first()
+            data_vp_score = VPScore.objects.filter(vendor=data_user.company.id).first()
             if not data_vp_score:
                 return Response.ok(
                     values=[],

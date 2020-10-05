@@ -8,7 +8,7 @@ import datetime
 from bson import ObjectId
 from datetime import timedelta ,datetime
 from userinfo.models import UserInfo, vendor
-#from vendor.models import *
+from vendorperformance.models import *
 from rest_framework_mongoengine import serializers as drfm_serializers
 from rest_framework import serializers as drf_serializers
 """
@@ -306,6 +306,7 @@ class rfi_score(Document):
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
 
+"""
 class vp_score(Document):
     kecepatan = IntField(required=True,default=0)
     ketepatan = IntField(required=True,default=0)
@@ -313,7 +314,7 @@ class vp_score(Document):
     vendorid = ReferenceField(vendor)
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
-
+"""
 class total_calc(Document):
     rfi = IntField(required=True,default=0)
     vp = IntField(required=True,default=0)
@@ -327,7 +328,7 @@ class vendor_application(Document):
     batchid = ReferenceField(batch)
     #siteid = ReferenceField(site_matchmaking)
     rfi_score_id = ReferenceField(rfi_score)
-    vp_score_id = ReferenceField(vp_score)
+    vp_score_id = ReferenceField(VPScore)
     total_calc_id = ReferenceField(total_calc)
     rank = IntField(required=True,default=0)
     rfi_no = StringField(required=True,default='-')
