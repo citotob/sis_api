@@ -26,7 +26,7 @@ class vendor_applicationResponSerializer(DocumentSerializer):
         #    'created_at',
         #    'updated_at'
         #]
-        #exclude = ['batchid' ]
+        exclude = ['batchid' ]
         depth = 2
 
 class rfi_scoreSerializer(DocumentSerializer):
