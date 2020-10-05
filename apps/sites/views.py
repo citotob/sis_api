@@ -14,16 +14,17 @@ import pandas
 from .response import Response
 from bson import ObjectId, json_util
 from django.http import HttpResponse
-#import datetime
+# import datetime
 from datetime import datetime, timedelta, timezone
 from django.core.serializers import serialize
 from django.core.files.storage import FileSystemStorage
 import requests
-
+from rest_framework.response import Response as RFResponse
+from rest_framework import status
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 from django.core import serializers
-from sites.serializer import *
+from .serializer import *
 
 from itertools import groupby
 from userinfo.utils.notification import Notification
@@ -185,12 +186,12 @@ def getLaporan(request):
 
         except Exception as e:
             print(e)
-        #return HttpResponse(f' & ')
+        # return HttpResponse(f' & ')
         return Response.ok(
             values=[],
             message='Berhasil'
         )
-    #return HttpResponse(f'asd')
+    # return HttpResponse(f'asd')
     return Response.badRequest(
         values=[],
         message='Gagal'
@@ -199,7 +200,7 @@ def getLaporan(request):
 
 def haversine(lon1, lat1, lon2, lat2):
     """
-    Calculate the great circle distance between two points 
+    Calculate the great circle distance between two points
     on the earth (specified in decimal degrees)
     """
     # convert decimal degrees to radians
@@ -327,7 +328,7 @@ def uploadlokasi(request):
                 row[6].value).upper(), longitude=str(row[7].value).upper())
             if len(LokasiSurvey_) == 0:
                 LokasiSurvey_ = LokasiSurvey()
-                #LokasiSurvey_.user = ObjectId("5f1aa3f07c33fe56ba294923")
+                # LokasiSurvey_.user = ObjectId("5f1aa3f07c33fe56ba294923")
                 LokasiSurvey_.provinsi = ObjectId(data_provinsi["id"])
                 try:
                     LokasiSurvey_.kabupaten = ObjectId(kabupaten_["id"])
@@ -373,21 +374,25 @@ def uploadsite(request):
         body_data = request.POST.dict()
 
         judul = body_data.get('judul')
-        tanggal_mulai_undangan = datetime.strptime(body_data.get('tanggal_mulai_undangan'), '%Y-%m-%d 00:00:00')
-        tanggal_selesai_undangan = datetime.strptime(body_data.get('tanggal_selesai_undangan'), '%Y-%m-%d 23:59:59')
+        tanggal_mulai_undangan = datetime.strptime(
+            body_data.get('tanggal_mulai_undangan'), '%Y-%m-%d 00:00:00')
+        tanggal_selesai_undangan = datetime.strptime(
+            body_data.get('tanggal_selesai_undangan'), '%Y-%m-%d 23:59:59')
         if tanggal_selesai_undangan < tanggal_mulai_undangan:
             return Response.badRequest(
                 values='null',
                 message='tanggal_selesai_undangan harus lebih besar dari tanggal_mulai_undangan'
             )
 
-        tanggal_mulai_kerja = datetime.strptime(body_data.get('tanggal_mulai_kerja'), '%Y-%m-%d 00:00:00')
+        tanggal_mulai_kerja = datetime.strptime(
+            body_data.get('tanggal_mulai_kerja'), '%Y-%m-%d 00:00:00')
         if tanggal_mulai_kerja < tanggal_selesai_undangan:
             return Response.badRequest(
                 values='null',
                 message='tanggal_mulai_kerja harus lebih besar dari tanggal_selesai_undangan'
             )
-        tanggal_selesai_kerja = datetime.strptime(body_data.get('tanggal_selesai_kerja'), '%Y-%m-%d 23:59:59')
+        tanggal_selesai_kerja = datetime.strptime(
+            body_data.get('tanggal_selesai_kerja'), '%Y-%m-%d 23:59:59')
         if tanggal_selesai_kerja < tanggal_mulai_kerja:
             return Response.badRequest(
                 values='null',
@@ -399,33 +404,33 @@ def uploadsite(request):
         penyedia_undang = body_data.get('penyedia_undang')
 
         status_ = {'status': 'Dibuka', 'tanggal_pembuatan': datetime.utcnow(
-                ) + timedelta(hours=7)}
+        ) + timedelta(hours=7)}
 
         try:
-            #data_nomor_batch = batch.objects.latest('nomor')
+            # data_nomor_batch = batch.objects.latest('nomor')
             data_nomor_batch = batch.objects.order_by('-nomor').first()
             nomor_batch = int(data_nomor_batch.nomor) + 1
             nomor_batch = str(nomor_batch).zfill(5)
-        #except:
+        # except:
         except Exception as e:
             print(e)
             nomor_batch = '1'.zfill(5)
 
         vendor_list = penyedia_undang.split(",")
         data_batch = batch(
-            nomor = nomor_batch,
-            judul = judul,
-            type = type,
-            sites = [],
-            creator = creator,
-            rfi_no = rfi,
-            tanggal_mulai_undangan = tanggal_mulai_undangan,
-            tanggal_selesai_undangan = tanggal_selesai_undangan,
-            tanggal_mulai_kerja = tanggal_mulai_kerja,
-            tanggal_selesai_kerja = tanggal_selesai_kerja,
-            penyedia_undang = penyedia_undang.split(","),
-            created_at = datetime.utcnow() + timedelta(hours=7),
-            updated_at = datetime.utcnow() + timedelta(hours=7)
+            nomor=nomor_batch,
+            judul=judul,
+            type=type,
+            sites=[],
+            creator=creator,
+            rfi_no=rfi,
+            tanggal_mulai_undangan=tanggal_mulai_undangan,
+            tanggal_selesai_undangan=tanggal_selesai_undangan,
+            tanggal_mulai_kerja=tanggal_mulai_kerja,
+            tanggal_selesai_kerja=tanggal_selesai_kerja,
+            penyedia_undang=penyedia_undang.split(","),
+            created_at=datetime.utcnow() + timedelta(hours=7),
+            updated_at=datetime.utcnow() + timedelta(hours=7)
         )
         data_batch.status.append(status_)
         data_batch.save()
@@ -439,16 +444,16 @@ def uploadsite(request):
                     message='Penyedia tidak ada'
                 )
             data_batch_vendor = batch_vendor(
-                vendor = comp.id,
-                batch_id = data_batch.id,
-                created_at = datetime.utcnow() + timedelta(hours=7),
-                updated_at = datetime.utcnow() + timedelta(hours=7)
+                vendor=comp.id,
+                batch_id=data_batch.id,
+                created_at=datetime.utcnow() + timedelta(hours=7),
+                updated_at=datetime.utcnow() + timedelta(hours=7)
             )
             data_batch_vendor.status.append(status_)
             data_batch_vendor.save()
-        req_fields = ['latitude', 'longitude','kecamatan']
+        req_fields = ['latitude', 'longitude', 'kecamatan']
         data_site_lok = site_location.objects.all().only(*req_fields)
-        radius = 1.00 # in kilometer
+        radius = 1.00  # in kilometer
 
         new_data_site_lok = []
         excel_file = request.FILES["excel_file"]
@@ -465,7 +470,7 @@ def uploadsite(request):
         # getting value from each cell in row
 
         for row in worksheet.iter_rows():
-            lanjut=True
+            lanjut = True
             if str(row[1].value) == 'None':
                 break
             if str(row[0].value) == 'NO':
@@ -527,25 +532,26 @@ def uploadsite(request):
             for dat in data_site_lok:
                 if dat.kecamatan.id != data_kecamatan.id:
                     continue
-                
-                a = haversine(float(dat.longitude), float(dat.latitude), float(str(row[7].value)), float(str(row[6].value)))
-                #print(a)
+
+                a = haversine(float(dat.longitude), float(dat.latitude), float(
+                    str(row[7].value)), float(str(row[6].value)))
+                # print(a)
                 if a <= radius:
-                    lanjut=False
+                    lanjut = False
                     break
-            if lanjut: 
+            if lanjut:
                 data_site = site_location(
-                    latitude = str(row[6].value),
-                    longitude = str(row[7].value),
-                    nama = str(row[8].value),
-                    desa = data_desa.id,
-                    kecamatan = data_kecamatan.id,
-                    provinsi = data_provinsi.id,
-                    kode_pos = str(row[9].value),
-                    created_at = datetime.utcnow() + timedelta(hours=7),
-                    updated_at = datetime.utcnow() + timedelta(hours=7)
+                    latitude=str(row[6].value),
+                    longitude=str(row[7].value),
+                    nama=str(row[8].value),
+                    desa=data_desa.id,
+                    kecamatan=data_kecamatan.id,
+                    provinsi=data_provinsi.id,
+                    kode_pos=str(row[9].value),
+                    created_at=datetime.utcnow() + timedelta(hours=7),
+                    updated_at=datetime.utcnow() + timedelta(hours=7)
                 )
-                if str(row[3].value)[0:3].upper() == 'KAB':                 
+                if str(row[3].value)[0:3].upper() == 'KAB':
                     data_site.kabupaten = kabupaten_.id
                 else:
                     data_site.kota = kota_.id
@@ -556,15 +562,16 @@ def uploadsite(request):
 
                 for vn in vendor_list:
                     data_site_vendor = site_vendor(
-                        vendor = ObjectId(vn),
-                        batch_id = data_batch.id,
-                        site_id = ObjectId(data_site.id),
-                        created_at = datetime.utcnow() + timedelta(hours=7),
-                        updated_at = datetime.utcnow() + timedelta(hours=7)
+                        vendor=ObjectId(vn),
+                        batch_id=data_batch.id,
+                        site_id=ObjectId(data_site.id),
+                        created_at=datetime.utcnow() + timedelta(hours=7),
+                        updated_at=datetime.utcnow() + timedelta(hours=7)
                     )
                 data_site_vendor.save()
             else:
-                lokasi_gagal += '{'+str(row[6].value)+', '+str(row[7].value)+'}, '
+                lokasi_gagal += '{' + \
+                    str(row[6].value)+', '+str(row[7].value)+'}, '
 
         return Response.ok(
             values=[],
@@ -578,7 +585,7 @@ def addbatch(request):
     # if False == ret or None == user:
     #    return JsonResponse({"state": "fail"})
     if request.method == "POST":  # Add
-        #try:
+        # try:
         file = request.FILES['doc']
         if not file:
             return Response.badRequest(message='Doc tidak boleh kosong')
@@ -613,54 +620,54 @@ def addbatch(request):
         rfi = body_data.get('rfi')
         type = body_data.get('type')
         creator = body_data.get('creator')
-        #penyedia_undang = body_data.get('penyedia_undang')
+        # penyedia_undang = body_data.get('penyedia_undang')
 
         status_ = {'status': 'Dibuka', 'tanggal_pembuatan': datetime.utcnow(
-                    ) + timedelta(hours=7)}
+        ) + timedelta(hours=7)}
 
         try:
-            #data_nomor_batch = batch.objects.latest('nomor')
+            # data_nomor_batch = batch.objects.latest('nomor')
             data_nomor_batch = batch.objects.order_by('-nomor').first()
             nomor_batch = int(data_nomor_batch.nomor) + 1
             nomor_batch = str(nomor_batch).zfill(5)
-        #except:
+        # except:
         except Exception as e:
             print(e)
             nomor_batch = '1'.zfill(5)
 
-        #vendor_list = penyedia_undang.split(",")
+        # vendor_list = penyedia_undang.split(",")
         data_batch = batch(
-            nomor = nomor_batch,
-            judul = judul,
-            type = type,
-            sites = [],
-            creator = creator,
-            rfi_no = rfi,
-            tanggal_mulai_undangan = tanggal_mulai_undangan,
-            tanggal_selesai_undangan = tanggal_selesai_undangan,
-            tanggal_mulai_kerja = tanggal_mulai_kerja,
-            tanggal_selesai_kerja = tanggal_selesai_kerja
-            #penyedia_undang = vendor_list,
-            #created_at = datetime.utcnow() + timedelta(hours=7),
-            #updated_at = datetime.utcnow() + timedelta(hours=7)
+            nomor=nomor_batch,
+            judul=judul,
+            type=type,
+            sites=[],
+            creator=creator,
+            rfi_no=rfi,
+            tanggal_mulai_undangan=tanggal_mulai_undangan,
+            tanggal_selesai_undangan=tanggal_selesai_undangan,
+            tanggal_mulai_kerja=tanggal_mulai_kerja,
+            tanggal_selesai_kerja=tanggal_selesai_kerja
+            # penyedia_undang = vendor_list,
+            # created_at = datetime.utcnow() + timedelta(hours=7),
+            # updated_at = datetime.utcnow() + timedelta(hours=7)
         )
         data_batch.status.append(status_)
         data_batch.save()
-        
+
         filename = fs.save(file.name, file)
         file_path = fs.url(filename)
         doc = document_batch(
             name=file.name,
             path=file_path
-            #create_date=datetime.utcnow() + timedelta(hours=7),
-            #update_date=datetime.utcnow() + timedelta(hours=7)
+            # create_date=datetime.utcnow() + timedelta(hours=7),
+            # update_date=datetime.utcnow() + timedelta(hours=7)
         )
         doc.save()
 
         data_batch.rfi_doc = ObjectId(doc.id)
         data_batch.save()
 
-        #for vn in vendor_list:
+        # for vn in vendor_list:
         #    try:
         #        comp = vendor.objects.get(id=ObjectId(vn))
         #    except vendor.DoesNotExist:
@@ -677,14 +684,14 @@ def addbatch(request):
         #    data_batch_vendor.status.append(status_)
         #    data_batch_vendor.save()
         result = batch.objects.get(id=ObjectId(data_batch.id)).serialize()
-        #serializer = BatchSerializer(data_batch)
-        #result = serializer.data
-        
+        # serializer = BatchSerializer(data_batch)
+        # result = serializer.data
+
         return Response.ok(
             values=result,
             message='Berhasil'
         )
-        #except Exception as e:
+        # except Exception as e:
         #    return Response.badRequest(message=str(e))
 
     else:
@@ -697,7 +704,7 @@ def addsite(request):
     # if False == ret or None == user:
     #    return JsonResponse({"state": "fail"})
     if request.method == "POST":  # Add
-        #try:
+        # try:
         body_data = json.loads(request.body)
 
         batch_id = body_data.get('batch')
@@ -710,15 +717,16 @@ def addsite(request):
         latitude = body_data.get('latitude')
         kode_pos = body_data.get('kode_pos')
 
-        req_fields = ['latitude', 'longitude','kecamatan']
+        req_fields = ['latitude', 'longitude', 'kecamatan']
         data_site_lok = site.objects.all().only(*req_fields)
-        radius = 1.00 # in kilometer
-        
+        radius = 1.00  # in kilometer
+
         for dat in data_site_lok:
             if dat.kecamatan.id != ObjectId(kecamatan):
                 continue
-            a = haversine(float(dat.longitude), float(dat.latitude), float(longitude), float(latitude))
-            #print(a)
+            a = haversine(float(dat.longitude), float(
+                dat.latitude), float(longitude), float(latitude))
+            # print(a)
             if a <= radius:
                 return Response.ok(
                     values=[],
@@ -731,7 +739,7 @@ def addsite(request):
         except kabupaten.DoesNotExist:
             data_kabupaten = kota.objects.get(id=kab_kota)
             data_kab_kota = 'kota'
-        
+
         try:
             data_nomor_site = site.objects.order_by('-unik_id').first()
             nomor_site = int(data_nomor_site.nomor) + 1
@@ -741,17 +749,17 @@ def addsite(request):
             nomor_site = '1'.zfill(5)
 
         data_site = site(
-            unik_id = nomor_site,
-            latitude = latitude,
-            longitude = longitude,
-            rekomendasi_teknologi = ObjectId('5f76db81f845e6b39081e278'),
-            nama = nama,
-            desa = ObjectId(desa),
-            kecamatan = ObjectId(kecamatan),
-            provinsi = ObjectId(provinsi),
-            kode_pos = kode_pos,
-            #created_at = datetime.utcnow() + timedelta(hours=7),
-            #updated_at = datetime.utcnow() + timedelta(hours=7)
+            unik_id=nomor_site,
+            latitude=latitude,
+            longitude=longitude,
+            rekomendasi_teknologi=ObjectId('5f76db81f845e6b39081e278'),
+            nama=nama,
+            desa=ObjectId(desa),
+            kecamatan=ObjectId(kecamatan),
+            provinsi=ObjectId(provinsi),
+            kode_pos=kode_pos,
+            # created_at = datetime.utcnow() + timedelta(hours=7),
+            # updated_at = datetime.utcnow() + timedelta(hours=7)
         )
         if data_kab_kota == 'kab':
             data_site.kabupaten = data_kabupaten.id
@@ -760,8 +768,8 @@ def addsite(request):
         data_site.save()
 
         data_site_matchmaking = site_matchmaking(
-            site = data_site.id,
-            batch = ObjectId(batch_id)
+            site=data_site.id,
+            batch=ObjectId(batch_id)
         )
         data_site_matchmaking.save()
 
@@ -773,20 +781,21 @@ def addsite(request):
             data_batch.save()
         except batch.DoesNotExist:
             return Response.badRequest(message='Batch tidak ada')
-        
+
         results = site.objects.get(id=ObjectId(data_site.id))
-        
+
         result = results.serialize()
-        
+
         return Response.ok(
             values=result,
             message='Berhasil'
         )
-        #except Exception as e:
+        # except Exception as e:
         #    return Response.badRequest(message=str(e))
 
     else:
         return Response.badRequest(message='Hanya POST')
+
 
 def editbatch(request):
     # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
@@ -794,14 +803,14 @@ def editbatch(request):
     # if False == ret or None == user:
     #    return JsonResponse({"state": "fail"})
     if request.method == "POST":  # Add
-        #try:
+        # try:
         file = request.FILES['doc']
         if not file:
             return Response.badRequest(message='Doc tidak boleh kosong')
         fs = FileSystemStorage(
-                location=f'{settings.MEDIA_ROOT}/site/rfi/',
-                base_url=f'{settings.MEDIA_URL}/site/rfi/'
-            )
+            location=f'{settings.MEDIA_ROOT}/site/rfi/',
+            base_url=f'{settings.MEDIA_URL}/site/rfi/'
+        )
 
         body_data = request.POST.dict()
 
@@ -810,12 +819,12 @@ def editbatch(request):
         tanggal_selesai_undangan = body_data.get('tanggal_selesai_undangan')
         status_ = body_data.get('status')
 
-        if status_=='Selesai':
+        if status_ == 'Selesai':
             return Response.ok(
                 values=[],
                 message='Status sudah selesai'
             )
-        
+
         try:
             data_batch = batch.objects.get(id=ObjectId(batch_id))
         except batch.DoesNotExist:
@@ -823,20 +832,20 @@ def editbatch(request):
 
         data_batch.tanggal_mulai_undangan = tanggal_mulai_undangan
         data_batch.tanggal_selesai_undangan = tanggal_selesai_undangan
-        if status_=='Dibuka':
+        if status_ == 'Dibuka':
             status__ = {'status': status_, 'tanggal_pembuatan': datetime.utcnow(
-                    ) + timedelta(hours=7)}
+            ) + timedelta(hours=7)}
 
             data_batch.status.clear()
             data_batch.status.append(status__)
         else:
             status_buka = {'status': 'Dibuka', 'tanggal_pembuatan': datetime.utcnow(
-                    ) + timedelta(hours=7)}
+            ) + timedelta(hours=7)}
 
             data_batch.status.clear()
             data_batch.status.append(status_buka)
             status_tunda = {'status': status_, 'tanggal_pembuatan': datetime.utcnow(
-                    ) + timedelta(hours=7)}
+            ) + timedelta(hours=7)}
             data_batch.status.append(status_tunda)
         data_batch.save()
 
@@ -855,20 +864,21 @@ def editbatch(request):
         data_batch.save()
 
         result = batch.objects.get(id=ObjectId(data_batch.id)).serialize()
-        #result = data_batch.serialize()
-        
-        #serializer = BatchSerializer(result,many=True)
-        #result = serializer.data
-        
+        # result = data_batch.serialize()
+
+        # serializer = BatchSerializer(result,many=True)
+        # result = serializer.data
+
         return Response.ok(
             values=result,
             message='Berhasil'
         )
-        #except Exception as e:
+        # except Exception as e:
         #    return Response.badRequest(message=str(e))
 
     else:
         return Response.badRequest(message='Hanya POST')
+
 
 def getbatch(request):
     # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
@@ -878,96 +888,65 @@ def getbatch(request):
     body_data = json.loads(request.body)
     batch_id = body_data.get('batch')
 
-    page = int(body_data.get('page', 0)) - 1
-    skip = []
-    if page >= 0:
-        skip = [{'$skip': 20 * page},
-                {'$limit': 20}]
+    # page = int(body_data.get('page', 0)) - 1
+    # skip = []
+    # if page >= 0:
+    #     skip = [{'$skip': 20 * page},
+    #             {'$limit': 20}]
 
-    pipeline = [
-        {
-            '$match': {
-                '_id': ObjectId(batch_id)
-            }
-        }, 
-        {
-            '$lookup': {
-                'from': 'site_location', 
-                'localField': 'sites', 
-                'foreignField': '_id', 
-                'as': 'sitelist'
-            }
-        }#, {
-        #    '$unwind': {
-        #        'path': '$sitelist', 
-        #        'preserveNullAndEmptyArrays': True
-        #    }
-        #}
-    ]
+    # pipeline = [
+    #     {
+    #         '$match': {
+    #             '_id': ObjectId(batch_id)
+    #         }
+    #     },
+    #     {
+    #         '$lookup': {
+    #             'from': 'site_location',
+    #             'localField': 'sites',
+    #             'foreignField': '_id',
+    #             'as': 'sitelist'
+    #         }
+    #     }  # , {
+    #     #    '$unwind': {
+    #     #        'path': '$sitelist',
+    #     #        'preserveNullAndEmptyArrays': True
+    #     #    }
+    #     # }
+    # ]
 
-    pipe = pipeline + skip
-    agg_cursor = batch.objects.aggregate(*pipe)
+    # pipe = pipeline + skip
+    # agg_cursor = batch.objects.aggregate(*pipe)
 
-    batch_list = list(agg_cursor)
+    # batch_list = list(agg_cursor)
 
-    if len(batch_list) > 0:
+    try:
+        data = batch.objects.get(id=batch_id)
+        serializer = BatchSerializer(data)
         return Response.ok(
-            values=json.loads(json.dumps(batch_list, default=str)),
-            message=f'{len(batch_list)} Data'
+            values=json.loads(json.dumps(serializer.data, default=str)),
+            message=f'{len(serializer.data)} Data'
         )
-    else:
+    except batch.DoesNotExist:
         return Response.ok(
             values=[],
             message='Data tidak ada'
         )
+
 
 def getallbatch(request):
-    # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
-    # ret, user = authenticate_credentials(token)
-    # if False == ret or None == user:
-    #    return JsonResponse({"state": "fail"})
-    #body_data = json.loads(request.body)
-    #batch_id = body_data.get('batch')
-
-    #page = int(body_data.get('page', 0)) - 1
-    #skip = []
-    #if page >= 0:
-    #    skip = [{'$skip': 20 * page},
-    #            {'$limit': 20}]
-
-    pipeline = [
-        #{
-        #    '$match': {
-        #        '_id': ObjectId(batch_id)
-        #    }
-        #}, 
-        {
-            '$lookup': {
-                'from': 'site_location', 
-                'localField': 'sites', 
-                'foreignField': '_id', 
-                'as': 'sitelist'
-            }
-        }#, {
-        #    '$unwind': {
-        #        'path': '$sitelist', 
-        #        'preserveNullAndEmptyArrays': True
-        #    }
-        #}
-    ]
-
-    pipe = pipeline #+ skip
-    agg_cursor = batch.objects.aggregate(*pipe)
-
-    batch_list = list(agg_cursor)
-
-    if len(batch_list) > 0:
-        return Response.ok(
-            values=json.loads(json.dumps(batch_list, default=str)),
-            message=f'{len(batch_list)} Data'
-        )
-    else:
-        return Response.ok(
-            values=[],
-            message='Data tidak ada'
-        )
+    try:
+        data = batch.objects.all()
+        serializer = BatchSerializer(data, many=True)
+        if len(serializer.data) > 0:
+            return Response.ok(
+                values=json.loads(json.dumps(serializer.data, default=str)),
+                message=f'{len(serializer.data)} Data'
+            )
+        else:
+            return Response.ok(
+                values=[],
+                message='Data tidak ada'
+            )
+    except Exception as e:
+        print(e)

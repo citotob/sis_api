@@ -2,11 +2,12 @@ from django.db import models
 import random
 from django.conf import settings
 from mongoengine import *
+from mongoengine.fields import *
 from mongoengine import signals
 #from django.contrib.auth.hashers import make_password, check_password
 import datetime
 from bson import ObjectId
-from datetime import timedelta ,datetime
+from datetime import timedelta, datetime
 from userinfo.models import UserInfo, vendor
 #from vendor.models import *
 from rest_framework_mongoengine import serializers as drfm_serializers
@@ -30,6 +31,8 @@ class company(Document):
             'name': str(self.name),
         }
 """
+
+
 class provinsi(Document):
     #user = ReferenceField(UserInfo)
     name = StringField(required=True)
@@ -130,6 +133,7 @@ class desa(Document):
             'tanggal_perubahan': str(self.tanggal_perubahan),
         }
 
+
 class rfi_doc(Document):
     name = StringField()
     path = StringField()
@@ -144,12 +148,14 @@ class rfi_doc(Document):
             "update_date": self.update_date,
         }
 
+
 class rekomendasi_teknologi(Document):
-  jarak_odp = IntField(required=True,default=0)
-  teknologi = StringField(required=True,default='-')
+    jarak_odp = IntField(required=True, default=0)
+    teknologi = StringField(required=True, default='-')
+
 
 class site(Document):
-    unik_id = IntField(required=True,unique=True)
+    unik_id = IntField(required=True, unique=True)
     latitude = StringField(required=True)
     longitude = StringField(required=True)
     rekomendasi_teknologi = ReferenceField(rekomendasi_teknologi)
@@ -159,7 +165,7 @@ class site(Document):
     kabupaten = ReferenceField(kabupaten)
     kota = ReferenceField(kota)
     provinsi = ReferenceField(provinsi)
-    kode_pos = StringField(required=True,default='00000')
+    kode_pos = StringField(required=True, default='00000')
     #site_matchmaking = ListField(ReferenceField(site_matchmaking))
     site_matchmaking = ListField()
     created_at = DateTimeField(required=True, default=datetime.now)
@@ -188,7 +194,7 @@ class site(Document):
                 'longitude': str(self.longitude)
             }
     """
-    
+
     def serialize(self):
         try:
             return {
@@ -205,7 +211,7 @@ class site(Document):
                 'updated_at': self.updated_at
             }
         except:
-        #except Exception as e:
+            # except Exception as e:
             print(e)
             return {
                 'id': str(self.id),
@@ -220,6 +226,7 @@ class site(Document):
                 'created_at': self.created_at,
                 'updated_at': self.updated_at
             }
+
 
 class document_batch(Document):
     name = StringField()
@@ -242,14 +249,15 @@ class batch(Document):
     nomor = StringField(required=True, unique=True)
     judul = StringField(required=True)
     type = StringField(required=True, choices=[
-                         'VIP', 'Non-VIP'], default='Non-VIP')
+        'VIP', 'Non-VIP'], default='Non-VIP')
     #sites = ListField(ReferenceField(site_matchmaking))
     sites = ListField()
     creator = ReferenceField(UserInfo)
     rfi_no = StringField(required=True)
     rfi_doc_id = ReferenceField(document_batch)
     tanggal_mulai_undangan = DateTimeField(required=True, default=datetime.now)
-    tanggal_selesai_undangan = DateTimeField(required=True, default=datetime.now)
+    tanggal_selesai_undangan = DateTimeField(
+        required=True, default=datetime.now)
     tanggal_mulai_kerja = DateTimeField(required=True, default=datetime.now)
     tanggal_selesai_kerja = DateTimeField(required=True, default=datetime.now)
     #penyedia_undang = ListField(ReferenceField(vendor))
@@ -258,18 +266,18 @@ class batch(Document):
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
 
-    #meta = {
+    # meta = {
     #    'indexes': [
-    #        {'fields': ('nomor'), 'unique': True}       
+    #        {'fields': ('nomor'), 'unique': True}
     #    ]
-    #}
-    
+    # }
+
     def serialize(self):
-        #penyedia_=[]
-        #for pu in self.penyedia_undang:
+        # penyedia_=[]
+        # for pu in self.penyedia_undang:
         #    penyedia_.append(pu.serialize())
-        #penyedia_k=[]
-        #for pk in self.penyedia_kerja:
+        # penyedia_k=[]
+        # for pk in self.penyedia_kerja:
         #    penyedia_k.append(pk.serialize())
         return {
             'id': str(self.id),
@@ -283,41 +291,45 @@ class batch(Document):
             'tanggal_selesai_undangan': str(self.tanggal_selesai_undangan),
             'tanggal_mulai_kerja': str(self.tanggal_mulai_kerja),
             'tanggal_selesai_kerja': str(self.tanggal_selesai_kerja),
-            #'penyedia_undang': penyedia_,
-            #'penyedia_undang': drf_serializers.ListField(child=self.penyedia_undang),
-            #'penyedia_kerja': drf_serializers.ListField(child=self.penyedia_kerja),
-            #'penyedia_kerja': penyedia_k,
+            # 'penyedia_undang': penyedia_,
+            # 'penyedia_undang': drf_serializers.ListField(child=self.penyedia_undang),
+            # 'penyedia_kerja': drf_serializers.ListField(child=self.penyedia_kerja),
+            # 'penyedia_kerja': penyedia_k,
             'status': self.status,
             'created_at': str(self.created_at),
             'updated_at': str(self.updated_at),
         }
 
+
 class rfi_score(Document):
     #rfi_doc = ReferenceField(rfi_doc)
-    rekomendasi_teknologi = StringField(required=True,default='-')
+    rekomendasi_teknologi = StringField(required=True, default='-')
     material_on_site = DateTimeField(required=True, default=datetime.now)
     installation = DateTimeField(required=True, default=datetime.now)
     on_air = DateTimeField(required=True, default=datetime.now)
     integration = DateTimeField(required=True, default=datetime.now)
-    days_material_on_site = IntField(required=True,default=0)
-    days_installation = IntField(required=True,default=0)
-    days_on_air = IntField(required=True,default=0)
-    days_on_integration = IntField(required=True,default=0)
+    days_material_on_site = IntField(required=True, default=0)
+    days_installation = IntField(required=True, default=0)
+    days_on_air = IntField(required=True, default=0)
+    days_on_integration = IntField(required=True, default=0)
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
+
 
 class vp_score(Document):
-    kecepatan = IntField(required=True,default=0)
-    ketepatan = IntField(required=True,default=0)
-    kualitas = IntField(required=True,default=0)
-    vendorid = ReferenceField(vendor)
+    kecepatan = IntField(required=True, default=0)
+    ketepatan = IntField(required=True, default=0)
+    kualitas = IntField(required=True, default=0)
+    vendor = ReferenceField(vendor)
+
 
 class total_calc(Document):
-    rfi = IntField(required=True,default=0)
-    vp = IntField(required=True,default=0)
-    teknologi = IntField(required=True,default=0)
+    rfi = IntField(required=True, default=0)
+    vp = IntField(required=True, default=0)
+    teknologi = IntField(required=True, default=0)
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
+
 
 class vendor_application(Document):
     users = ReferenceField(UserInfo)
@@ -327,14 +339,14 @@ class vendor_application(Document):
     rfi_score_id = ReferenceField(rfi_score)
     vp_score_id = ReferenceField(vp_score)
     total_calc_id = ReferenceField(total_calc)
-    rank = IntField(required=True,default=0)
-    rfi_no = StringField(required=True,default='-')
+    rank = IntField(required=True, default=0)
+    rfi_no = StringField(required=True, default='-')
     rfi_doc_id = ReferenceField(rfi_doc)
     tanggal_mulai_sla = DateTimeField(required=True, default=datetime.now)
     tanggal_akhir_sla = DateTimeField(required=True, default=datetime.now)
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
-    
+
     def serialize(self):
         return {
             "id": str(self.id),

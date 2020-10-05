@@ -5,22 +5,24 @@ from rest_framework import status as HTTPStatus
 class CustomResponse:
 
     def base(self, values=None, message="", status=200, success='True'):
-        if values is None:
-            values = []
+        try:
+            if values is None:
+                values = []
 
-        res = {}
+            res = {}
 
-        res['success'] = success
+            res['success'] = success
 
-        if isinstance(values, list) and len(values) > 0:
-            res['count'] = len(values)
+            if isinstance(values, list) and len(values) > 0:
+                res['count'] = len(values)
 
-        res['values'] = values
+            res['values'] = values
 
-        if message != '':
-            res['message'] = message
-
-        return Response(res, status=status)
+            if message != '':
+                res['message'] = message
+            return Response(res, status=status)
+        except Exception as e:
+            print(e)
 
     @staticmethod
     def ok(values=None, message="", success=True):

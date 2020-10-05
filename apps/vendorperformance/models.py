@@ -6,9 +6,9 @@ from apps.userinfo.models import UserInfo, vendor
 
 
 class VPScore(Document):
-    kecepatan = fields.IntField(min_value=1, max_value=5)
-    ketepatan = fields.IntField(min_value=1, max_value=5)
-    kualitas = fields.IntField(min_value=1, max_value=5)
+    kecepatan = fields.IntField(min_value=0, max_value=5, default=0)
+    ketepatan = fields.IntField(min_value=0, max_value=5, default=0)
+    kualitas = fields.IntField(min_value=0, max_value=5, default=0)
     vendor = fields.ReferenceField(vendor, unique=True)
     created_at = fields.DateTimeField(
         required=True, default=datetime.now)

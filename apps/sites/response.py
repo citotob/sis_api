@@ -13,7 +13,7 @@ class Response:
             'message': message
         }, status=status)
 
-    def getMultipleBase(self,values=None,message="",status=200,success='True',count=0):
+    def getMultipleBase(self, values=None, message="", status=200, success='True', count=0):
         if values is None:
             values = []
 
@@ -21,8 +21,9 @@ class Response:
             'success': success,
             'values': values,
             'message': message,
-            'count' :count
+            'count': count
         }, status=status)
+
     @staticmethod
     def ok(values=None, message="", success=True):
         return Response().base(success=True, values=values, message=message, status=200)
@@ -31,7 +32,6 @@ class Response:
     def badRequest(values=None, message="", success=False):
         return Response().base(success=success, values=values, message=message, status=400)
 
-
     @staticmethod
-    def okReturnCount(values=None,message="",success=True, count=0):
-        return Response().getMultipleBase(success=True, values=values, message=message, status=200,count=count)
+    def okReturnCount(values=None, message="", success=True, count=0):
+        return Response().getMultipleBase(success=True, values=values, message=message, status=200, count=count)
