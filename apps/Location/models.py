@@ -5,8 +5,8 @@ from mongoengine import DynamicDocument, Document, fields
 
 class Provinsi(Document):
     name = fields.StringField()
-    # latitude = fields.StringField()
-    # longitude = fields.StringField()
+    latitude = fields.StringField()
+    longitude = fields.StringField()
     prefix = fields.StringField()
     tanggal_pembuatan = fields.DateTimeField()
     tanggal_perubahan = fields.DateTimeField()

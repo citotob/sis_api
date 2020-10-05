@@ -43,11 +43,11 @@ CORS_ALLOW_METHODS = (
     'VIEW',
 )
 
-#CORS_ORIGIN_WHITELIST = (
+# CORS_ORIGIN_WHITELIST = (
 #    'https://survejdev-api.datasintesa.id'
 #     'http://localhost:8000',
 # 	 'http://localhost:8080'
-#)
+# )
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -71,10 +71,11 @@ INSTALLED_APPS = [
     'rest_framework_mongoengine',
     'corsheaders',
     'userinfo',
-    #'sites',
-    #'Location',
-    #'vendor',
-    
+    # 'sites',
+    # 'Location',
+    'vendor',
+    'Location',
+    'vendorperformance',
     # 'configparser',
     'channels',
     'userinfo.utils',
