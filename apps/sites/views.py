@@ -952,3 +952,7 @@ def getallbatch(request):
             )
     except Exception as e:
         print(e)
+        return Response.badRequest(
+            values=[],
+            message=str(e)
+        )
