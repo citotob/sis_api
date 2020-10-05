@@ -30,6 +30,7 @@ urlpatterns = [
     path('site/', include('sites.urls')),
     path('vendor/', include('vendor.urls')),
     path('location/', include('Location.urls')),
+    path('vendorperformance/', include('vendorperformance.urls'))
 ]
 
 # Add media and static files
