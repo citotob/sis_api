@@ -657,7 +657,7 @@ def addbatch(request):
         )
         doc.save()
 
-        data_batch.rfi_doc = ObjectId(doc.id)
+        data_batch.rfi_doc_id = ObjectId(doc.id)
         data_batch.save()
 
         #for vn in vendor_list:
@@ -734,11 +734,12 @@ def addsite(request):
         
         try:
             data_nomor_site = site.objects.order_by('-unik_id').first()
-            nomor_site = int(data_nomor_site.nomor) + 1
-            nomor_site = str(nomor_site).zfill(5)
+            nomor_site = data_nomor_site.unik_id + 1
+            #nomor_site = str(nomor_site).zfill(5)
         except Exception as e:
             print(e)
-            nomor_site = '1'.zfill(5)
+            #nomor_site = '1'.zfill(5)
+            nomor_site = 1
 
         data_site = site(
             unik_id = nomor_site,
@@ -760,8 +761,8 @@ def addsite(request):
         data_site.save()
 
         data_site_matchmaking = site_matchmaking(
-            site = data_site.id,
-            batch = ObjectId(batch_id)
+            siteid = data_site.id,
+            batchid = ObjectId(batch_id)
         )
         data_site_matchmaking.save()
 

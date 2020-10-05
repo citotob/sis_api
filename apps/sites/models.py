@@ -311,6 +311,8 @@ class vp_score(Document):
     ketepatan = IntField(required=True,default=0)
     kualitas = IntField(required=True,default=0)
     vendorid = ReferenceField(vendor)
+    created_at = DateTimeField(required=True, default=datetime.now)
+    updated_at = DateTimeField(required=True, default=datetime.now)
 
 class total_calc(Document):
     rfi = IntField(required=True,default=0)
@@ -321,8 +323,8 @@ class total_calc(Document):
 
 class vendor_application(Document):
     users = ReferenceField(UserInfo)
-    vendorid = ReferenceField(vendor, unique=True)
-    batchid = ReferenceField(batch, unique=True)
+    vendorid = ReferenceField(vendor)
+    batchid = ReferenceField(batch)
     #siteid = ReferenceField(site_matchmaking)
     rfi_score_id = ReferenceField(rfi_score)
     vp_score_id = ReferenceField(vp_score)
@@ -335,6 +337,12 @@ class vendor_application(Document):
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
     
+    meta = {
+        'indexes': [
+            {'fields': ('vendorid', 'batchid'), 'unique': True}
+        ]
+    }
+
     def serialize(self):
         return {
             "id": str(self.id),
