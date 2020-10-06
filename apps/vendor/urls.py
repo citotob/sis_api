@@ -1,5 +1,5 @@
 from django.urls import path
-from vendor import views
+from . import views
 #from rest_framework.authtoken import views as tokenview
 
 
@@ -9,4 +9,5 @@ urlpatterns = [
     path('penawaran/', views.penawaran),
     path('getbatch/', views.getbatch),
     path('getsite/', views.getsite),
+    path('getvendorapp/', views.getVendorApp),
 ]
