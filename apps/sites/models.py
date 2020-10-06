@@ -12,6 +12,7 @@ from userinfo.models import UserInfo, vendor
 from vendorperformance.models import *
 from rest_framework_mongoengine import serializers as drfm_serializers
 from rest_framework import serializers as drf_serializers
+from . import *
 """
 class company(Document):
     name = StringField(required=True, unique=True)
@@ -250,7 +251,7 @@ class batch(Document):
     judul = StringField(required=True)
     type = StringField(required=True, choices=[
         'VIP', 'Non-VIP'], default='Non-VIP')
-    #sites = ListField(ReferenceField(site_matchmaking))
+    # sites = ListField(ReferenceField(site_matchmaking))
     sites = ListField()
     creator = ReferenceField(UserInfo)
     rfi_no = StringField(required=True)
@@ -377,6 +378,6 @@ class site_matchmaking(Document):
     siteid = ReferenceField(site)
     batchid = ReferenceField(batch)
     applicants = ListField(ReferenceField(vendor_application))
-    #applicants = ListField()
+    # applicants = ListField()
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
