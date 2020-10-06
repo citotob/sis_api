@@ -24,11 +24,11 @@ from .serializer import VPSerializer, VPCreateSerializer
 
 class VendorPerformanceAPI(ModelViewSet):
 
-    def getByVendor(self, request, id, format=None):
+    def getByVendor(self, request, format=None):
         try:
-            vendor = id
+            vendor = request.query_params.get('id')
             if not vendor:
-                raise TypeError('Need Body "id"')
+                raise TypeError('Need Param "id"')
             data = VPScore.objects.get(vendor=vendor)
             serializer = VPSerializer(data)
             return CustomResponse.ok(values=serializer.data)
