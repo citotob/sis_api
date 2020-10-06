@@ -3,7 +3,13 @@
 from rest_framework_mongoengine.serializers import DocumentSerializer
 from rest_framework_mongoengine import fields
 from rest_framework import serializers
-from .models import site_matchmaking, batch
+from .models import site_matchmaking, batch, vendor_application
+
+
+class VendorApplicationSerializer(DocumentSerializer):
+    class Meta:
+        model = vendor_application
+        depth = 2
 
 
 class SiteMatchmakingSerializer(DocumentSerializer):
