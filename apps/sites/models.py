@@ -377,6 +377,6 @@ class site_matchmaking(Document):
     siteid = ReferenceField(site)
     batchid = ReferenceField(batch)
     applicants = ListField(ReferenceField(vendor_application))
-    applicants = ListField()
+    #applicants = ListField()
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
