@@ -881,6 +881,7 @@ def resetpassword(request):
             user.password = make_password(
                 data['newpassword'], settings.SECRET_KEY, 'pbkdf2_sha256')
             user.update_date = datetime.datetime.utcnow() + datetime.timedelta(hours=7)
+            user.token_reset = None
             user.save()
             
             """
