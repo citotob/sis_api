@@ -974,7 +974,7 @@ def addodp(request):
             data_odp = Odp(
                 latitude = latitude,
                 longitude = longitude,
-                longlat = [longitude,latitude],
+                longlat = [float(longitude),float(latitude)],
                 teknologi = teknologi,
                 vendorid = vendorid
             )
