@@ -83,7 +83,7 @@ class UserInfo(Document):
     role = ReferenceField(UserRole)
     #surveyor = StringField(required=True)
     doc = ReferenceField(DocumentUser)
-    # role = StringField(required=True)
+    token_reset = StringField()
     create_date = DateTimeField(
         default=(datetime.utcnow() + timedelta(hours=7)))
     update_date = DateTimeField(
@@ -103,6 +103,7 @@ class UserInfo(Document):
             "comment": self.comment,
             "role": self.role.serialize(),
             "doc": self.doc.serialize(),
+            "token_reset": self.token_reset
         }
 
 

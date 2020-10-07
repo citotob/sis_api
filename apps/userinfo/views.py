@@ -33,6 +33,8 @@ from userinfo.utils.notification import Notification
 #from userinfo.serializer import *
 from django.core import serializers
 
+import string
+import random
 
 def test(request):
     try:
@@ -803,3 +805,117 @@ def updatesurveyor(request):
         values=[],
         message=f'Update Data',
     )
+
+def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
+
+def forgotpassword(request):
+    if request.method == 'POST':
+        try:
+            req = request.body.decode("utf-8")
+            data = json.loads(req)
+            try:
+                user = UserInfo.objects.get(email=data["email"])
+            except UserInfo.DoesNotExist:
+                return Response.ok(
+                    values=[],
+                    message='User not found'
+                )
+            
+            token = id_generator(10, str(user.id))
+
+            user.token_reset = token
+            dateNow = datetime.datetime.utcnow() + datetime.timedelta(hours=7)
+            user.update_date = dateNow
+            user.save()
+            """
+            try:
+                subject = 'Verifikasi Akun SMASLAB Berhasil'
+                text_content = 'Akun anda telah berhasil diverifikasi\n'+user.username+'\n'+user.company.name+'\n'\
+                        'Silahkan untuk dapat melakukan log in melalui aplikasi ataupun website SMASLAB.\nhttps://survejdev.datasintesa.id/login'
+                #text_content = ''
+                htmly     = get_template('email/verif-akun.html')
+                
+                d = {'username': user.username, 
+                            'company': user.company.name,
+                        'message_top': 'Akun anda telah berhasil diverifikasi',
+                        'message_bottom': 'Silahkan untuk dapat melakukan log in melalui aplikasi ataupun website SMASLAB.\n'
+                            +settings.URL_LOGIN, 'media_url': settings.URL_MEDIA}
+                html_content = htmly.render(d)
+                sender = settings.EMAIL_ADMIN
+                receipient = user.email
+                msg = EmailMultiAlternatives(
+                    subject, text_content, sender, [receipient])
+                msg.attach_alternative(html_content, "text/html")
+                respone = msg.send()
+            except:
+                pass
+            """
+            return Response.ok(
+                values=user.serialize(),
+                message='Forgot Success'
+            )
+        except Exception as e:
+            print(e)
+            #return HttpResponse(e)
+            return Response.badRequest(
+                    values='null',
+                    message=str(e)
+                )
+    else:
+        return HttpResponse('Post Only')
+
+def resetpassword(request):
+    if request.method == 'POST':
+        try:
+            req = request.body.decode("utf-8")
+            data = json.loads(req)
+            try:
+                user = UserInfo.objects.get(token_reset=data["token"])
+            except UserInfo.DoesNotExist:
+                return Response.ok(
+                    values=[],
+                    message='User not found'
+                )
+            
+            user.password = make_password(
+                data['newpassword'], settings.SECRET_KEY, 'pbkdf2_sha256')
+            user.update_date = datetime.datetime.utcnow() + datetime.timedelta(hours=7)
+            user.save()
+            
+            """
+            try:
+                subject = 'Verifikasi Akun SMASLAB Berhasil'
+                text_content = 'Akun anda telah berhasil diverifikasi\n'+user.username+'\n'+user.company.name+'\n'\
+                        'Silahkan untuk dapat melakukan log in melalui aplikasi ataupun website SMASLAB.\nhttps://survejdev.datasintesa.id/login'
+                #text_content = ''
+                htmly     = get_template('email/verif-akun.html')
+                
+                d = {'username': user.username, 
+                            'company': user.company.name,
+                        'message_top': 'Akun anda telah berhasil diverifikasi',
+                        'message_bottom': 'Silahkan untuk dapat melakukan log in melalui aplikasi ataupun website SMASLAB.\n'
+                            +settings.URL_LOGIN, 'media_url': settings.URL_MEDIA}
+                html_content = htmly.render(d)
+                sender = settings.EMAIL_ADMIN
+                receipient = user.email
+                msg = EmailMultiAlternatives(
+                    subject, text_content, sender, [receipient])
+                msg.attach_alternative(html_content, "text/html")
+                respone = msg.send()
+            except:
+                pass
+            """
+            return Response.ok(
+                values=user.serialize(),
+                message='Reset Success'
+            )
+        except Exception as e:
+            print(e)
+            #return HttpResponse(e)
+            return Response.badRequest(
+                    values='null',
+                    message=str(e)
+                )
+    else:
+        return HttpResponse('Post Only')

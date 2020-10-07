@@ -28,4 +28,7 @@ urlpatterns = [
 
     path('updatesurveyor/', views.updatesurveyor),
 
+    path('forgotpassword/', views.forgotpassword),
+    path('resetpassword/', views.resetpassword),
+
 ]
