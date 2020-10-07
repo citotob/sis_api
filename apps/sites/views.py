@@ -956,3 +956,41 @@ def getallbatch(request):
             values=[],
             message=str(e)
         )
+
+def addodp(request):
+    # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
+    # ret, user = authenticate_credentials(token)
+    # if False == ret or None == user:
+    #    return JsonResponse({"state": "fail"})
+    if request.method == "POST":  # Add
+        try:
+            body_data = json.loads(request.body)
+
+            longitude = body_data.get('longitude')
+            latitude = body_data.get('latitude')
+            teknologi = body_data.get('teknologi')
+            vendorid = body_data.get('vendorid')
+        
+            data_odp = Odp(
+                latitude = latitude,
+                longitude = longitude,
+                longlat = [longitude,latitude],
+                teknologi = teknologi,
+                vendorid = vendorid
+            )
+            
+            data_odp.save()
+            result = []
+            #results = site.objects.get(id=ObjectId(data_site.id))
+
+            #result = results.serialize()
+
+            return Response.ok(
+                values=result,
+                message='Berhasil'
+            )
+        except Exception as e:
+            return Response.badRequest(message=str(e))
+
+    else:
+        return Response.badRequest(message='Hanya POST')

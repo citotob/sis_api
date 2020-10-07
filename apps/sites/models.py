@@ -33,7 +33,6 @@ class company(Document):
         }
 """
 
-
 class provinsi(Document):
     #user = ReferenceField(UserInfo)
     name = StringField(required=True)
@@ -154,7 +153,15 @@ class rekomendasi_teknologi(Document):
     jarak_odp = IntField(required=True, default=0)
     teknologi = StringField(required=True, default='-')
 
-
+class Odp(Document):
+    latitude = StringField(required=True)
+    longitude = StringField(required=True)
+    longlat = PointField()
+    teknologi = ReferenceField(rekomendasi_teknologi)
+    vendorid = ReferenceField(vendor)
+    created_at = DateTimeField(required=True, default=datetime.now)
+    updated_at = DateTimeField(required=True, default=datetime.now)
+    
 class site(Document):
     unik_id = IntField(required=True, unique=True)
     latitude = StringField(required=True)
