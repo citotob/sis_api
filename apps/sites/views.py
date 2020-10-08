@@ -758,6 +758,7 @@ def addsite(request):
                 unik_id=nomor_site,
                 latitude=latitude,
                 longitude=longitude,
+                longlat=[float(longitude), float(latitude)],
                 rekomendasi_teknologi=ObjectId('5f76db81f845e6b39081e278'),
                 nama=nama,
                 desa=ObjectId(desa),

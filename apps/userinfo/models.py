@@ -15,6 +15,7 @@ class vendor(Document):
     teknologi = ListField()
     latitude = StringField(required=True)
     longitude = StringField(required=True)
+    longlat = PointField()
     nilai = FloatField()
     created_at = DateTimeField(
         default=datetime.utcnow() + timedelta(hours=7))

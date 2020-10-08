@@ -166,6 +166,7 @@ class site(Document):
     unik_id = IntField(required=True, unique=True)
     latitude = StringField(required=True)
     longitude = StringField(required=True)
+    longlat = PointField()
     rekomendasi_teknologi = ReferenceField(rekomendasi_teknologi)
     nama = StringField(required=True)
     desa = ReferenceField(desa)

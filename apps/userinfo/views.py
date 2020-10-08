@@ -416,10 +416,15 @@ def register(request):
                     name=request.POST.get('company'),
                     latitude='0',
                     longitude='0',
+                    longlat=[0, 0],
                     created_at=datetime.datetime.utcnow() + datetime.timedelta(hours=7),
                     updated_at=datetime.datetime.utcnow() + datetime.timedelta(hours=7)
                 )
                 data_vendor.save()
+
+                data_VPScore = VPScore(vendor=data_vendor.id)
+                data_VPScore.save()
+
             user = UserInfo(
                 name=request.POST.get('name'),
                 username=request.POST.get('username').lower(),
