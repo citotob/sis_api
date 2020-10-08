@@ -2,6 +2,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from sites.models import *
+from apps.sites.models import Odp
 from vendor.models import *
 from userinfo.models import *
 from userinfo.views import authenticate_credentials
@@ -14,6 +15,7 @@ import pandas
 from .response import Response
 from bson import ObjectId, json_util
 from django.http import HttpResponse
+from operator import itemgetter
 # import datetime
 from datetime import datetime, timedelta, timezone
 from django.core.serializers import serialize
@@ -25,7 +27,9 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 from django.core import serializers
 from .serializer import *
-
+from geojson import Feature, Point
+from turfpy.measurement import distance, rhumb_distance, boolean_point_in_polygon
+from turfpy.transformation import circle
 from itertools import groupby
 from userinfo.utils.notification import Notification
 import calendar
@@ -621,13 +625,13 @@ def addbatch(request):
             rfi = body_data.get('rfi')
             type = body_data.get('type')
             creator = body_data.get('creator')
-            #penyedia_undang = body_data.get('penyedia_undang')
+            # penyedia_undang = body_data.get('penyedia_undang')
 
             status_ = {'status': 'Dibuka', 'tanggal_pembuatan': datetime.utcnow(
             ) + timedelta(hours=7)}
 
             try:
-                #data_nomor_batch = batch.objects.latest('nomor')
+                # data_nomor_batch = batch.objects.latest('nomor')
                 data_nomor_batch = batch.objects.order_by('-nomor').first()
                 nomor_batch = int(data_nomor_batch.nomor) + 1
                 nomor_batch = str(nomor_batch).zfill(5)
@@ -636,7 +640,7 @@ def addbatch(request):
                 print(e)
                 nomor_batch = '1'.zfill(5)
 
-            #vendor_list = penyedia_undang.split(",")
+            # vendor_list = penyedia_undang.split(",")
             data_batch = batch(
                 nomor=nomor_batch,
                 judul=judul,
@@ -648,9 +652,9 @@ def addbatch(request):
                 tanggal_selesai_undangan=tanggal_selesai_undangan,
                 tanggal_mulai_kerja=tanggal_mulai_kerja,
                 tanggal_selesai_kerja=tanggal_selesai_kerja
-                #penyedia_undang = vendor_list,
-                #created_at = datetime.utcnow() + timedelta(hours=7),
-                #updated_at = datetime.utcnow() + timedelta(hours=7)
+                # penyedia_undang = vendor_list,
+                # created_at = datetime.utcnow() + timedelta(hours=7),
+                # updated_at = datetime.utcnow() + timedelta(hours=7)
             )
             data_batch.status.append(status_)
             data_batch.save()
@@ -660,8 +664,8 @@ def addbatch(request):
             doc = document_batch(
                 name=file.name,
                 path=file_path
-                #create_date=datetime.utcnow() + timedelta(hours=7),
-                #update_date=datetime.utcnow() + timedelta(hours=7)
+                # create_date=datetime.utcnow() + timedelta(hours=7),
+                # update_date=datetime.utcnow() + timedelta(hours=7)
             )
             doc.save()
 
@@ -685,8 +689,8 @@ def addbatch(request):
             #    data_batch_vendor.status.append(status_)
             #    data_batch_vendor.save()
             result = batch.objects.get(id=ObjectId(data_batch.id)).serialize()
-            #serializer = BatchSerializer(data_batch)
-            #result = serializer.data
+            # serializer = BatchSerializer(data_batch)
+            # result = serializer.data
 
             return Response.ok(
                 values=result,
@@ -744,10 +748,10 @@ def addsite(request):
             try:
                 data_nomor_site = site.objects.order_by('-unik_id').first()
                 nomor_site = data_nomor_site.unik_id + 1
-                #nomor_site = str(nomor_site).zfill(5)
+                # nomor_site = str(nomor_site).zfill(5)
             except Exception as e:
                 print(e)
-                #nomor_site = '1'.zfill(5)
+                # nomor_site = '1'.zfill(5)
                 nomor_site = 1
 
             data_site = site(
@@ -760,8 +764,8 @@ def addsite(request):
                 kecamatan=ObjectId(kecamatan),
                 provinsi=ObjectId(provinsi),
                 kode_pos=kode_pos,
-                #created_at = datetime.utcnow() + timedelta(hours=7),
-                #updated_at = datetime.utcnow() + timedelta(hours=7)
+                # created_at = datetime.utcnow() + timedelta(hours=7),
+                # updated_at = datetime.utcnow() + timedelta(hours=7)
             )
             if data_kab_kota == 'kab':
                 data_site.kabupaten = data_kabupaten.id
@@ -957,6 +961,7 @@ def getallbatch(request):
             message=str(e)
         )
 
+
 def addodp(request):
     # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
     # ret, user = authenticate_credentials(token)
@@ -970,20 +975,20 @@ def addodp(request):
             latitude = body_data.get('latitude')
             teknologi = body_data.get('teknologi')
             vendorid = body_data.get('vendorid')
-        
+
             data_odp = Odp(
-                latitude = latitude,
-                longitude = longitude,
-                longlat = [float(longitude),float(latitude)],
-                teknologi = teknologi,
-                vendorid = vendorid
+                latitude=latitude,
+                longitude=longitude,
+                longlat=[float(longitude), float(latitude)],
+                teknologi=teknologi,
+                vendorid=vendorid
             )
-            
+
             data_odp.save()
             result = []
-            #results = site.objects.get(id=ObjectId(data_site.id))
+            # results = site.objects.get(id=ObjectId(data_site.id))
 
-            #result = results.serialize()
+            # result = results.serialize()
 
             return Response.ok(
                 values=result,
@@ -994,3 +999,67 @@ def addodp(request):
 
     else:
         return Response.badRequest(message='Hanya POST')
+
+
+def getRecommendTech(request):
+
+    try:
+
+        if not request.body:
+            return Response.badRequest(
+                values=[],
+                message="Need Json Body longitude & latitude"
+            )
+        body = json.loads(request.body)
+        longitude = body.get('longitude', None)
+        latitude = body.get('latitude', None)
+
+        if not (longitude and latitude):
+            return Response.badRequest(
+                values=[],
+                message="Need Json Body longitude & latitude"
+            )
+
+        coordinates = [float(longitude), float(latitude)]
+
+        start = Feature(geometry=Point(coordinates=coordinates))
+        # data = Odp.objects.aggregate([
+        #     {
+        #         '$match': {
+        #             "longlat": {"$geoWithin":
+        #                         {"$center": [[121.2866, 39.984], (116 / 111.32)]}}
+        #         }
+        #     }
+        # ])
+        data = Odp.objects(
+            longlat__geo_within_sphere=[coordinates, (10 / 6378.1)])
+        # data = Odp.objects(
+        #     longlat__near=[122.2866, -1.14911], longlat__max_distance=115199)
+        # radius = circle(center=end, radius=85, units='km')
+        # print(boolean_point_in_polygon(start, radius))
+        # print(rhumb_distance(start, end, units='km'))
+        # print(distance(start, end, units='km'))
+        # print(list(data))
+
+        serializer = ODPSerializer(data, many=True)
+
+        if len(serializer.data) > 0:
+            results = []
+            datas = serializer.data.copy()
+            for x in datas:
+                end = Feature(geometry=Point(x["longlat"]["coordinates"]))
+                x['distance'] = f'{int(distance(start, end, units="km"))} km'
+                results.append(x)
+            results.sort(key=itemgetter('distance', 'created_at'))
+            return Response.ok(
+                values=json.loads(json.dumps(serializer.data, default=str)),
+                message=f'{len(serializer.data)} Data'
+            )
+        else:
+            return Response.ok(
+                values=[],
+                message='Data tidak ada'
+            )
+
+    except Exception as e:
+        print(e)
