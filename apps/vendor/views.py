@@ -29,6 +29,7 @@ from itertools import groupby
 from userinfo.utils.notification import Notification
 import calendar
 from math import radians, cos, sin, asin, sqrt
+from sites.serializer import *
 
 
 def respon(request):
@@ -210,107 +211,21 @@ def getbatch(request):
     # batch_id = body_data.get('batch')
     vendor_id = body_data.get('penyedia')
 
-    # page = int(body_data.get('page', 0)) - 1
-    # skip = []
-    # if page >= 0:
-    #    skip = [{'$skip': 20 * page},
-    #            {'$limit': 20}]
-    """
-    pipeline = [
-        {
-            '$lookup': {
-                'from': 'batch_vendor',
-                'localField': '_id',
-                'foreignField': 'batch_id',
-                'as': 'batchVendor'
-            }
-        }, {
-            '$unwind': {
-                'path': '$batchVendor'
-            }
-        }, {
-            '$lookup': {
-                'from': 'site_vendor',
-                'localField': 'batchVendor.batch_id',
-                'foreignField': 'batch_id',
-                'as': 'siteVendor'
-            }
-        }, {
-            '$unwind': {
-                'path': '$siteVendor'
-            }
-        }, {
-            '$lookup': {
-                'from': 'site_location',
-                'localField': 'siteVendor.site_id',
-                'foreignField': '_id',
-                'as': 'siteLocation'
-            }
-        }, {
-            '$unwind': {
-                'path': '$siteLocation'
-            }
-        }
-    ]
-    """
-    pipeline = [
-        {
-            '$lookup': {
-                'from': 'site_vendor',
-                'localField': '_id',
-                'foreignField': 'batch_id',
-                'as': 'site_vendor'
-            }
-        }, {
-            '$unwind': {
-                'path': '$site_vendor'
-            }
-        }, {
-            '$match': {
-                'site_vendor.vendor': ObjectId(vendor_id)
-            }
-        }, {
-            '$project': {
-                'judul': '$judul',
-                'rfiNo': '$rfi_no',
-                'tanggal_mulai_undangan': '$tanggal_mulai_undangan',
-                'tanggal_selesai_undangan': '$tanggal_selesai_undangan'
-            }
-        }, {
-            '$group': {
-                '_id': '$judul',
-                'rfi_no': {
-                    '$first': '$rfiNo'
-                },
-                'tanggal_mulai_undangan': {
-                    '$first': '$tanggal_mulai_undangan'
-                },
-                'tanggal_selesai_undangan': {
-                    '$first': '$tanggal_selesai_undangan'
-                },
-                'jumlahTitik': {
-                    '$sum': 1
-                }
-            }
-        }
-    ]
-    pipe = pipeline  # + skip
-    agg_cursor = batch.objects.aggregate(*pipe)
-
-    batch_list = list(agg_cursor)
-
-    # for btc in batch_list:
-
-    if len(batch_list) > 0:
-        return Response.ok(
-            values=json.loads(json.dumps(batch_list, default=str)),
-            message=f'{len(batch_list)} Data'
-        )
-    else:
-        return Response.ok(
-            values=[],
-            message='Data tidak ada'
-        )
+    #try:
+    
+    data = batch.objects.filter(penyedia_undang=vendor_id,status__status='Dibuka',
+            tanggal_selesai_undangan__gte=datetime.utcnow() + timedelta(hours=7))
+    
+    serializer = BatchSerializer(data,many=True)
+    return Response.ok(
+        values=json.loads(json.dumps(serializer.data, default=str)),
+        message=f'{len(serializer.data)} Data'
+    )
+    #except batch.DoesNotExist:
+    #    return Response.ok(
+    #        values=[],
+    #        message='Data tidak ada'
+    #    )
 
 
 def getsite(request):
