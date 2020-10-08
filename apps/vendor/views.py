@@ -207,25 +207,20 @@ def getbatch(request):
     # ret, user = authenticate_credentials(token)
     # if False == ret or None == user:
     #    return JsonResponse({"state": "fail"})
-    body_data = json.loads(request.body)
-    # batch_id = body_data.get('batch')
-    vendor_id = body_data.get('penyedia')
+    try:
+        body_data = json.loads(request.body)
+        vendor_id = body_data.get('penyedia')
 
-    #try:
-    
-    data = batch.objects.filter(penyedia_undang=vendor_id,status__status='Dibuka',
-            tanggal_selesai_undangan__gte=datetime.utcnow() + timedelta(hours=7))
-    
-    serializer = BatchSerializer(data,many=True)
-    return Response.ok(
-        values=json.loads(json.dumps(serializer.data, default=str)),
-        message=f'{len(serializer.data)} Data'
-    )
-    #except batch.DoesNotExist:
-    #    return Response.ok(
-    #        values=[],
-    #        message='Data tidak ada'
-    #    )
+        data = batch.objects.filter(penyedia_undang=vendor_id,status__status='Dibuka',
+                tanggal_selesai_undangan__gte=datetime.utcnow() + timedelta(hours=7))
+        
+        serializer = BatchSerializer(data,many=True)
+        return Response.ok(
+            values=json.loads(json.dumps(serializer.data, default=str)),
+            message=f'{len(serializer.data)} Data'
+        )
+    except Exception as e:
+        return Response.badRequest(message=str(e))
 
 
 def getsite(request):
