@@ -269,8 +269,8 @@ class batch(Document):
         required=True, default=datetime.now)
     tanggal_mulai_kerja = DateTimeField(required=True, default=datetime.now)
     tanggal_selesai_kerja = DateTimeField(required=True, default=datetime.now)
-    #penyedia_undang = ListField(ReferenceField(vendor))
-    #penyedia_kerja = ListField(ReferenceField(vendor))
+    penyedia_undang = ListField(ReferenceField(vendor))
+    penyedia_kerja = ListField(ReferenceField(vendor))
     status = ListField(required=True)
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
@@ -282,12 +282,12 @@ class batch(Document):
     # }
 
     def serialize(self):
-        # penyedia_=[]
-        # for pu in self.penyedia_undang:
-        #    penyedia_.append(pu.serialize())
-        # penyedia_k=[]
-        # for pk in self.penyedia_kerja:
-        #    penyedia_k.append(pk.serialize())
+        penyedia_=[]
+        for pu in self.penyedia_undang:
+            penyedia_.append(pu.serialize())
+        penyedia_k=[]
+        for pk in self.penyedia_kerja:
+            penyedia_k.append(pk.serialize())
         return {
             'id': str(self.id),
             'nomor': self.nomor,
@@ -300,10 +300,10 @@ class batch(Document):
             'tanggal_selesai_undangan': str(self.tanggal_selesai_undangan),
             'tanggal_mulai_kerja': str(self.tanggal_mulai_kerja),
             'tanggal_selesai_kerja': str(self.tanggal_selesai_kerja),
-            # 'penyedia_undang': penyedia_,
+            'penyedia_undang': penyedia_,
             # 'penyedia_undang': drf_serializers.ListField(child=self.penyedia_undang),
             # 'penyedia_kerja': drf_serializers.ListField(child=self.penyedia_kerja),
-            # 'penyedia_kerja': penyedia_k,
+            'penyedia_kerja': penyedia_k,
             'status': self.status,
             'created_at': str(self.created_at),
             'updated_at': str(self.updated_at),

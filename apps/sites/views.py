@@ -625,7 +625,7 @@ def addbatch(request):
             rfi = body_data.get('rfi')
             type = body_data.get('type')
             creator = body_data.get('creator')
-            # penyedia_undang = body_data.get('penyedia_undang')
+            penyedia_undang = body_data.get('penyedia_undang')
 
             status_ = {'status': 'Dibuka', 'tanggal_pembuatan': datetime.utcnow(
             ) + timedelta(hours=7)}
@@ -640,7 +640,7 @@ def addbatch(request):
                 print(e)
                 nomor_batch = '1'.zfill(5)
 
-            # vendor_list = penyedia_undang.split(",")
+            vendor_list = penyedia_undang.split(",")
             data_batch = batch(
                 nomor=nomor_batch,
                 judul=judul,
@@ -651,8 +651,8 @@ def addbatch(request):
                 tanggal_mulai_undangan=tanggal_mulai_undangan,
                 tanggal_selesai_undangan=tanggal_selesai_undangan,
                 tanggal_mulai_kerja=tanggal_mulai_kerja,
-                tanggal_selesai_kerja=tanggal_selesai_kerja
-                # penyedia_undang = vendor_list,
+                tanggal_selesai_kerja=tanggal_selesai_kerja,
+                penyedia_undang = vendor_list,
                 # created_at = datetime.utcnow() + timedelta(hours=7),
                 # updated_at = datetime.utcnow() + timedelta(hours=7)
             )
