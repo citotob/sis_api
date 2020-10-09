@@ -166,7 +166,7 @@ class rekomendasi_teknologi(Document):
     jarak_odp = IntField(required=True, default=0)
     teknologi = StringField(required=True, default='-')
     #list_odp = EmbeddedDocumentField(ListOdp)
-    list_odp = listfield(EmbeddedDocumentField(ListOdp))
+    list_odp = ListField(EmbeddedDocumentField(ListOdp))
     
 class site(Document):
     unik_id = IntField(required=True, unique=True)
