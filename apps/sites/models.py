@@ -160,12 +160,13 @@ class Odp(Document):
 
 class ListOdp(EmbeddedDocument):
     odp = ReferenceField(Odp)
-    jarak = FloatField(required=True, default=0)
+    jarak = StringField()
 
 class rekomendasi_teknologi(Document):
     jarak_odp = IntField(required=True, default=0)
     teknologi = StringField(required=True, default='-')
-    list_odp = EmbeddedDocumentField(ListOdp)
+    #list_odp = EmbeddedDocumentField(ListOdp)
+    list_odp = listfield(EmbeddedDocumentField(ListOdp))
     
 class site(Document):
     unik_id = IntField(required=True, unique=True)
