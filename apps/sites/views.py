@@ -12,6 +12,7 @@ from django.conf import settings
 import json
 from django.core.exceptions import ObjectDoesNotExist
 import pandas
+from .utils import getRecommendTechnologi
 from .response import Response
 from bson import ObjectId, json_util
 from django.http import HttpResponse
@@ -652,7 +653,7 @@ def addbatch(request):
                 tanggal_selesai_undangan=tanggal_selesai_undangan,
                 tanggal_mulai_kerja=tanggal_mulai_kerja,
                 tanggal_selesai_kerja=tanggal_selesai_kerja,
-                penyedia_undang = vendor_list,
+                penyedia_undang=vendor_list,
                 # created_at = datetime.utcnow() + timedelta(hours=7),
                 # updated_at = datetime.utcnow() + timedelta(hours=7)
             )
@@ -1022,7 +1023,7 @@ def getRecommendTech(request):
             )
 
         coordinates = [float(longitude), float(latitude)]
-
+        getRecommendTechnologi(longitude, latitude)
         start = Feature(geometry=Point(coordinates=coordinates))
         # data = Odp.objects.aggregate([
         #     {
