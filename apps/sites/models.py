@@ -158,10 +158,14 @@ class Odp(Document):
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
 
+class ListOdp(EmbeddedDocument):
+    odp = ReferenceField(Odp)
+    jarak = FloatField(required=True, default=0)
+
 class rekomendasi_teknologi(Document):
     jarak_odp = IntField(required=True, default=0)
     teknologi = StringField(required=True, default='-')
-    list_odp = ListField(ReferenceField(Odp))
+    list_odp = EmbeddedDocumentField(ListOdp)
     
 class site(Document):
     unik_id = IntField(required=True, unique=True)
