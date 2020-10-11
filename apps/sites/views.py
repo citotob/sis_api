@@ -647,7 +647,7 @@ def addbatch(request):
                 type=type,
                 sites=[],
                 creator=creator,
-                doc_permohonan_rfi=rfi,
+                no_doc_permohonan_rfi=rfi,
                 tanggal_mulai_undangan=tanggal_mulai_undangan,
                 tanggal_selesai_undangan=tanggal_selesai_undangan,
                 tanggal_mulai_kerja=tanggal_mulai_kerja,
@@ -669,7 +669,7 @@ def addbatch(request):
             )
             doc.save()
 
-            data_batch.rfi_doc_id = ObjectId(doc.id)
+            data_batch.doc_permohonan_rfi = ObjectId(doc.id)
             data_batch.save()
 
             # for vn in vendor_list:
@@ -761,7 +761,7 @@ def addsite(request):
                 longlat=[float(longitude), float(latitude)],
                 rekomendasi_teknologi=ObjectId('5f76db81f845e6b39081e278'),
                 nama=nama,
-                desa=ObjectId(desa),
+                desa_kelurahan=ObjectId(desa),
                 kecamatan=ObjectId(kecamatan),
                 provinsi=ObjectId(provinsi),
                 kode_pos=kode_pos,

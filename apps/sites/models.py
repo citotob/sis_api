@@ -217,7 +217,7 @@ class site(Document):
                 'latitude': self.latitude,
                 'longitude': self.longitude,
                 'nama': self.nama,
-                'desa': self.desa.serialize(),
+                'desa_kelurahan': self.desa_kelurahan.serialize(),
                 'kecamatan': self.kecamatan.serialize(),
                 'kabupaten': self.kabupaten.serialize(),
                 'provinsi': self.provinsi.serialize(),
@@ -227,13 +227,13 @@ class site(Document):
             }
         except:
             # except Exception as e:
-            print(e)
+            #print(e)
             return {
                 'id': str(self.id),
                 'latitude': self.latitude,
                 'longitude': self.longitude,
                 'nama': self.nama,
-                'desa': self.desa.serialize(),
+                'ddesa_kelurahanesa': self.desa_kelurahan.serialize(),
                 'kecamatan': self.kecamatan.serialize(),
                 'kota': self.kota.serialize(),
                 'provinsi': self.provinsi.serialize(),
@@ -300,8 +300,8 @@ class batch(Document):
             'judul': self.judul,
             'type': self.type,
             'creator': self.creator.serialize(),
-            'doc_permohonan_rfi': self.doc_permohonan_rfi,
-            'rfi_doc_id': self.rfi_doc_id.serialize(),
+            'no_doc_permohonan_rfi': self.no_doc_permohonan_rfi,
+            'doc_permohonan_rfi': self.doc_permohonan_rfi.serialize(),
             'tanggal_mulai_undangan': str(self.tanggal_mulai_undangan),
             'tanggal_selesai_undangan': str(self.tanggal_selesai_undangan),
             'tanggal_mulai_kerja': str(self.tanggal_mulai_kerja),
