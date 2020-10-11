@@ -1,6 +1,7 @@
 #from rest_framework import serializers
 from rest_framework_mongoengine.serializers import DocumentSerializer
 from sites.models import *
+from userinfo.models import *
 
 class vendor_applicationSerializer(DocumentSerializer):
     class Meta:
@@ -32,5 +33,11 @@ class vendor_applicationResponSerializer(DocumentSerializer):
 class rfi_scoreSerializer(DocumentSerializer):
     class Meta:
         model = rfi_score
+        fields = '__all__'
+        depth = 2
+
+class vendorSerializer(DocumentSerializer):
+    class Meta:
+        model = vendor
         fields = '__all__'
         depth = 2

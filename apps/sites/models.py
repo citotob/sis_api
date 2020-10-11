@@ -175,7 +175,7 @@ class site(Document):
     longlat = PointField()
     rekomendasi_teknologi = ReferenceField(rekomendasi_teknologi)
     nama = StringField(required=True)
-    desa = ReferenceField(desa)
+    desa_kelurahan = ReferenceField(desa)
     kecamatan = ReferenceField(kecamatan)
     kabupaten = ReferenceField(kabupaten)
     kota = ReferenceField(kota)
@@ -243,7 +243,7 @@ class site(Document):
             }
 
 
-class document_batch(Document):
+class doc_permohonan_rfi(Document):
     name = StringField()
     path = StringField()
     create_date = DateTimeField(required=True, default=datetime.now)
@@ -268,8 +268,8 @@ class batch(Document):
     # sites = ListField(ReferenceField(site_matchmaking))
     sites = ListField()
     creator = ReferenceField(UserInfo)
-    rfi_no = StringField(required=True)
-    rfi_doc_id = ReferenceField(document_batch)
+    no_doc_permohonan_rfi = StringField(required=True)
+    doc_permohonan_rfi = ReferenceField(doc_permohonan_rfi)
     tanggal_mulai_undangan = DateTimeField(required=True, default=datetime.now)
     tanggal_selesai_undangan = DateTimeField(
         required=True, default=datetime.now)

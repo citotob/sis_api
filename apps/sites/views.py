@@ -661,7 +661,7 @@ def addbatch(request):
 
             filename = fs.save(file.name, file)
             file_path = fs.url(filename)
-            doc = document_batch(
+            doc = doc_permohonan_rfi(
                 name=file.name,
                 path=file_path
                 # create_date=datetime.utcnow() + timedelta(hours=7),
@@ -858,7 +858,7 @@ def editbatch(request):
 
         filename = fs.save(file.name, file)
         file_path = fs.url(filename)
-        doc = document_batch(
+        doc = doc_permohonan_rfi(
             name=file.name,
             path=file_path,
             create_date=datetime.utcnow() + timedelta(hours=7),
