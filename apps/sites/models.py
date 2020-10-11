@@ -261,7 +261,7 @@ class doc_permohonan_rfi(Document):
 class batch(Document):
     #sites = ListField(required=True)
     #creator = ReferenceField(users)
-    nomor = StringField(required=True, unique=True)
+    #nomor = StringField(required=True, unique=True)
     judul = StringField(required=True)
     type = StringField(required=True, choices=[
         'VIP', 'Non-VIP'], default='Non-VIP')
@@ -296,7 +296,7 @@ class batch(Document):
             penyedia_k.append(pk.serialize())
         return {
             'id': str(self.id),
-            'nomor': self.nomor,
+            #'nomor': self.nomor,
             'judul': self.judul,
             'type': self.type,
             'creator': self.creator.serialize(),

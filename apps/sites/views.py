@@ -410,19 +410,19 @@ def uploadsite(request):
         status_ = {'status': 'Dibuka', 'tanggal_pembuatan': datetime.utcnow(
         ) + timedelta(hours=7)}
 
-        try:
-            # data_nomor_batch = batch.objects.latest('nomor')
-            data_nomor_batch = batch.objects.order_by('-nomor').first()
-            nomor_batch = int(data_nomor_batch.nomor) + 1
-            nomor_batch = str(nomor_batch).zfill(5)
-        # except:
-        except Exception as e:
-            print(e)
-            nomor_batch = '1'.zfill(5)
+        #try:
+        #    # data_nomor_batch = batch.objects.latest('nomor')
+        #    data_nomor_batch = batch.objects.order_by('-nomor').first()
+        #    nomor_batch = int(data_nomor_batch.nomor) + 1
+        #    nomor_batch = str(nomor_batch).zfill(5)
+        ## except:
+        #except Exception as e:
+        #    print(e)
+        #    nomor_batch = '1'.zfill(5)
 
         vendor_list = penyedia_undang.split(",")
         data_batch = batch(
-            nomor=nomor_batch,
+            #nomor=nomor_batch,
             judul=judul,
             type=type,
             sites=[],
@@ -630,19 +630,19 @@ def addbatch(request):
             status_ = {'status': 'Dibuka', 'tanggal_pembuatan': datetime.utcnow(
             ) + timedelta(hours=7)}
 
-            try:
-                # data_nomor_batch = batch.objects.latest('nomor')
-                data_nomor_batch = batch.objects.order_by('-nomor').first()
-                nomor_batch = int(data_nomor_batch.nomor) + 1
-                nomor_batch = str(nomor_batch).zfill(5)
-            # except:
-            except Exception as e:
-                print(e)
-                nomor_batch = '1'.zfill(5)
+            #try:
+            #    # data_nomor_batch = batch.objects.latest('nomor')
+            #    data_nomor_batch = batch.objects.order_by('-nomor').first()
+            #    nomor_batch = int(data_nomor_batch.nomor) + 1
+            #    nomor_batch = str(nomor_batch).zfill(5)
+            ## except:
+            #except Exception as e:
+            #    print(e)
+            #    nomor_batch = '1'.zfill(5)
 
             vendor_list = penyedia_undang.split(",")
             data_batch = batch(
-                nomor=nomor_batch,
+                #nomor=nomor_batch,
                 judul=judul,
                 type=type,
                 sites=[],
