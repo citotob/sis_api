@@ -88,7 +88,7 @@ def respon(request):
                 )
             data_vendor_application = vendor_application(
                 users=userid,
-                vendorid=data_user.company,
+                vendorid=data_user.company.id,
                 batchid=ObjectId(batchid),
                 vp_score_id=data_vp_score.id,
                 rank=1,

@@ -300,7 +300,7 @@ class batch(Document):
             'judul': self.judul,
             'type': self.type,
             'creator': self.creator.serialize(),
-            'rfi_no': self.rfi_no,
+            'doc_permohonan_rfi': self.doc_permohonan_rfi,
             'rfi_doc_id': self.rfi_doc_id.serialize(),
             'tanggal_mulai_undangan': str(self.tanggal_mulai_undangan),
             'tanggal_selesai_undangan': str(self.tanggal_selesai_undangan),
