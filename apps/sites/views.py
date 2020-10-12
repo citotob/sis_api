@@ -1023,7 +1023,7 @@ def getRecommendTech(request):
             )
 
         coordinates = [float(longitude), float(latitude)]
-        getRecommendTechnologi(longitude, latitude)
+        # print(getRecommendTechnologi(longitude, latitude))
         start = Feature(geometry=Point(coordinates=coordinates))
         # data = Odp.objects.aggregate([
         #     {

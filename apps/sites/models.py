@@ -33,6 +33,7 @@ class company(Document):
         }
 """
 
+
 class provinsi(Document):
     #user = ReferenceField(UserInfo)
     name = StringField(required=True)
@@ -148,6 +149,7 @@ class rfi_doc(Document):
             "update_date": self.update_date,
         }
 
+
 class Odp(Document):
     latitude = StringField(required=True)
     longitude = StringField(required=True)
@@ -158,15 +160,18 @@ class Odp(Document):
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
 
+
 class ListOdp(EmbeddedDocument):
     odp = ReferenceField(Odp)
-    jarak = FloatField(required=True, default=0)
+    jarak = StringField(required=True, default=0)
+
 
 class rekomendasi_teknologi(Document):
-    jarak_odp = IntField(required=True, default=0)
+    # jarak_odp = IntField(required=True, default=0)
     teknologi = StringField(required=True, default='-')
-    list_odp = EmbeddedDocumentField(ListOdp)
-    
+    list_odp = EmbeddedDocumentListField(ListOdp)
+
+
 class site(Document):
     unik_id = IntField(required=True, unique=True)
     latitude = StringField(required=True)
@@ -287,10 +292,10 @@ class batch(Document):
     # }
 
     def serialize(self):
-        penyedia_=[]
+        penyedia_ = []
         for pu in self.penyedia_undang:
             penyedia_.append(pu.serialize())
-        penyedia_k=[]
+        penyedia_k = []
         for pk in self.penyedia_kerja:
             penyedia_k.append(pk.serialize())
         return {
