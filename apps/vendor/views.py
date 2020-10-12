@@ -20,7 +20,8 @@ from datetime import datetime, timedelta, timezone
 from django.core.serializers import serialize
 from django.core.files.storage import FileSystemStorage
 import requests
-
+from apps.vendorperformance.models import VPScore
+from apps.vendorperformance.serializer import VPSerializer
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 from django.core import serializers
@@ -211,10 +212,10 @@ def getbatch(request):
         body_data = json.loads(request.body)
         vendor_id = body_data.get('penyedia')
 
-        data = batch.objects.filter(penyedia_undang=vendor_id,status__status='Dibuka',
-                tanggal_selesai_undangan__gte=datetime.utcnow() + timedelta(hours=7))
-        
-        serializer = BatchSerializer(data,many=True)
+        data = batch.objects.filter(penyedia_undang=vendor_id, status__status='Dibuka',
+                                    tanggal_selesai_undangan__gte=datetime.utcnow() + timedelta(hours=7))
+
+        serializer = BatchSerializer(data, many=True)
         return Response.ok(
             values=json.loads(json.dumps(serializer.data, default=str)),
             message=f'{len(serializer.data)} Data'
@@ -306,19 +307,36 @@ def getVendorApp(request):
 
 def getDashboardData(request):
     try:
-        vendorCount = vendor.objects.all().count()
-        activeUserCount = UserInfo.objects(status='verified').count()
-        requestedUserCount = UserInfo.objects(status='requested').count()
-        batchCount = batch.objects.all().count()
-        siteCount = site.objects.all().count()
-        rfiCount = 0
+        # vendorCount = vendor.objects.all().count()
+        # activeUserCount = UserInfo.objects(status='verified').count()
+        # requestedUserCount = UserInfo.objects(status='requested').count()
+        # batchCount = batch.objects.all().count()
+        # siteCount = site_matchmaking.objects(batchid__exists=True).count()
+        # rfiCount = vendor_application.objects.all().count()
+        # siteNonBatchCount = 0
+        # vendorListQuery = VPScore.objects.all()
+        # vendorList = VPSerializer(VPScore)
+
+        date = datetime.now()
+        month = date.month
+        year = date.year
+        lastDate = calendar.monthrange(year=year, month=month)[1]
+
+        start = date.replace(day=1)
+        end = date.replace(day=lastDate)
+
+        print(start)
+        print(end)
 
         result = {
-            "vendor": vendorCount,
-            "active_user": activeUserCount,
-            "requested_user": requestedUserCount,
-            "batch": batchCount,
-            "site": siteCount,
+            # "vendor": vendorCount,
+            # "active_user": activeUserCount,
+            # "requested_user": requestedUserCount,
+            # "batch": batchCount,
+            # "site": siteCount,
+            # "rfi": rfiCount,
+            # "site_not_batch": siteNonBatchCount,
+            # "vendor_list": json.loads(json.dumps(vendorList, default=str))
         }
 
         return Response.ok(
