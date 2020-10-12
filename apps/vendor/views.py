@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from apps.sites.models import *
 from apps.sites.serializer import VendorApplicationSerializer
 # from vendor.models import *
-# from userinfo.models import batch
+from userinfo.models import *
 from userinfo.views import authenticate_credentials
 from django.dispatch import receiver
 from django.db.models.signals import post_save
@@ -32,6 +32,21 @@ import calendar
 from math import radians, cos, sin, asin, sqrt
 from sites.serializer import *
 
+def getallvendor(request):
+    # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
+    # ret, user = authenticate_credentials(token)
+    # if False == ret or None == user:
+    #    return JsonResponse({"state": "fail"})
+    try:
+        data = vendor.objects.all()
+        
+        serializer = vendorSerializer(data,many=True)
+        return Response.ok(
+            values=json.loads(json.dumps(serializer.data, default=str)),
+            message=f'{len(serializer.data)} Data'
+        )
+    except Exception as e:
+        return Response.badRequest(message=str(e))
 
 def respon(request):
     # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
@@ -74,7 +89,7 @@ def respon(request):
                 )
             data_vendor_application = vendor_application(
                 users=userid,
-                vendorid=data_user.company,
+                vendorid=data_user.company.id,
                 batchid=ObjectId(batchid),
                 vp_score_id=data_vp_score.id,
                 rank=1,

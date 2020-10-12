@@ -411,24 +411,24 @@ def uploadsite(request):
         status_ = {'status': 'Dibuka', 'tanggal_pembuatan': datetime.utcnow(
         ) + timedelta(hours=7)}
 
-        try:
-            # data_nomor_batch = batch.objects.latest('nomor')
-            data_nomor_batch = batch.objects.order_by('-nomor').first()
-            nomor_batch = int(data_nomor_batch.nomor) + 1
-            nomor_batch = str(nomor_batch).zfill(5)
-        # except:
-        except Exception as e:
-            print(e)
-            nomor_batch = '1'.zfill(5)
+        #try:
+        #    # data_nomor_batch = batch.objects.latest('nomor')
+        #    data_nomor_batch = batch.objects.order_by('-nomor').first()
+        #    nomor_batch = int(data_nomor_batch.nomor) + 1
+        #    nomor_batch = str(nomor_batch).zfill(5)
+        ## except:
+        #except Exception as e:
+        #    print(e)
+        #    nomor_batch = '1'.zfill(5)
 
         vendor_list = penyedia_undang.split(",")
         data_batch = batch(
-            nomor=nomor_batch,
+            #nomor=nomor_batch,
             judul=judul,
             type=type,
             sites=[],
             creator=creator,
-            rfi_no=rfi,
+            doc_permohonan_rfi=rfi,
             tanggal_mulai_undangan=tanggal_mulai_undangan,
             tanggal_selesai_undangan=tanggal_selesai_undangan,
             tanggal_mulai_kerja=tanggal_mulai_kerja,
@@ -623,7 +623,7 @@ def addbatch(request):
                     values='null',
                     message='tanggal_selesai_kerja harus lebih besar dari tanggal_mulai_kerja'
                 )
-            rfi = body_data.get('rfi')
+            no_doc_permohonan_rfi = body_data.get('no_doc_permohonan_rfi')
             type = body_data.get('type')
             creator = body_data.get('creator')
             penyedia_undang = body_data.get('penyedia_undang')
@@ -631,24 +631,24 @@ def addbatch(request):
             status_ = {'status': 'Dibuka', 'tanggal_pembuatan': datetime.utcnow(
             ) + timedelta(hours=7)}
 
-            try:
-                # data_nomor_batch = batch.objects.latest('nomor')
-                data_nomor_batch = batch.objects.order_by('-nomor').first()
-                nomor_batch = int(data_nomor_batch.nomor) + 1
-                nomor_batch = str(nomor_batch).zfill(5)
-            # except:
-            except Exception as e:
-                print(e)
-                nomor_batch = '1'.zfill(5)
+            #try:
+            #    # data_nomor_batch = batch.objects.latest('nomor')
+            #    data_nomor_batch = batch.objects.order_by('-nomor').first()
+            #    nomor_batch = int(data_nomor_batch.nomor) + 1
+            #    nomor_batch = str(nomor_batch).zfill(5)
+            ## except:
+            #except Exception as e:
+            #    print(e)
+            #    nomor_batch = '1'.zfill(5)
 
             vendor_list = penyedia_undang.split(",")
             data_batch = batch(
-                nomor=nomor_batch,
+                #nomor=nomor_batch,
                 judul=judul,
                 type=type,
                 sites=[],
                 creator=creator,
-                rfi_no=rfi,
+                no_doc_permohonan_rfi=no_doc_permohonan_rfi,
                 tanggal_mulai_undangan=tanggal_mulai_undangan,
                 tanggal_selesai_undangan=tanggal_selesai_undangan,
                 tanggal_mulai_kerja=tanggal_mulai_kerja,
@@ -662,7 +662,7 @@ def addbatch(request):
 
             filename = fs.save(file.name, file)
             file_path = fs.url(filename)
-            doc = document_batch(
+            doc = doc_permohonan_rfi(
                 name=file.name,
                 path=file_path
                 # create_date=datetime.utcnow() + timedelta(hours=7),
@@ -670,7 +670,7 @@ def addbatch(request):
             )
             doc.save()
 
-            data_batch.rfi_doc_id = ObjectId(doc.id)
+            data_batch.doc_permohonan_rfi = ObjectId(doc.id)
             data_batch.save()
 
             # for vn in vendor_list:
@@ -755,14 +755,15 @@ def addsite(request):
                 # nomor_site = '1'.zfill(5)
                 nomor_site = 1
 
+            rekomentek = getRecommendTechnologi(longitude, latitude)
             data_site = site(
                 unik_id=nomor_site,
                 latitude=latitude,
                 longitude=longitude,
                 longlat=[float(longitude), float(latitude)],
-                rekomendasi_teknologi=ObjectId('5f76db81f845e6b39081e278'),
+                rekomendasi_teknologi=rekomentek,
                 nama=nama,
-                desa=ObjectId(desa),
+                desa_kelurahan=ObjectId(desa),
                 kecamatan=ObjectId(kecamatan),
                 provinsi=ObjectId(provinsi),
                 kode_pos=kode_pos,
@@ -859,7 +860,7 @@ def editbatch(request):
 
         filename = fs.save(file.name, file)
         file_path = fs.url(filename)
-        doc = document_batch(
+        doc = doc_permohonan_rfi(
             name=file.name,
             path=file_path,
             create_date=datetime.utcnow() + timedelta(hours=7),

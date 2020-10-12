@@ -11,5 +11,6 @@ urlpatterns = [
     path('getbatch/', views.getbatch),
     #path('getsite/', sites_views.getsite),
     path('getvendorapp/', views.getVendorApp),
+    path('getallvendor/', views.getallvendor),
     path('getdashboard/', views.getDashboardData),
 ]

@@ -36,6 +36,8 @@ from django.core import serializers
 import string
 import random
 
+from vendorperformance.models import VPScore
+
 def test(request):
     try:
         Notification(
@@ -422,6 +424,13 @@ def register(request):
                 )
                 data_vendor.save()
 
+                try:
+                    data_role = UserRole.objects.get(id=ObjectId(request.POST.get('role')))
+                except UserRole.DoesNotExist:
+                    return Response.ok(
+                        values=[],
+                        message='Role ridak ada'
+                    )
                 data_VPScore = VPScore(vendor=data_vendor.id)
                 data_VPScore.save()
 

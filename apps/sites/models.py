@@ -179,7 +179,7 @@ class site(Document):
     longlat = PointField()
     rekomendasi_teknologi = ReferenceField(rekomendasi_teknologi)
     nama = StringField(required=True)
-    desa = ReferenceField(desa)
+    desa_kelurahan = ReferenceField(desa)
     kecamatan = ReferenceField(kecamatan)
     kabupaten = ReferenceField(kabupaten)
     kota = ReferenceField(kota)
@@ -221,7 +221,7 @@ class site(Document):
                 'latitude': self.latitude,
                 'longitude': self.longitude,
                 'nama': self.nama,
-                'desa': self.desa.serialize(),
+                'desa_kelurahan': self.desa_kelurahan.serialize(),
                 'kecamatan': self.kecamatan.serialize(),
                 'kabupaten': self.kabupaten.serialize(),
                 'provinsi': self.provinsi.serialize(),
@@ -231,13 +231,13 @@ class site(Document):
             }
         except:
             # except Exception as e:
-            print(e)
+            #print(e)
             return {
                 'id': str(self.id),
                 'latitude': self.latitude,
                 'longitude': self.longitude,
                 'nama': self.nama,
-                'desa': self.desa.serialize(),
+                'ddesa_kelurahanesa': self.desa_kelurahan.serialize(),
                 'kecamatan': self.kecamatan.serialize(),
                 'kota': self.kota.serialize(),
                 'provinsi': self.provinsi.serialize(),
@@ -247,7 +247,7 @@ class site(Document):
             }
 
 
-class document_batch(Document):
+class doc_permohonan_rfi(Document):
     name = StringField()
     path = StringField()
     create_date = DateTimeField(required=True, default=datetime.now)
@@ -265,15 +265,15 @@ class document_batch(Document):
 class batch(Document):
     #sites = ListField(required=True)
     #creator = ReferenceField(users)
-    nomor = StringField(required=True, unique=True)
+    #nomor = StringField(required=True, unique=True)
     judul = StringField(required=True)
     type = StringField(required=True, choices=[
         'VIP', 'Non-VIP'], default='Non-VIP')
     # sites = ListField(ReferenceField(site_matchmaking))
     sites = ListField()
     creator = ReferenceField(UserInfo)
-    rfi_no = StringField(required=True)
-    rfi_doc_id = ReferenceField(document_batch)
+    no_doc_permohonan_rfi = StringField(required=True)
+    doc_permohonan_rfi = ReferenceField(doc_permohonan_rfi)
     tanggal_mulai_undangan = DateTimeField(required=True, default=datetime.now)
     tanggal_selesai_undangan = DateTimeField(
         required=True, default=datetime.now)
@@ -300,12 +300,12 @@ class batch(Document):
             penyedia_k.append(pk.serialize())
         return {
             'id': str(self.id),
-            'nomor': self.nomor,
+            #'nomor': self.nomor,
             'judul': self.judul,
             'type': self.type,
             'creator': self.creator.serialize(),
-            'rfi_no': self.rfi_no,
-            'rfi_doc_id': self.rfi_doc_id.serialize(),
+            'no_doc_permohonan_rfi': self.no_doc_permohonan_rfi,
+            'doc_permohonan_rfi': self.doc_permohonan_rfi.serialize(),
             'tanggal_mulai_undangan': str(self.tanggal_mulai_undangan),
             'tanggal_selesai_undangan': str(self.tanggal_selesai_undangan),
             'tanggal_mulai_kerja': str(self.tanggal_mulai_kerja),
