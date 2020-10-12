@@ -317,3 +317,31 @@ def getVendorApp(request):
             )
     except Exception as e:
         print(e)
+
+
+def getDashboardData(request):
+    try:
+        vendorCount = vendor.objects.all().count()
+        activeUserCount = UserInfo.objects(status='verified').count()
+        requestedUserCount = UserInfo.objects(status='requested').count()
+        batchCount = batch.objects.all().count()
+        siteCount = site.objects.all().count()
+        rfiCount = 0
+
+        result = {
+            "vendor": vendorCount,
+            "active_user": activeUserCount,
+            "requested_user": requestedUserCount,
+            "batch": batchCount,
+            "site": siteCount,
+        }
+
+        return Response.ok(
+            values=result
+        )
+
+    except Exception as e:
+        return Response.badRequest(
+            values=[],
+            message=str(e)
+        )

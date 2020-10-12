@@ -3,7 +3,8 @@ import datetime
 from django.contrib.auth.hashers import make_password, check_password
 from mongoengine import signals
 from mongoengine import *
-from datetime import timedelta ,datetime
+from mongoengine.fields import *
+from datetime import timedelta, datetime
 from django.conf import settings
 from django.db import models
 #from django.contrib.auth.models import AbstractUser
@@ -21,11 +22,11 @@ class vendor(Document):
         default=datetime.utcnow() + timedelta(hours=7))
     updated_at = DateTimeField(
         default=datetime.utcnow() + timedelta(hours=7))
-    #meta = {
+    # meta = {
     #    'indexes': [
     #        {'fields': ('name'), 'unique': True}
     #    ]
-    #}
+    # }
 
     def serialize(self):
         return {
@@ -36,6 +37,7 @@ class vendor(Document):
             'longitude': self.longitude,
             'nilai': str(self.nilai),
         }
+
 
 class UserRole(Document):
     name = StringField(required=True)
@@ -122,16 +124,16 @@ class UserToken(Document):
         ]
     }
 
+
 class Message(Document):
-    title = StringField(required=True,default='-')
-    message = StringField(required=True,default='-')
+    title = StringField(required=True, default='-')
+    message = StringField(required=True, default='-')
     created = DateTimeField(
         default=(datetime.utcnow() + timedelta(hours=7)))
     updated = DateTimeField(
         default=(datetime.utcnow() + timedelta(hours=7)))
     userfrom = ReferenceField(UserInfo)
     userto = ListField(required=True)
-    redirect = StringField(required=True,default='/')
+    redirect = StringField(required=True, default='/')
     status = StringField(required=True, choices=[
                          'new', 'open'], default='new')
-
