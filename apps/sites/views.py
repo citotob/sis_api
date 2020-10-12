@@ -623,7 +623,7 @@ def addbatch(request):
                     values='null',
                     message='tanggal_selesai_kerja harus lebih besar dari tanggal_mulai_kerja'
                 )
-            no_doc_permohonan_rfi = body_data.get('no_doc_permohonan_rfi')
+            no_doc_permohonan_rfi_ = body_data.get('no_doc_permohonan_rfi')
             type = body_data.get('type')
             creator = body_data.get('creator')
             penyedia_undang = body_data.get('penyedia_undang')
@@ -643,12 +643,11 @@ def addbatch(request):
 
             vendor_list = penyedia_undang.split(",")
             data_batch = batch(
-                #nomor=nomor_batch,
                 judul=judul,
                 type=type,
                 sites=[],
                 creator=creator,
-                no_doc_permohonan_rfi=no_doc_permohonan_rfi,
+                no_doc_permohonan_rfi=no_doc_permohonan_rfi_,
                 tanggal_mulai_undangan=tanggal_mulai_undangan,
                 tanggal_selesai_undangan=tanggal_selesai_undangan,
                 tanggal_mulai_kerja=tanggal_mulai_kerja,
