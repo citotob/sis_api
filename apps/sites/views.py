@@ -756,7 +756,6 @@ def addsite(request):
                 nomor_site = 1
 
             rekomentek = getRecommendTechnologi(longitude, latitude)
-            print(rekomentek)
             data_site = site(
                 unik_id=nomor_site,
                 latitude=latitude,
