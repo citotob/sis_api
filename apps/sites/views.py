@@ -755,12 +755,14 @@ def addsite(request):
                 # nomor_site = '1'.zfill(5)
                 nomor_site = 1
 
+            rekomentek = getRecommendTechnologi(longitude, latitude)
+            print(rekomentek)
             data_site = site(
                 unik_id=nomor_site,
                 latitude=latitude,
                 longitude=longitude,
                 longlat=[float(longitude), float(latitude)],
-                rekomendasi_teknologi=ObjectId('5f76db81f845e6b39081e278'),
+                rekomendasi_teknologi=rekomentek,
                 nama=nama,
                 desa_kelurahan=ObjectId(desa),
                 kecamatan=ObjectId(kecamatan),
