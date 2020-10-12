@@ -31,6 +31,8 @@ from userinfo.utils.notification import Notification
 import calendar
 from math import radians, cos, sin, asin, sqrt
 from sites.serializer import *
+from mongoengine.queryset.visitor import Q
+
 
 def getallvendor(request):
     # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
@@ -39,14 +41,15 @@ def getallvendor(request):
     #    return JsonResponse({"state": "fail"})
     try:
         data = vendor.objects.all()
-        
-        serializer = vendorSerializer(data,many=True)
+
+        serializer = vendorSerializer(data, many=True)
         return Response.ok(
             values=json.loads(json.dumps(serializer.data, default=str)),
             message=f'{len(serializer.data)} Data'
         )
     except Exception as e:
         return Response.badRequest(message=str(e))
+
 
 def respon(request):
     # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
@@ -322,36 +325,65 @@ def getVendorApp(request):
 
 def getDashboardData(request):
     try:
-        # vendorCount = vendor.objects.all().count()
-        # activeUserCount = UserInfo.objects(status='verified').count()
-        # requestedUserCount = UserInfo.objects(status='requested').count()
-        # batchCount = batch.objects.all().count()
-        # siteCount = site_matchmaking.objects(batchid__exists=True).count()
-        # rfiCount = vendor_application.objects.all().count()
-        # siteNonBatchCount = 0
-        # vendorListQuery = VPScore.objects.all()
-        # vendorList = VPSerializer(VPScore)
+        vendorCount = vendor.objects.all().count()
+        activeUserCount = UserInfo.objects(status='verified').count()
+        requestedUserCount = UserInfo.objects(status='requested').count()
+        batchCount = batch.objects.all().count()
+        siteCount = site_matchmaking.objects(batchid__exists=True).count()
+        rfiCount = vendor_application.objects.all().count()
+        siteNonBatchCount = 0
+        vendorListQuery = VPScore.objects.all()
+        vendorList = VPSerializer(vendorListQuery, many=True)
 
-        date = datetime.now()
-        month = date.month
-        year = date.year
-        lastDate = calendar.monthrange(year=year, month=month)[1]
+        aiCount = Odp.objects.all().count()
+        aiTech = Odp.objects.only('teknologi').distinct('teknologi')
+        aiOperational = {
+            "count": aiCount,
+            "FO": 0,
+            "VSAT": 0
+        }
+        for x in list(aiTech):
+            aiOperational.update({
+                x: Odp.objects(teknologi=x).count()
+            })
 
-        start = date.replace(day=1)
-        end = date.replace(day=lastDate)
+        recommendTech = rekomendasi_teknologi.objects.only(
+            'teknologi').distinct('teknologi')
+        siteAICount = site.objects.all().count()
+        aiNew = {
+            "count": siteAICount,
+            "FO": 0,
+            "VSAT": 0
+        }
+        for x in list(recommendTech):
+            query = rekomendasi_teknologi.objects(teknologi=x).scalar('id')
+            aiNew.update({
+                x: site.objects(rekomendasi_teknologi__in=query).count()
+            })
 
-        print(start)
-        print(end)
+        # listMonth = calendar.month_name[1:13]
+
+        # date = datetime.now()
+        # month = date.month
+        # year = date.year
+        # lastDate = calendar.monthrange(year=year, month=month)[1]
+
+        # start = date.replace(day=1)
+        # end = date.replace(day=lastDate)
+
+        # print(listMonth)
 
         result = {
-            # "vendor": vendorCount,
-            # "active_user": activeUserCount,
-            # "requested_user": requestedUserCount,
-            # "batch": batchCount,
-            # "site": siteCount,
-            # "rfi": rfiCount,
-            # "site_not_batch": siteNonBatchCount,
-            # "vendor_list": json.loads(json.dumps(vendorList, default=str))
+            "vendor": vendorCount,
+            "active_user": activeUserCount,
+            "requested_user": requestedUserCount,
+            "batch": batchCount,
+            "site": siteCount,
+            "rfi": rfiCount,
+            "site_not_batch": siteNonBatchCount,
+            "vendor_list": json.loads(json.dumps(vendorList.data, default=str)),
+            "running_ai": aiOperational,
+            "new_ai": aiNew,
         }
 
         return Response.ok(
