@@ -1,4 +1,4 @@
-from apps.sites.models import Odp, rekomendasi_teknologi
+from apps.sites.models import Odp, rekomendasi_teknologi, ListOdp
 from apps.sites.serializer import ODPSerializer
 from operator import itemgetter
 from geojson import Feature, Point
@@ -14,5 +14,24 @@ def getRecommendTechnologi(longitude, latitude):
     serializer = ODPSerializer(data, many=True)
     listOdp = []
     if len(serializer.data) > 0:
-        listOdp = itemgetter('id')(serializer.data)
-        print(listOdp)
+        for x in serializer.data:
+            end = Feature(geometry=Point(x["longlat"]["coordinates"]))
+            id = itemgetter('id')(x)
+            distances = "%.2f km" % distance(start, end, units="km")
+            odp = ListOdp(
+                odp=id,
+                jarak=distances
+            )
+            listOdp.append(odp)
+        listOdp.sort(key=itemgetter('jarak'))
+        tech = rekomendasi_teknologi(
+            teknologi='FO',
+            list_odp=listOdp
+        )
+    else:
+        tech = rekomendasi_teknologi(
+            teknologi='VSAT',
+            list_odp=[]
+        )
+    tech.save()
+    return tech.id
