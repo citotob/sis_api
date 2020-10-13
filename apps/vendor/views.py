@@ -366,7 +366,7 @@ def getDashboardData(request):
         listMonth = calendar.month_abbr[1:13]
         reportSite = {}
         reportRFi = {}
-        for x in range(12):
+        for x in range(11, -1, -1):
             dateReport = date - relativedelta(months=x)
             year = dateReport.year
             month = dateReport.month
