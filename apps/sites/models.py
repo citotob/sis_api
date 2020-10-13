@@ -155,7 +155,7 @@ class Odp(Document):
     longitude = StringField(required=True)
     longlat = PointField()
     #teknologi = ReferenceField(rekomendasi_teknologi)
-    teknologi = StringField()
+    teknologi = StringField(choices=['FO', 'VSAT'])
     vendorid = ReferenceField(vendor)
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
@@ -231,7 +231,7 @@ class site(Document):
             }
         except:
             # except Exception as e:
-            #print(e)
+            # print(e)
             return {
                 'id': str(self.id),
                 'latitude': self.latitude,
@@ -293,7 +293,7 @@ class batch(Document):
             penyedia_k.append(pk.serialize())
         return {
             'id': str(self.id),
-            #'nomor': self.nomor,
+            # 'nomor': self.nomor,
             'judul': self.judul,
             'type': self.type,
             'creator': self.creator.serialize(),
