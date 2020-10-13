@@ -17,6 +17,7 @@ from bson import ObjectId, json_util
 from django.http import HttpResponse
 # import datetime
 from datetime import datetime, timedelta, timezone
+from dateutil.relativedelta import relativedelta
 from django.core.serializers import serialize
 from django.core.files.storage import FileSystemStorage
 import requests
@@ -361,17 +362,23 @@ def getDashboardData(request):
                 x: site.objects(rekomendasi_teknologi__in=query).count()
             })
 
-        # listMonth = calendar.month_name[1:13]
-
-        # date = datetime.now()
-        # month = date.month
-        # year = date.year
-        # lastDate = calendar.monthrange(year=year, month=month)[1]
-
-        # start = date.replace(day=1)
-        # end = date.replace(day=lastDate)
-
-        # print(listMonth)
+        date = datetime.now()
+        listMonth = calendar.month_abbr[1:13]
+        reportSite = {}
+        reportRFi = {}
+        for x in range(12):
+            dateReport = date - relativedelta(months=x)
+            year = dateReport.year
+            month = dateReport.month
+            lastDate = calendar.monthrange(year=year, month=month)[1]
+            gte = datetime(year, month, 1, 00, 00, 00)
+            lte = datetime(year, month, lastDate, 23, 59, 59)
+            reportSite.update({
+                f'{listMonth[month-1]} {year}': batch.objects(created_at__gte=gte, created_at__lte=lte).count()
+            })
+            reportRFi.update({
+                f'{listMonth[month-1]} {year}': vendor_application.objects(created_at__gte=gte, created_at__lte=lte).count()
+            })
 
         result = {
             "vendor": vendorCount,
@@ -384,6 +391,10 @@ def getDashboardData(request):
             "vendor_list": json.loads(json.dumps(vendorList.data, default=str)),
             "running_ai": aiOperational,
             "new_ai": aiNew,
+            "report": {
+                "site": reportSite,
+                "rfi": reportRFi
+            }
         }
 
         return Response.ok(
