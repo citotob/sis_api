@@ -461,7 +461,7 @@ def uploadsite(request):
         data_batch.save()
 
         req_fields = ['latitude', 'longitude', 'kecamatan']
-        data_site_lok = site_location.objects.all().only(*req_fields)
+        data_site_lok = site.objects.all().only(*req_fields)
         radius = 1.00  # in kilometer
 
         new_data_site_lok = []
