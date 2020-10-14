@@ -265,7 +265,6 @@ class doc_permohonan_rfi(Document):
 class batch(Document):
     #sites = ListField(required=True)
     #creator = ReferenceField(users)
-    #nomor = StringField(required=True, unique=True)
     judul = StringField(required=True)
     type = StringField(required=True, choices=[
         'VIP', 'Non-VIP'], default='Non-VIP')
@@ -284,12 +283,6 @@ class batch(Document):
     status = ListField(required=True)
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
-
-    # meta = {
-    #    'indexes': [
-    #        {'fields': ('nomor'), 'unique': True}
-    #    ]
-    # }
 
     def serialize(self):
         penyedia_ = []
