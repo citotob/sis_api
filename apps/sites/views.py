@@ -378,6 +378,14 @@ def uploadsite(request):
     if request.method == 'POST':
         import openpyxl
         lokasi_gagal = ''
+
+        file = request.FILES['doc']
+        if not file:
+            return Response.badRequest(message='Doc tidak boleh kosong')
+        fs = FileSystemStorage(
+            location=f'{settings.MEDIA_ROOT}/site/rfi/',
+            base_url=f'{settings.MEDIA_URL}/site/rfi/'
+        )
         body_data = request.POST.dict()
 
         judul = body_data.get('judul')
@@ -405,7 +413,7 @@ def uploadsite(request):
                 values='null',
                 message='tanggal_selesai_kerja harus lebih besar dari tanggal_mulai_kerja'
             )
-        rfi = body_data.get('rfi')
+        no_doc_permohonan_rfi_ = body_data.get('no_doc_permohonan_rfi')
         type = body_data.get('type')
         creator = body_data.get('creator')
         penyedia_undang = body_data.get('penyedia_undang')
@@ -425,39 +433,33 @@ def uploadsite(request):
 
         vendor_list = penyedia_undang.split(",")
         data_batch = batch(
-            # nomor=nomor_batch,
             judul=judul,
             type=type,
             sites=[],
             creator=creator,
-            doc_permohonan_rfi=rfi,
+            no_doc_permohonan_rfi=no_doc_permohonan_rfi_,
             tanggal_mulai_undangan=tanggal_mulai_undangan,
             tanggal_selesai_undangan=tanggal_selesai_undangan,
             tanggal_mulai_kerja=tanggal_mulai_kerja,
             tanggal_selesai_kerja=tanggal_selesai_kerja,
-            penyedia_undang=penyedia_undang.split(","),
-            created_at=datetime.utcnow() + timedelta(hours=7),
-            updated_at=datetime.utcnow() + timedelta(hours=7)
+            penyedia_undang=vendor_list,
+            # created_at = datetime.utcnow() + timedelta(hours=7),
+            # updated_at = datetime.utcnow() + timedelta(hours=7)
         )
         data_batch.status.append(status_)
         data_batch.save()
 
-        for vn in vendor_list:
-            try:
-                comp = vendor.objects.get(id=ObjectId(vn))
-            except vendor.DoesNotExist:
-                return Response.ok(
-                    values=[],
-                    message='Penyedia tidak ada'
-                )
-            data_batch_vendor = batch_vendor(
-                vendor=comp.id,
-                batch_id=data_batch.id,
-                created_at=datetime.utcnow() + timedelta(hours=7),
-                updated_at=datetime.utcnow() + timedelta(hours=7)
-            )
-            data_batch_vendor.status.append(status_)
-            data_batch_vendor.save()
+        filename = fs.save(file.name, file)
+        file_path = fs.url(filename)
+        doc = doc_permohonan_rfi(
+            name=file.name,
+            path=file_path
+        )
+        doc.save()
+
+        data_batch.doc_permohonan_rfi = ObjectId(doc.id)
+        data_batch.save()
+
         req_fields = ['latitude', 'longitude', 'kecamatan']
         data_site_lok = site_location.objects.all().only(*req_fields)
         radius = 1.00  # in kilometer
@@ -547,16 +549,18 @@ def uploadsite(request):
                     lanjut = False
                     break
             if lanjut:
-                data_site = site_location(
-                    latitude=str(row[6].value),
-                    longitude=str(row[7].value),
-                    nama=str(row[8].value),
-                    desa=data_desa.id,
-                    kecamatan=data_kecamatan.id,
-                    provinsi=data_provinsi.id,
-                    kode_pos=str(row[9].value),
-                    created_at=datetime.utcnow() + timedelta(hours=7),
-                    updated_at=datetime.utcnow() + timedelta(hours=7)
+                rekomentek = getRecommendTechnologi(longitude, latitude)
+                data_site = site(
+                    unik_id=nomor_site,
+                    latitude=latitude,
+                    longitude=longitude,
+                    longlat=[float(longitude), float(latitude)],
+                    rekomendasi_teknologi=rekomentek,
+                    nama=nama,
+                    desa_kelurahan=ObjectId(desa),
+                    kecamatan=ObjectId(kecamatan),
+                    provinsi=ObjectId(provinsi),
+                    kode_pos=kode_pos,
                 )
                 if str(row[3].value)[0:3].upper() == 'KAB':
                     data_site.kabupaten = kabupaten_.id
@@ -564,18 +568,17 @@ def uploadsite(request):
                     data_site.kota = kota_.id
                 data_site.save()
 
-                data_batch.sites.append(ObjectId(data_site.id))
-                data_batch.save()
+                data_site_matchmaking = site_matchmaking(
+                    siteid=data_site.id,
+                    batchid=ObjectId(data_batch.id)
+                )
+                data_site_matchmaking.save()
 
-                for vn in vendor_list:
-                    data_site_vendor = site_vendor(
-                        vendor=ObjectId(vn),
-                        batch_id=data_batch.id,
-                        site_id=ObjectId(data_site.id),
-                        created_at=datetime.utcnow() + timedelta(hours=7),
-                        updated_at=datetime.utcnow() + timedelta(hours=7)
-                    )
-                data_site_vendor.save()
+                data_site.site_matchmaking.append(data_site_matchmaking.id)
+                data_site.save()
+
+                data_batch.sites.append(ObjectId(data_site_matchmaking.id))
+                data_batch.save()
             else:
                 lokasi_gagal += '{' + \
                     str(row[6].value)+', '+str(row[7].value)+'}, '
