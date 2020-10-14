@@ -548,19 +548,35 @@ def uploadsite(request):
                 if a <= radius:
                     lanjut = False
                     break
+            for dt in new_data_site_lok:
+                a = haversine(float(dt.longitude), float(dt.latitude), float(
+                    str(row[7].value)), float(str(row[6].value)))
+                # print(a)
+                if a <= radius:
+                    lanjut = False
+                    break
             if lanjut:
-                rekomentek = getRecommendTechnologi(longitude, latitude)
+                try:
+                    data_nomor_site = site.objects.order_by('-unik_id').first()
+                    nomor_site = data_nomor_site.unik_id + 1
+                    # nomor_site = str(nomor_site).zfill(5)
+                except Exception as e:
+                    print(e)
+                    # nomor_site = '1'.zfill(5)
+                    nomor_site = 1
+
+                rekomentek = getRecommendTechnologi(str(row[7].value), str(row[6].value))
                 data_site = site(
                     unik_id=nomor_site,
-                    latitude=latitude,
-                    longitude=longitude,
-                    longlat=[float(longitude), float(latitude)],
+                    latitude=str(row[6].value),
+                    longitude=str(row[7].value),
+                    longlat=[float(str(row[7].value)), float(str(row[6].value))],
                     rekomendasi_teknologi=rekomentek,
-                    nama=nama,
-                    desa_kelurahan=ObjectId(desa),
-                    kecamatan=ObjectId(kecamatan),
-                    provinsi=ObjectId(provinsi),
-                    kode_pos=kode_pos,
+                    nama=str(row[8].value),
+                    desa_kelurahan=ObjectId(data_desa.id),
+                    kecamatan=ObjectId(data_kecamatan.id),
+                    provinsi=ObjectId(data_provinsi.id),
+                    kode_pos=str(row[9].value),
                 )
                 if str(row[3].value)[0:3].upper() == 'KAB':
                     data_site.kabupaten = kabupaten_.id
