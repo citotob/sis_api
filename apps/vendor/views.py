@@ -325,76 +325,41 @@ def getVendorApp(request):
 
 
 def getDashboardData(request):
+
     try:
-        vendorCount = vendor.objects.all().count()
-        activeUserCount = UserInfo.objects(status='verified').count()
-        requestedUserCount = UserInfo.objects(status='requested').count()
-        batchCount = batch.objects.all().count()
-        siteCount = site_matchmaking.objects(batchid__exists=True).count()
-        rfiCount = vendor_application.objects.all().count()
+        if not request.body:
+            raise Exception('Need Json Body')
+        body_data = json.loads(request.body)
+        vendorId = body_data.get('vendor', None)
+
+        if not vendorId:
+            raise Exception('Need Body `vendor`')
+
+        try:
+            vendorData = vendor.objects.get(id=vendorId)
+        except vendor.DoesNotExist:
+            raise Exception('Vendor not Found')
+
+        activeUserCount = UserInfo.objects(
+            company=vendorData.id, status='verified').count()
+        requestedUserCount = UserInfo.objects(
+            company=vendorData.id, status='requested').count()
+        listBatch = vendor_application.objects(vendorid=vendorData.id)
+        batchCount = batch.objects(
+            id__in=[x.id for x in listBatch.scalar('batchid')]).count()
+        siteCount = site_matchmaking.objects(
+            batchid__exists=True, batchid__in=listBatch.scalar('id')).count()
+        rfiCount = listBatch.count()
+
         siteNonBatchCount = 0
-        vendorListQuery = VPScore.objects.all()
-        vendorList = VPSerializer(vendorListQuery, many=True)
-
-        aiCount = Odp.objects.all().count()
-        aiTech = Odp.objects.only('teknologi').distinct('teknologi')
-        aiOperational = {
-            "count": aiCount,
-            "FO": 0,
-            "VSAT": 0
-        }
-        for x in list(aiTech):
-            aiOperational.update({
-                x: Odp.objects(teknologi=x).count()
-            })
-
-        recommendTech = rekomendasi_teknologi.objects.only(
-            'teknologi').distinct('teknologi')
-        siteAICount = site.objects.all().count()
-        aiNew = {
-            "count": siteAICount,
-            "FO": 0,
-            "VSAT": 0
-        }
-        for x in list(recommendTech):
-            query = rekomendasi_teknologi.objects(teknologi=x).scalar('id')
-            aiNew.update({
-                x: site.objects(rekomendasi_teknologi__in=query).count()
-            })
-
-        date = datetime.now()
-        listMonth = calendar.month_abbr[1:13]
-        reportSite = {}
-        reportRFi = {}
-        for x in range(11, -1, -1):
-            dateReport = date - relativedelta(months=x)
-            year = dateReport.year
-            month = dateReport.month
-            lastDate = calendar.monthrange(year=year, month=month)[1]
-            gte = datetime(year, month, 1, 00, 00, 00)
-            lte = datetime(year, month, lastDate, 23, 59, 59)
-            reportSite.update({
-                f'{listMonth[month-1]} {year}': batch.objects(created_at__gte=gte, created_at__lte=lte).count()
-            })
-            reportRFi.update({
-                f'{listMonth[month-1]} {year}': vendor_application.objects(created_at__gte=gte, created_at__lte=lte).count()
-            })
 
         result = {
-            "vendor": vendorCount,
             "active_user": activeUserCount,
             "requested_user": requestedUserCount,
             "batch": batchCount,
             "site": siteCount,
             "rfi": rfiCount,
             "site_not_batch": siteNonBatchCount,
-            "vendor_list": json.loads(json.dumps(vendorList.data, default=str)),
-            "running_ai": aiOperational,
-            "new_ai": aiNew,
-            "report": {
-                "site": reportSite,
-                "rfi": reportRFi
-            }
         }
 
         return Response.ok(

@@ -6,6 +6,7 @@ from apps.sites.models import Odp
 from vendor.models import *
 from userinfo.models import *
 from userinfo.views import authenticate_credentials
+from apps.vendorperformance.serializer import VPSerializer
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.conf import settings
@@ -19,6 +20,7 @@ from django.http import HttpResponse
 from operator import itemgetter
 # import datetime
 from datetime import datetime, timedelta, timezone
+from dateutil.relativedelta import relativedelta
 from django.core.serializers import serialize
 from django.core.files.storage import FileSystemStorage
 import requests
@@ -411,19 +413,19 @@ def uploadsite(request):
         status_ = {'status': 'Dibuka', 'tanggal_pembuatan': datetime.utcnow(
         ) + timedelta(hours=7)}
 
-        #try:
+        # try:
         #    # data_nomor_batch = batch.objects.latest('nomor')
         #    data_nomor_batch = batch.objects.order_by('-nomor').first()
         #    nomor_batch = int(data_nomor_batch.nomor) + 1
         #    nomor_batch = str(nomor_batch).zfill(5)
-        ## except:
-        #except Exception as e:
+        # except:
+        # except Exception as e:
         #    print(e)
         #    nomor_batch = '1'.zfill(5)
 
         vendor_list = penyedia_undang.split(",")
         data_batch = batch(
-            #nomor=nomor_batch,
+            # nomor=nomor_batch,
             judul=judul,
             type=type,
             sites=[],
@@ -631,19 +633,19 @@ def addbatch(request):
             status_ = {'status': 'Dibuka', 'tanggal_pembuatan': datetime.utcnow(
             ) + timedelta(hours=7)}
 
-            #try:
+            # try:
             #    # data_nomor_batch = batch.objects.latest('nomor')
             #    data_nomor_batch = batch.objects.order_by('-nomor').first()
             #    nomor_batch = int(data_nomor_batch.nomor) + 1
             #    nomor_batch = str(nomor_batch).zfill(5)
-            ## except:
-            #except Exception as e:
+            # except:
+            # except Exception as e:
             #    print(e)
             #    nomor_batch = '1'.zfill(5)
 
             vendor_list = penyedia_undang.split(",")
             data_batch = batch(
-                #nomor=nomor_batch,
+                # nomor=nomor_batch,
                 judul=judul,
                 type=type,
                 sites=[],
@@ -1066,3 +1068,89 @@ def getRecommendTech(request):
 
     except Exception as e:
         print(e)
+
+
+def getDashboard(request):
+    try:
+        vendorCount = vendor.objects.all().count()
+        activeUserCount = UserInfo.objects(status='verified').count()
+        requestedUserCount = UserInfo.objects(status='requested').count()
+        batchCount = batch.objects.all().count()
+        siteCount = site_matchmaking.objects(batchid__exists=True).count()
+        rfiCount = vendor_application.objects.all().count()
+        siteNonBatchCount = 0
+        vendorListQuery = VPScore.objects.all()
+        vendorList = VPSerializer(vendorListQuery, many=True)
+
+        aiCount = Odp.objects.all().count()
+        aiTech = Odp.objects.only('teknologi').distinct('teknologi')
+        aiOperational = {
+            "count": aiCount,
+            "FO": 0,
+            "VSAT": 0,
+            "RL": 0
+        }
+        for x in list(aiTech):
+            aiOperational.update({
+                x: Odp.objects(teknologi=x).count()
+            })
+
+        recommendTech = rekomendasi_teknologi.objects.only(
+            'teknologi').distinct('teknologi')
+        siteAICount = site.objects.all().count()
+        aiNew = {
+            "count": siteAICount,
+            "FO": 0,
+            "VSAT": 0,
+            "RL": 0
+        }
+        for x in list(recommendTech):
+            query = rekomendasi_teknologi.objects(teknologi=x).scalar('id')
+            aiNew.update({
+                x: site.objects(rekomendasi_teknologi__in=query).count()
+            })
+
+        date = datetime.now()
+        listMonth = calendar.month_abbr[1:13]
+        reportSite = {}
+        reportRFi = {}
+        for x in range(11, -1, -1):
+            dateReport = date - relativedelta(months=x)
+            year = dateReport.year
+            month = dateReport.month
+            lastDate = calendar.monthrange(year=year, month=month)[1]
+            gte = datetime(year, month, 1, 00, 00, 00)
+            lte = datetime(year, month, lastDate, 23, 59, 59)
+            reportSite.update({
+                f'{listMonth[month-1]} {year}': batch.objects(created_at__gte=gte, created_at__lte=lte).count()
+            })
+            reportRFi.update({
+                f'{listMonth[month-1]} {year}': vendor_application.objects(created_at__gte=gte, created_at__lte=lte).count()
+            })
+
+        result = {
+            "vendor": vendorCount,
+            "active_user": activeUserCount,
+            "requested_user": requestedUserCount,
+            "batch": batchCount,
+            "site": siteCount,
+            "rfi": rfiCount,
+            "site_not_batch": siteNonBatchCount,
+            "vendor_list": json.loads(json.dumps(vendorList.data, default=str)),
+            "running_ai": aiOperational,
+            "new_ai": aiNew,
+            "report": {
+                "site": reportSite,
+                "rfi": reportRFi
+            }
+        }
+
+        return Response.ok(
+            values=result
+        )
+
+    except Exception as e:
+        return Response.badRequest(
+            values=[],
+            message=str(e)
+        )
