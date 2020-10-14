@@ -549,7 +549,9 @@ def uploadsite(request):
                     lanjut = False
                     break
             for dt in new_data_site_lok:
-                a = haversine(float(dt.longitude), float(dt.latitude), float(
+                print(dt['longitude'])
+                print(dt['latitude'])
+                a = haversine(float(dt['longitude']), float(dt['latitude']), float(
                     str(row[7].value)), float(str(row[6].value)))
                 # print(a)
                 if a <= radius:
@@ -595,6 +597,9 @@ def uploadsite(request):
 
                 data_batch.sites.append(ObjectId(data_site_matchmaking.id))
                 data_batch.save()
+
+                longlat_ = {'longitude': str(row[7].value), 'latitude': str(row[6].value)}
+                new_data_site_lok.append(longlat_)
             else:
                 lokasi_gagal += '{' + \
                     str(row[6].value)+', '+str(row[7].value)+'}, '
