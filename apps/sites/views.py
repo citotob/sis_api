@@ -556,18 +556,18 @@ def uploadsite(request):
                     lanjut = False
                     break
             if lanjut:
-                try:
-                    data_nomor_site = site.objects.order_by('-unik_id').first()
-                    nomor_site = data_nomor_site.unik_id + 1
-                    # nomor_site = str(nomor_site).zfill(5)
-                except Exception as e:
-                    print(e)
-                    # nomor_site = '1'.zfill(5)
-                    nomor_site = 1
+                #try:
+                #    data_nomor_site = site.objects.order_by('-unik_id').first()
+                #    nomor_site = data_nomor_site.unik_id + 1
+                #    # nomor_site = str(nomor_site).zfill(5)
+                #except Exception as e:
+                #    print(e)
+                #    # nomor_site = '1'.zfill(5)
+                #    nomor_site = 1
 
                 rekomentek = getRecommendTechnologi(str(row[7].value), str(row[6].value))
                 data_site = site(
-                    unik_id=nomor_site,
+                    unik_id=str(row[10].value),
                     latitude=str(row[6].value),
                     longitude=str(row[7].value),
                     longlat=[float(str(row[7].value)), float(str(row[6].value))],
@@ -745,6 +745,7 @@ def addsite(request):
             longitude = body_data.get('longitude')
             latitude = body_data.get('latitude')
             kode_pos = body_data.get('kode_pos')
+            nomor_site = body_data.get('unik_id')
 
             req_fields = ['latitude', 'longitude', 'kecamatan']
             data_site_lok = site.objects.all().only(*req_fields)
@@ -769,14 +770,14 @@ def addsite(request):
                 data_kabupaten = kota.objects.get(id=kab_kota)
                 data_kab_kota = 'kota'
 
-            try:
-                data_nomor_site = site.objects.order_by('-unik_id').first()
-                nomor_site = data_nomor_site.unik_id + 1
-                # nomor_site = str(nomor_site).zfill(5)
-            except Exception as e:
-                print(e)
-                # nomor_site = '1'.zfill(5)
-                nomor_site = 1
+            #try:
+            #    data_nomor_site = site.objects.order_by('-unik_id').first()
+            #    nomor_site = data_nomor_site.unik_id + 1
+            #    # nomor_site = str(nomor_site).zfill(5)
+            #except Exception as e:
+            #    print(e)
+            #    # nomor_site = '1'.zfill(5)
+            #    nomor_site = 1
 
             rekomentek = getRecommendTechnologi(longitude, latitude)
             data_site = site(
