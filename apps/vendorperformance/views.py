@@ -2,11 +2,14 @@ from django.shortcuts import render
 from rest_framework_mongoengine.viewsets import GenericAPIView, ModelViewSet
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.parsers import FileUploadParser
 from .models import VPScore
 import json
 from .customResponse import CustomResponse
 from django.http import JsonResponse
 from .serializer import VPSerializer, VPCreateSerializer
+from apps.userinfo.models import vendor
+from apps.userinfo.serializer import VendorScoreSerializer
 # Create your views here.
 
 
@@ -23,26 +26,35 @@ from .serializer import VPSerializer, VPCreateSerializer
 
 
 class VendorPerformanceAPI(ModelViewSet):
+    # parser_classes = (FileUploadParser,)
 
     def getByVendor(self, request, format=None):
         try:
-            vendor = request.query_params.get('id')
-            if not vendor:
+            vendorId = request.query_params.get('id')
+            if not vendorId:
                 raise TypeError('Need Param "id"')
-            data = VPScore.objects.get(vendor=vendor)
-            serializer = VPSerializer(data)
+            data = vendor.objects.get(id=vendorId)
+            serializer = VendorScoreSerializer(data)
             return CustomResponse.ok(values=serializer.data)
-        except VPScore.DoesNotExist:
+        except vendor.DoesNotExist:
             return CustomResponse().base(success=False, message='Id Not Found', status=status.HTTP_404_NOT_FOUND)
         except TypeError as e:
             return CustomResponse().base(success=False, message=str(e), status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return CustomResponse().base(success=False, message=str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    # def getAll(self, request, format=None):
+    #     vp = VPScore.objects.all()
+    #     serializer = VPSerializer(vp, many=True)
+    #     return CustomResponse.ok(values=serializer.data)
+
     def getAll(self, request, format=None):
-        vp = VPScore.objects.all()
-        serializer = VPSerializer(vp, many=True)
-        return CustomResponse.ok(values=serializer.data)
+        try:
+            vp = vendor.objects.order_by('-name')
+            serializer = VendorScoreSerializer(vp, many=True)
+            return CustomResponse.ok(values=serializer.data)
+        except Exception as e:
+            print(e)
 
     def create(self, request, format=None):
         try:

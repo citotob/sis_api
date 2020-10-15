@@ -17,7 +17,7 @@ class vendor(Document):
     latitude = StringField(required=True)
     longitude = StringField(required=True)
     longlat = PointField()
-    nilai = FloatField()
+    nilai = DynamicField()
     created_at = DateTimeField(
         default=datetime.utcnow() + timedelta(hours=7))
     updated_at = DateTimeField(
