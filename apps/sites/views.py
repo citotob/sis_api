@@ -7,6 +7,7 @@ from vendor.models import *
 from userinfo.models import *
 from userinfo.views import authenticate_credentials
 from apps.vendorperformance.serializer import VPSerializer
+from apps.userinfo.serializer import VendorScoreSerializer
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.conf import settings
@@ -1101,8 +1102,8 @@ def getDashboard(request):
         siteCount = site_matchmaking.objects(batchid__exists=True).count()
         rfiCount = vendor_application.objects.all().count()
         siteNonBatchCount = 0
-        vendorListQuery = VPScore.objects.all()
-        vendorList = VPSerializer(vendorListQuery, many=True)
+        vendorListQuery = vendor.objects.all()
+        vendorList = VendorScoreSerializer(vendorListQuery, many=True)
 
         aiCount = Odp.objects.all().count()
         aiTech = Odp.objects.only('teknologi').distinct('teknologi')
