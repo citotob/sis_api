@@ -549,8 +549,6 @@ def uploadsite(request):
                     lanjut = False
                     break
             for dt in new_data_site_lok:
-                print(dt['longitude'])
-                print(dt['latitude'])
                 a = haversine(float(dt['longitude']), float(dt['latitude']), float(
                     str(row[7].value)), float(str(row[6].value)))
                 # print(a)
