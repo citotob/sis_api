@@ -2,6 +2,14 @@ from django.shortcuts import render
 from odps.models import Odp
 from sites.models import kabupaten, kota
 from userinfo.models import vendor
+from odps.serializer import *
+from .response import Response
+import json
+from operator import itemgetter
+
+from geojson import Feature, Point
+from turfpy.measurement import distance, rhumb_distance, boolean_point_in_polygon
+from turfpy.transformation import circle
 
 def uploadodp(request):
     if request.method == 'POST':
@@ -87,3 +95,67 @@ def uploadodp(request):
             values=[],
             message="OK"
         )
+
+def getRecommendTech(request):
+
+    try:
+
+        if not request.body:
+            return Response.badRequest(
+                values=[],
+                message="Need Json Body longitude & latitude"
+            )
+        body = json.loads(request.body)
+        longitude = body.get('longitude', None)
+        latitude = body.get('latitude', None)
+
+        if not (longitude and latitude):
+            return Response.badRequest(
+                values=[],
+                message="Need Json Body longitude & latitude"
+            )
+
+        coordinates = [float(longitude), float(latitude)]
+        # print(getRecommendTechnologi(longitude, latitude))
+        start = Feature(geometry=Point(coordinates=coordinates))
+        # data = Odp.objects.aggregate([
+        #     {
+        #         '$match': {
+        #             "longlat": {"$geoWithin":
+        #                         {"$center": [[121.2866, 39.984], (116 / 111.32)]}}
+        #         }
+        #     }
+        # ])
+        data = Odp.objects(
+            longlat__geo_within_sphere=[coordinates, (10 / 6378.1)])
+        # data = Odp.objects(
+        #     longlat__near=[122.2866, -1.14911], longlat__max_distance=115199)
+        # radius = circle(center=end, radius=85, units='km')
+        # print(boolean_point_in_polygon(start, radius))
+        # print(rhumb_distance(start, end, units='km'))
+        # print(distance(start, end, units='km'))
+        # print(list(data))
+
+        serializer = ODPSerializer(data, many=True)
+
+        if len(serializer.data) > 0:
+            results = []
+            datas = serializer.data.copy()
+            for x in datas:
+                end = Feature(geometry=Point(x["longlat"]["coordinates"]))
+                x['distance'] = f'{int(distance(start, end, units="km"))} km'
+                results.append(x)
+            results.sort(key=itemgetter('distance', 'created_at'))
+            return Response.ok(
+                values=json.loads(json.dumps(serializer.data, default=str)),
+                message=f'{len(serializer.data)} Data'
+            )
+        else:
+            return Response.ok(
+                values=[],
+                message='Data tidak ada'
+            )
+
+    except Exception as e:
+        print(e)
+        return Response.badRequest(message=str(e))

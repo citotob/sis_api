@@ -13,7 +13,7 @@ urlpatterns = [
     path('getallbatch/', views.getallbatch),
 
     path('addodp/', views.addodp),
-    path('getodp/', views.getRecommendTech),
+    
     path('dashboard/', views.getDashboard),
 
     #path('uploadodp/', views.uploadodp),

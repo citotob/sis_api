@@ -1,5 +1,5 @@
 from apps.sites.models import Odp, rekomendasi_teknologi, ListOdp
-from apps.sites.serializer import ODPSerializer
+from apps.odps.serializer import ODPSerializer
 from operator import itemgetter
 from geojson import Feature, Point
 from turfpy.measurement import distance
