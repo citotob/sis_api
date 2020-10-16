@@ -11,9 +11,11 @@ from geojson import Feature, Point
 from turfpy.measurement import distance, rhumb_distance, boolean_point_in_polygon
 from turfpy.transformation import circle
 
+import openpyxl
+
 def uploadodp(request):
     if request.method == 'POST':
-        import openpyxl
+        
         lokasi_gagal = ''
 
         odp_file = request.FILES["odp_file"]
@@ -133,7 +135,7 @@ def addodp(request):
 
     else:
         return Response.badRequest(message='Hanya POST')
-        
+
 def getRecommendTech(request):
 
     try:
