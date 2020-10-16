@@ -5,13 +5,13 @@ from rest_framework_mongoengine import fields
 from rest_framework import serializers
 from .models import site_matchmaking, batch, vendor_application, Odp
 
-
+"""
 class ODPSerializer(DocumentSerializer):
     class Meta:
         model = Odp
         depth = 2
         exclude = ('vendorid.teknologi',)
-
+"""
 
 class VendorApplicationSerializer(DocumentSerializer):
     class Meta:
