@@ -150,13 +150,29 @@ class rfi_doc(Document):
         }
 
 
+#class Odp(Document):
+#    latitude = StringField(required=True)
+#    longitude = StringField(required=True)
+#    longlat = PointField()
+#    #teknologi = ReferenceField(rekomendasi_teknologi)
+#    teknologi = StringField(choices=['FO', 'VSAT'])
+#    vendorid = ReferenceField(vendor)
+#    created_at = DateTimeField(required=True, default=datetime.now)
+#    updated_at = DateTimeField(required=True, default=datetime.now)
+
 class Odp(Document):
+    unik_id = IntField(required=True, unique=True)
     latitude = StringField(required=True)
     longitude = StringField(required=True)
     longlat = PointField()
-    #teknologi = ReferenceField(rekomendasi_teknologi)
-    teknologi = StringField(choices=['FO', 'VSAT'])
-    vendorid = ReferenceField(vendor)
+    rekomendasi_teknologi = ReferenceField(rekomendasi_teknologi)
+    nama = StringField(required=True)
+    desa_kelurahan = ReferenceField(desa)
+    kecamatan = ReferenceField(kecamatan)
+    kabupaten = ReferenceField(kabupaten)
+    kota = ReferenceField(kota)
+    provinsi = ReferenceField(provinsi)
+    kode_pos = StringField(required=True, default='00000')
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
 

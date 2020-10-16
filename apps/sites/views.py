@@ -223,157 +223,6 @@ def haversine(lon1, lat1, lon2, lat2):
     return c * r
 
 
-def uploadlokasi(request):
-    if request.method == 'POST':
-        import openpyxl
-        excel_file = request.FILES["excel_file"]
-
-        # you may put validations here to check extension or file size
-
-        wb = openpyxl.load_workbook(excel_file)
-
-        # getting a particular sheet by name out of many sheets
-        worksheet = wb["List Lokasi Survey"]
-        print(worksheet)
-
-        excel_data = list()
-        # iterating over the rows and
-        # getting value from each cell in row
-        lokasi_gagal = ''
-
-        for row in worksheet.iter_rows():
-            if str(row[1].value) == 'None':
-                break
-            if str(row[0].value) == 'NO':
-                continue
-
-            if str(row[1].value).upper() == 'PERMOHONAN AKSES INTERNET':
-                jns = 'AI'
-            else:
-                jns = 'BTS'
-            # try:
-            data_provinsi = provinsi.objects.filter(
-                name=str(row[2].value).upper()).first()
-            # if len(data_provinsi) == 0:
-            if data_provinsi is None:
-                # continue
-                data_provinsi = provinsi(
-                    name=str(row[2].value).upper()
-                )
-                data_provinsi.save()
-            if str(row[3].value)[0:3].upper() == 'KAB':
-                kabupaten_ = kabupaten.objects.filter(
-                    name=str(row[3].value).upper()).first()
-                if kabupaten_ is None:
-                    # continue
-                    kabupaten_ = kabupaten(
-                        name=str(row[3].value).upper(),
-                        provinsi=ObjectId(data_provinsi.id)
-                    )
-                    kabupaten_.save()
-            else:
-                kota_ = kota.objects.filter(
-                    name=str(row[3].value).upper()).first()
-                if kota_ is None:
-                    # continue
-                    kota_ = kota(
-                        name=str(row[3].value).upper(),
-                        provinsi=ObjectId(data_provinsi.id)
-                    )
-                    kota_.save()
-            data_kecamatan = kecamatan.objects.filter(
-                name=str(row[4].value).upper()).first()
-            if data_kecamatan is None:
-                # continue
-                try:
-                    data_kecamatan = kecamatan(
-                        name=str(row[4].value).upper(),
-                        kabupaten=ObjectId(kabupaten_.id)
-                    )
-                    data_kecamatan.save()
-                except:
-                    data_kecamatan = kecamatan(
-                        name=str(row[4].value).upper(),
-                        kota=ObjectId(kota_.id)
-                    )
-                    data_kecamatan.save()
-            data_desa = desa.objects.filter(
-                name=str(row[5].value).upper()).first()
-
-            if data_desa is None:
-                # continue
-                data_desa = desa(
-                    name=str(row[5].value).upper(),
-                    kecamatan=ObjectId(data_kecamatan.id)
-                )
-                data_desa.save()
-            else:
-                LokSurvey_ = LokasiSurvey.objects.filter(
-                    desa=ObjectId(data_desa.id), jenis=jns)
-                if len(LokSurvey_) > 0:
-                    lokasi_gagal += str(row[5].value).upper()+', '
-                    continue
-
-            # if str(row[1].value).upper() == 'PERMOHONAN AKSES INTERNET':
-            #    jns = 'AI'
-            # else:
-            #    jns = 'BTS'
-            # try:
-            # if str(row[3].value)[0:3].upper() == 'KAB':
-            #    #LokasiSurvey_ = LokasiSurvey.objects.get(provinsi=ObjectId(data_provinsi["id"]), kabupaten=ObjectId(kabupaten_["id"]),
-                #                                         kecamatan=ObjectId(data_kecamatan["id"]), desa=ObjectId(data_desa["id"]), jenis=jns)
-            # else:
-            #    LokasiSurvey_ = LokasiSurvey.objects.get(provinsi=ObjectId(data_provinsi["id"]), kota=ObjectId(kota_["id"]),
-            #                                                kecamatan=ObjectId(data_kecamatan["id"]), desa=ObjectId(data_desa["id"]), jenis=jns)
-                # return Response.badRequest(
-                #    values='null',
-                #    message='Data exists'
-                # )
-            # except LokasiSurvey.DoesNotExist:
-            status = {'status': 'created', 'date': datetime.utcnow(
-            ) + timedelta(hours=7)}
-            LokasiSurvey_ = LokasiSurvey.objects.filter(latitude=str(
-                row[6].value).upper(), longitude=str(row[7].value).upper())
-            if len(LokasiSurvey_) == 0:
-                LokasiSurvey_ = LokasiSurvey()
-                # LokasiSurvey_.user = ObjectId("5f1aa3f07c33fe56ba294923")
-                LokasiSurvey_.provinsi = ObjectId(data_provinsi["id"])
-                try:
-                    LokasiSurvey_.kabupaten = ObjectId(kabupaten_["id"])
-                except:
-                    LokasiSurvey_.kota = ObjectId(kota_["id"])
-                LokasiSurvey_.kecamatan = ObjectId(data_kecamatan["id"])
-                LokasiSurvey_.desa = ObjectId(data_desa["id"])
-                LokasiSurvey_.jenis = jns
-                LokasiSurvey_.latitude = str(row[6].value).upper()
-                LokasiSurvey_.longitude = str(row[7].value).upper()
-                LokasiSurvey_.status.append(status)
-
-                LokasiSurvey_.save()
-            else:
-                lokasi_gagal += str(row[5].value).upper()+', '
-                # return Response.badRequest(
-                #    values=[str(row[5].value).upper()],
-                #    message=lokasi_gagal
-                # )
-
-        # return Response.ok(
-        #    values=[],
-        #    message='Upload berhasil'
-        # )
-        if lokasi_gagal == 'Lokasi gagal : ':
-            return Response.ok(
-                values=[],
-                message=''
-            )
-        else:
-            return Response.ok(
-                values=[],
-                message=lokasi_gagal
-            )
-        #    return JsonResponse({"state": "success"})
-        # return JsonResponse({"state": "success","gagal": lokasi_gagal})
-
 
 def uploadsite(request):
     if request.method == 'POST':
@@ -1176,4 +1025,157 @@ def getDashboard(request):
         return Response.badRequest(
             values=[],
             message=str(e)
+        )
+
+
+def uploadodp(request):
+    if request.method == 'POST':
+        import openpyxl
+        lokasi_gagal = ''
+
+        req_fields = ['latitude', 'longitude', 'kecamatan']
+        data_site_lok = Odponair.objects.all().only(*req_fields)
+        radius = 1.00  # in kilometer
+
+        new_data_site_lok = []
+        excel_file = request.FILES["excel_file"]
+
+        # you may put validations here to check extension or file size
+
+        wb = openpyxl.load_workbook(excel_file)
+
+        # getting a particular sheet by name out of many sheets
+        worksheet = wb["List Lokasi Survey"]
+
+        excel_data = list()
+        # iterating over the rows and
+        # getting value from each cell in row
+
+        for row in worksheet.iter_rows():
+            lanjut = True
+            if str(row[1].value) == 'None':
+                break
+            if str(row[0].value) == 'NO':
+                continue
+            data_provinsi = provinsi.objects.filter(
+                name=str(row[2].value).upper()).first()
+            if data_provinsi is None:
+                data_provinsi = provinsi(
+                    name=str(row[2].value).upper()
+                )
+                data_provinsi.save()
+
+            if str(row[3].value)[0:3].upper() == 'KAB':
+                kabupaten_ = kabupaten.objects.filter(
+                    name=str(row[3].value).upper()).first()
+                if kabupaten_ is None:
+                    kabupaten_ = kabupaten(
+                        name=str(row[3].value).upper(),
+                        provinsi=ObjectId(data_provinsi.id)
+                    )
+                    kabupaten_.save()
+            else:
+                kota_ = kota.objects.filter(
+                    name=str(row[3].value).upper()).first()
+                if kota_ is None:
+                    kota_ = kota(
+                        name=str(row[3].value).upper(),
+                        provinsi=ObjectId(data_provinsi.id)
+                    )
+                    kota_.save()
+            data_kecamatan = kecamatan.objects.filter(
+                name=str(row[4].value).upper()).first()
+            if data_kecamatan is None:
+                try:
+                    data_kecamatan = kecamatan(
+                        name=str(row[4].value).upper(),
+                        kabupaten=ObjectId(kabupaten_.id)
+                    )
+                    data_kecamatan.save()
+                except:
+                    data_kecamatan = kecamatan(
+                        name=str(row[4].value).upper(),
+                        kota=ObjectId(kota_.id)
+                    )
+                    data_kecamatan.save()
+            data_desa = desa.objects.filter(
+                name=str(row[5].value).upper()).first()
+            if data_desa is None:
+                data_desa = desa(
+                    name=str(row[5].value).upper(),
+                    kecamatan=ObjectId(data_kecamatan.id)
+                )
+                data_desa.save()
+            if str(row[1].value).upper() == 'PERMOHONAN AKSES INTERNET':
+                jns = 'AI'
+            else:
+                jns = 'AI'
+
+            for dat in data_site_lok:
+                if dat.kecamatan.id != data_kecamatan.id:
+                    continue
+
+                a = haversine(float(dat.longitude), float(dat.latitude), float(
+                    str(row[7].value)), float(str(row[6].value)))
+                # print(a)
+                if a <= radius:
+                    lanjut = False
+                    break
+            for dt in new_data_site_lok:
+                a = haversine(float(dt['longitude']), float(dt['latitude']), float(
+                    str(row[7].value)), float(str(row[6].value)))
+                # print(a)
+                if a <= radius:
+                    lanjut = False
+                    break
+            if lanjut:
+                #try:
+                #    data_nomor_site = site.objects.order_by('-unik_id').first()
+                #    nomor_site = data_nomor_site.unik_id + 1
+                #    # nomor_site = str(nomor_site).zfill(5)
+                #except Exception as e:
+                #    print(e)
+                #    # nomor_site = '1'.zfill(5)
+                #    nomor_site = 1
+
+                rekomentek = getRecommendTechnologi(str(row[7].value), str(row[6].value))
+                data_site = site(
+                    unik_id=str(row[10].value),
+                    latitude=str(row[6].value),
+                    longitude=str(row[7].value),
+                    longlat=[float(str(row[7].value)), float(str(row[6].value))],
+                    rekomendasi_teknologi=rekomentek,
+                    nama=str(row[8].value),
+                    desa_kelurahan=ObjectId(data_desa.id),
+                    kecamatan=ObjectId(data_kecamatan.id),
+                    provinsi=ObjectId(data_provinsi.id),
+                    kode_pos=str(row[9].value),
+                )
+                if str(row[3].value)[0:3].upper() == 'KAB':
+                    data_site.kabupaten = kabupaten_.id
+                else:
+                    data_site.kota = kota_.id
+                data_site.save()
+
+                data_site_matchmaking = site_matchmaking(
+                    siteid=data_site.id,
+                    batchid=ObjectId(data_batch.id)
+                )
+                data_site_matchmaking.save()
+
+                data_site.site_matchmaking.append(data_site_matchmaking.id)
+                data_site.save()
+
+                data_batch.sites.append(ObjectId(data_site_matchmaking.id))
+                data_batch.save()
+
+                longlat_ = {'longitude': str(row[7].value), 'latitude': str(row[6].value)}
+                new_data_site_lok.append(longlat_)
+            else:
+                lokasi_gagal += '{' + \
+                    str(row[6].value)+', '+str(row[7].value)+'}, '
+
+        return Response.ok(
+            values=[],
+            message=lokasi_gagal
         )
