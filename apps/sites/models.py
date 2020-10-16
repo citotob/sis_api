@@ -10,6 +10,7 @@ from bson import ObjectId
 from datetime import timedelta, datetime
 from userinfo.models import UserInfo, vendor
 from vendorperformance.models import *
+from odps.models import Odp, desa, kecamatan, kabupaten, kota, provinsi
 from rest_framework_mongoengine import serializers as drfm_serializers
 from rest_framework import serializers as drf_serializers
 from . import *
@@ -32,107 +33,6 @@ class company(Document):
             'name': str(self.name),
         }
 """
-
-
-class provinsi(Document):
-    #user = ReferenceField(UserInfo)
-    name = StringField(required=True)
-    tanggal_pembuatan = DateTimeField(required=True, default=datetime.now)
-    tanggal_perubahan = DateTimeField(required=True, default=datetime.now)
-    prefix = StringField(required=True)
-    meta = {
-        'strict': False,
-    }
-
-    def serialize(self):
-        return {
-            'id': str(self.id),
-            'name': self.name,
-            'tanggal_pembuatan': str(self.tanggal_pembuatan),
-            'tanggal_perubahan': str(self.tanggal_perubahan),
-        }
-
-
-class kabupaten(Document):
-    name = StringField(required=True)
-    provinsi = ReferenceField(provinsi)
-    tanggal_pembuatan = DateTimeField(required=True, default=datetime.now)
-    tanggal_perubahan = DateTimeField(required=True, default=datetime.now)
-
-    meta = {
-        'strict': False,
-    }
-
-    def serialize(self):
-        return {
-            'id': str(self.id),
-            'name': self.name,
-            # 'provinsi': str(self.provinsi.serialize()),
-            'tanggal_pembuatan': str(self.tanggal_pembuatan),
-            'tanggal_perubahan': str(self.tanggal_perubahan),
-        }
-
-
-class kota(Document):
-    name = StringField(required=True)
-    provinsi = ReferenceField(provinsi)
-    tanggal_pembuatan = DateTimeField(required=True, default=datetime.now)
-    tanggal_perubahan = DateTimeField(required=True, default=datetime.now)
-
-    meta = {
-        'strict': False,
-    }
-
-    def serialize(self):
-        return {
-            'id': str(self.id),
-            'name': self.name,
-            # 'provinsi': str(self.provinsi.serialize()),
-            'tanggal_pembuatan': str(self.tanggal_pembuatan),
-            'tanggal_perubahan': str(self.tanggal_perubahan),
-        }
-
-
-class kecamatan(Document):
-    name = StringField(required=True)
-    kabupaten = ReferenceField(kabupaten)
-    kota = ReferenceField(kota)
-    tanggal_pembuatan = DateTimeField(required=True, default=datetime.now)
-    tanggal_perubahan = DateTimeField(required=True, default=datetime.now)
-
-    meta = {
-        'strict': False,
-    }
-
-    def serialize(self):
-        return {
-            'id': str(self.id),
-            'name': self.name,
-            # 'kabupaten': self.kabupaten.serialize(),
-            # 'kota': self.kabupaten.serialize(),
-            'tanggal_pembuatan': str(self.tanggal_pembuatan),
-            'tanggal_perubahan': str(self.tanggal_perubahan),
-        }
-
-
-class desa(Document):
-    name = StringField(required=True)
-    kecamatan = ReferenceField(kecamatan)
-    tanggal_pembuatan = DateTimeField(required=True, default=datetime.now)
-    tanggal_perubahan = DateTimeField(required=True, default=datetime.now)
-
-    meta = {
-        'strict': False,
-    }
-
-    def serialize(self):
-        return {
-            'id': str(self.id),
-            'name': str(self.name),
-            # 'kecamatan': str(self.kecamatan.serialize()),
-            'tanggal_pembuatan': str(self.tanggal_pembuatan),
-            'tanggal_perubahan': str(self.tanggal_perubahan),
-        }
 
 
 class rfi_doc(Document):
@@ -159,7 +59,7 @@ class rfi_doc(Document):
 #    vendorid = ReferenceField(vendor)
 #    created_at = DateTimeField(required=True, default=datetime.now)
 #    updated_at = DateTimeField(required=True, default=datetime.now)
-
+"""
 class Odp(Document):
     #unik_id = IntField(required=True, unique=True)
     latitude = StringField(required=True, unique=True)
@@ -176,7 +76,7 @@ class Odp(Document):
     vendorid = ReferenceField(vendor)
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
-
+"""
 
 class ListOdp(EmbeddedDocument):
     odp = ReferenceField(Odp)

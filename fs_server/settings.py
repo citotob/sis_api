@@ -80,6 +80,7 @@ INSTALLED_APPS = [
     'channels',
     'userinfo.utils',
     'secrets',
+    'odps',
 ]
 
 

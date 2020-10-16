@@ -16,5 +16,5 @@ urlpatterns = [
     path('getodp/', views.getRecommendTech),
     path('dashboard/', views.getDashboard),
 
-    path('uploadodp/', views.uploadodp),
+    #path('uploadodp/', views.uploadodp),
 ]
