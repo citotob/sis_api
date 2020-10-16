@@ -1033,149 +1033,82 @@ def uploadodp(request):
         import openpyxl
         lokasi_gagal = ''
 
-        req_fields = ['latitude', 'longitude', 'kecamatan']
-        data_site_lok = Odponair.objects.all().only(*req_fields)
-        radius = 1.00  # in kilometer
-
-        new_data_site_lok = []
-        excel_file = request.FILES["excel_file"]
+        odp_file = request.FILES["odp_file"]
 
         # you may put validations here to check extension or file size
 
-        wb = openpyxl.load_workbook(excel_file)
+        wb = openpyxl.load_workbook(odp_file)
 
         # getting a particular sheet by name out of many sheets
-        worksheet = wb["List Lokasi Survey"]
+        worksheet = wb["Sheet1"]
 
         excel_data = list()
         # iterating over the rows and
         # getting value from each cell in row
 
         for row in worksheet.iter_rows():
+            #data_odp1 = Odp.objects.filter(latitude=str(row[6].value).replace(',','.'),
+            #            longitude=str(row[5].value).replace(',','.'))
+            #if data_odp1:
+            #    continue
+            vndr=str(row[7].value)
+            if "TELKOM" in vndr:
+                vndr = "TELKOM"
+            try:
+                data_vendor = vendor.objects.get(
+                    name__iexact=str(row[7].value))
+            except vendor.DoesNotExist:
+                data_vendor = vendor(
+                    name=str(row[7].value),
+                    latitude='0',
+                    longitude='0',
+                    longlat=[0, 0],
+                )
+                data_vendor.save()
+
+                #data_VPScore = VPScore(vendor=data_vendor.id)
+                #data_VPScore.save()
+
             lanjut = True
             if str(row[1].value) == 'None':
                 break
-            if str(row[0].value) == 'NO':
+            if str(row[0].value) == 'NAMA LOKASI':
                 continue
-            data_provinsi = provinsi.objects.filter(
-                name=str(row[2].value).upper()).first()
-            if data_provinsi is None:
-                data_provinsi = provinsi(
-                    name=str(row[2].value).upper()
-                )
-                data_provinsi.save()
+            tekno = str(row[9].value)
+            if "VSAT" in str(row[9].value):
+                tekno = "VSAT"
 
-            if str(row[3].value)[0:3].upper() == 'KAB':
-                kabupaten_ = kabupaten.objects.filter(
-                    name=str(row[3].value).upper()).first()
-                if kabupaten_ is None:
-                    kabupaten_ = kabupaten(
-                        name=str(row[3].value).upper(),
-                        provinsi=ObjectId(data_provinsi.id)
-                    )
-                    kabupaten_.save()
-            else:
-                kota_ = kota.objects.filter(
-                    name=str(row[3].value).upper()).first()
-                if kota_ is None:
-                    kota_ = kota(
-                        name=str(row[3].value).upper(),
-                        provinsi=ObjectId(data_provinsi.id)
-                    )
-                    kota_.save()
-            data_kecamatan = kecamatan.objects.filter(
-                name=str(row[4].value).upper()).first()
-            if data_kecamatan is None:
+            try:
+                data_odp = Odp(
+                    latitude=str(row[6].value).replace(',','.'),
+                    longitude=str(row[5].value).replace(',','.'),
+                    longlat=[float(str(row[5].value).replace(',','.')), float(str(row[6].value).replace(',','.'))],
+                    teknologi=tekno,
+                    nama=str(row[0].value),
+                    desa_kelurahan=ObjectId(str(row[4].value)),
+                    kecamatan=ObjectId(str(row[3].value)),
+                    provinsi=ObjectId(str(row[1].value)),
+                    vendorid=data_vendor.id,
+                )
+
                 try:
-                    data_kecamatan = kecamatan(
-                        name=str(row[4].value).upper(),
-                        kabupaten=ObjectId(kabupaten_.id)
-                    )
-                    data_kecamatan.save()
-                except:
-                    data_kecamatan = kecamatan(
-                        name=str(row[4].value).upper(),
-                        kota=ObjectId(kota_.id)
-                    )
-                    data_kecamatan.save()
-            data_desa = desa.objects.filter(
-                name=str(row[5].value).upper()).first()
-            if data_desa is None:
-                data_desa = desa(
-                    name=str(row[5].value).upper(),
-                    kecamatan=ObjectId(data_kecamatan.id)
-                )
-                data_desa.save()
-            if str(row[1].value).upper() == 'PERMOHONAN AKSES INTERNET':
-                jns = 'AI'
-            else:
-                jns = 'AI'
-
-            for dat in data_site_lok:
-                if dat.kecamatan.id != data_kecamatan.id:
-                    continue
-
-                a = haversine(float(dat.longitude), float(dat.latitude), float(
-                    str(row[7].value)), float(str(row[6].value)))
-                # print(a)
-                if a <= radius:
-                    lanjut = False
-                    break
-            for dt in new_data_site_lok:
-                a = haversine(float(dt['longitude']), float(dt['latitude']), float(
-                    str(row[7].value)), float(str(row[6].value)))
-                # print(a)
-                if a <= radius:
-                    lanjut = False
-                    break
-            if lanjut:
-                #try:
-                #    data_nomor_site = site.objects.order_by('-unik_id').first()
-                #    nomor_site = data_nomor_site.unik_id + 1
-                #    # nomor_site = str(nomor_site).zfill(5)
-                #except Exception as e:
-                #    print(e)
-                #    # nomor_site = '1'.zfill(5)
-                #    nomor_site = 1
-
-                rekomentek = getRecommendTechnologi(str(row[7].value), str(row[6].value))
-                data_site = site(
-                    unik_id=str(row[10].value),
-                    latitude=str(row[6].value),
-                    longitude=str(row[7].value),
-                    longlat=[float(str(row[7].value)), float(str(row[6].value))],
-                    rekomendasi_teknologi=rekomentek,
-                    nama=str(row[8].value),
-                    desa_kelurahan=ObjectId(data_desa.id),
-                    kecamatan=ObjectId(data_kecamatan.id),
-                    provinsi=ObjectId(data_provinsi.id),
-                    kode_pos=str(row[9].value),
-                )
-                if str(row[3].value)[0:3].upper() == 'KAB':
-                    data_site.kabupaten = kabupaten_.id
-                else:
-                    data_site.kota = kota_.id
-                data_site.save()
-
-                data_site_matchmaking = site_matchmaking(
-                    siteid=data_site.id,
-                    batchid=ObjectId(data_batch.id)
-                )
-                data_site_matchmaking.save()
-
-                data_site.site_matchmaking.append(data_site_matchmaking.id)
-                data_site.save()
-
-                data_batch.sites.append(ObjectId(data_site_matchmaking.id))
-                data_batch.save()
-
-                longlat_ = {'longitude': str(row[7].value), 'latitude': str(row[6].value)}
-                new_data_site_lok.append(longlat_)
-            else:
-                lokasi_gagal += '{' + \
-                    str(row[6].value)+', '+str(row[7].value)+'}, '
+                    data_kab_kot = kabupaten.objects.get(id=ObjectId(str(row[2].value)))
+                    data_odp.kabupaten = data_kab_kot.id
+                except kabupaten.DoesNotExist:
+                    try:
+                        data_kab_kot = kota.objects.get(id=ObjectId(str(row[2].value)))
+                        data_odp.kota = data_kab_kot.id
+                    except kota.DoesNotExist:
+                        return Response.ok(
+                            values=[],
+                            message="kabkot " + str(row[2].value) +" tidak ada"
+                        )
+                
+                data_odp.save()
+            except:
+                continue
 
         return Response.ok(
             values=[],
-            message=lokasi_gagal
+            message="OK"
         )

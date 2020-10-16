@@ -431,8 +431,8 @@ def register(request):
                         values=[],
                         message='Role ridak ada'
                     )
-                data_VPScore = VPScore(vendor=data_vendor.id)
-                data_VPScore.save()
+                #data_VPScore = VPScore(vendor=data_vendor.id)
+                #data_VPScore.save()
 
             user = UserInfo(
                 name=request.POST.get('name'),
