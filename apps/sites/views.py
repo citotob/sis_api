@@ -5,7 +5,7 @@ from sites.models import *
 #from apps.sites.models import Odp
 from vendor.models import *
 from userinfo.models import *
-from odps.models import *
+from odps.models import desa, kecamatan, kota, kabupaten, provinsi
 from userinfo.views import authenticate_credentials
 from apps.vendorperformance.serializer import VPSerializer
 from apps.userinfo.serializer import VendorScoreSerializer
@@ -989,11 +989,10 @@ def uploadsiteoffair(request):
                 break
             if str(row[0].value) == 'unik_id':
                 continue
-            #data_site = site_offair.objects.filter(latitude=str(row[17].value).replace(',','.'),
-            #            longitude=str(row[18].value).replace(',','.'))
-            #if data_site:
-            #    print('data_site')
-            #    continue
+            data_site = site_offair.objects.filter(latitude=str(row[17].value).replace(',','.'),
+                        longitude=str(row[18].value).replace(',','.'))
+            if data_site:
+                continue
             
             data_provinsi = provinsi.objects.filter(
                 name__iexact=str(row[10].value).upper())
@@ -1016,15 +1015,15 @@ def uploadsiteoffair(request):
                 for kab in kabupaten_:
                     kab_list.append(kab.id)
             else:
-                kota_ = kota.objects.filter(
+                data_kota = kota.objects.filter(
                     name__iexact=str(row[11].value).upper(),provinsi__in=prov_list)
-                if kota_ is None:
+                if data_kota is None:
                     lokasi_gagal += '{ ' + \
                     str(row[0].value)+' }, '
                     continue
                 kota_list = []
-                for kota in kota_:
-                    kota_list.append(kota.id)
+                for _kota in data_kota:
+                    kota_list.append(_kota.id)
             if str(row[11].value)[0:3].upper() == 'KAB':
                 data_kecamatan = kecamatan.objects.filter(
                     name__iexact=str(row[12].value).upper(),kabupaten__in=kab_list)
@@ -1067,7 +1066,7 @@ def uploadsiteoffair(request):
                 if str(row[11].value)[0:3].upper() == 'KAB':
                     data_siteoffair.kabupaten = kabupaten_[0].id
                 else:
-                    data_siteoffair.kota = kota_[0].id
+                    data_siteoffair.kota = data_kota[0].id
                 
                 data_siteoffair.save()
             except:
