@@ -15,5 +15,5 @@ urlpatterns = [
     path('dashboard/', views.getDashboard),
 
     path('uploadsiteoffair/', views.uploadsiteoffair),
-    path('getsiteoffair/', views.getsiteoffair),
+    path('getoffair/', views.getsiteoffair),
 ]
