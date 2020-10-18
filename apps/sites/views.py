@@ -2,9 +2,10 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from sites.models import *
-from apps.sites.models import Odp
+#from apps.sites.models import Odp
 from vendor.models import *
 from userinfo.models import *
+from odps.models import *
 from userinfo.views import authenticate_credentials
 from apps.vendorperformance.serializer import VPSerializer
 from apps.userinfo.serializer import VendorScoreSerializer
@@ -39,6 +40,7 @@ from userinfo.utils.notification import Notification
 import calendar
 from math import radians, cos, sin, asin, sqrt
 
+import openpyxl
 
 def getLaporan(request):
 
@@ -226,7 +228,7 @@ def haversine(lon1, lat1, lon2, lat2):
 
 def uploadsite(request):
     if request.method == 'POST':
-        import openpyxl
+        
         lokasi_gagal = ''
 
         file = request.FILES['doc']
@@ -963,3 +965,142 @@ def getDashboard(request):
             message=str(e)
         )
 
+def uploadsiteoffair(request):
+    if request.method == 'POST':
+        
+        lokasi_gagal = ''
+
+        excel_file = request.FILES["excel_file"]
+
+        # you may put validations here to check extension or file size
+
+        wb = openpyxl.load_workbook(excel_file)
+
+        # getting a particular sheet by name out of many sheets
+        worksheet = wb["Sheet1"]
+
+        excel_data = list()
+        # iterating over the rows and
+        # getting value from each cell in row
+
+        for row in worksheet.iter_rows():
+            lanjut = True
+            if str(row[1].value) == 'None':
+                break
+            if str(row[0].value) == 'unik_id':
+                continue
+            #data_site = site_offair.objects.filter(latitude=str(row[17].value).replace(',','.'),
+            #            longitude=str(row[18].value).replace(',','.'))
+            #if data_site:
+            #    print('data_site')
+            #    continue
+            
+            data_provinsi = provinsi.objects.filter(
+                name__iexact=str(row[10].value).upper())
+            if data_provinsi is None:
+                lokasi_gagal += '{ ' + \
+                    str(row[0].value)+' }, '
+                continue
+            prov_list = []
+            for prov in data_provinsi:
+                prov_list.append(prov.id)
+            
+            if str(row[11].value)[0:3].upper() == 'KAB':
+                kabupaten_ = kabupaten.objects.filter(
+                    name__iexact=str(row[11].value).upper(),provinsi__in=prov_list)
+                if kabupaten_ is None:
+                    lokasi_gagal += '{ ' + \
+                    str(row[0].value)+' }, '
+                    continue
+                kab_list = []
+                for kab in kabupaten_:
+                    kab_list.append(kab.id)
+            else:
+                kota_ = kota.objects.filter(
+                    name__iexact=str(row[11].value).upper(),provinsi__in=prov_list)
+                if kota_ is None:
+                    lokasi_gagal += '{ ' + \
+                    str(row[0].value)+' }, '
+                    continue
+                kota_list = []
+                for kota in kota_:
+                    kota_list.append(kota.id)
+            if str(row[11].value)[0:3].upper() == 'KAB':
+                data_kecamatan = kecamatan.objects.filter(
+                    name__iexact=str(row[12].value).upper(),kabupaten__in=kab_list)
+            else:
+                data_kecamatan = kecamatan.objects.filter(
+                    name__iexact=str(row[12].value).upper(),kota__in=kota_list)
+            if data_kecamatan is None:
+                lokasi_gagal += '{ ' + \
+                    str(row[0].value)+' }, '
+                continue
+            kec_list = []
+            for kec in data_kecamatan:
+                kec_list.append(kec.id)
+
+            data_desa = desa.objects.filter(
+                name__iexact=str(row[13].value).upper(),kecamatan__in=kec_list)
+            if data_desa is None:
+                lokasi_gagal += '{ ' + \
+                    str(row[0].value)+' }, '
+                continue
+
+            try:
+                data_siteoffair = site_offair(
+                    unik_id=str(row[0].value),
+                    latitude=str(row[17].value).replace(',','.'),
+                    longitude=str(row[18].value).replace(',','.'),
+                    longlat=[float(str(row[18].value).replace(',','.')), float(str(row[17].value).replace(',','.'))],
+                    #teknologi=tekno,
+                    nama=str(row[14].value),
+                    desa_kelurahan=ObjectId(data_desa[0].id),
+                    kecamatan=ObjectId(data_kecamatan[0].id),
+                    provinsi=ObjectId(data_provinsi[0].id),
+                    #status=data_vendor.id,
+                )
+
+                status_ = {'status': 'buka', 'tanggal_pembuatan': datetime.utcnow(
+                    ) + timedelta(hours=7)}
+                data_siteoffair.status.append(status_)
+
+                if str(row[11].value)[0:3].upper() == 'KAB':
+                    data_siteoffair.kabupaten = kabupaten_[0].id
+                else:
+                    data_siteoffair.kota = kota_[0].id
+                
+                data_siteoffair.save()
+            except:
+                lokasi_gagal += '{ ' + \
+                    str(row[0].value)+' }, '
+                continue
+
+        return Response.ok(
+            values=[],
+            message=lokasi_gagal
+        )
+
+def getsiteoffair(request):
+
+    #try:
+
+        
+    data_ = site_offair.objects.all()
+    #print(len(data_))
+    #result = data_.serialize()
+    serializer = siteoffairSerializer(data_,many=True)
+
+    if len(serializer.data) > 0:
+        return Response.ok(
+            values=json.loads(json.dumps(serializer.data, default=str)),
+            message=f'{len(serializer.data)} Data'
+        )
+    else:
+        return Response.ok(
+            values=[],
+            message='Data tidak ada'
+        )
+
+    #except Exception as e:
+    #    print(e)
+    #    return Response.badRequest(message=str(e))

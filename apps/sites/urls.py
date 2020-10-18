@@ -14,5 +14,6 @@ urlpatterns = [
     
     path('dashboard/', views.getDashboard),
 
-    #path('uploadodp/', views.uploadodp),
+    path('uploadsiteoffair/', views.uploadsiteoffair),
+    path('getsiteoffair/', views.getsiteoffair),
 ]

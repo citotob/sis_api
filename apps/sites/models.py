@@ -154,7 +154,7 @@ class site(Document):
                 'latitude': self.latitude,
                 'longitude': self.longitude,
                 'nama': self.nama,
-                'ddesa_kelurahanesa': self.desa_kelurahan.serialize(),
+                'desa_kelurahan': self.desa_kelurahan.serialize(),
                 'kecamatan': self.kecamatan.serialize(),
                 'kota': self.kota.serialize(),
                 'provinsi': self.provinsi.serialize(),
@@ -163,6 +163,56 @@ class site(Document):
                 'updated_at': self.updated_at
             }
 
+class site_offair(Document):
+    unik_id = StringField(required=True, default='-')
+    latitude = StringField(required=True, unique=True)
+    longitude = StringField(required=True, unique=True)
+    longlat = PointField()
+    #rekomendasi_teknologi = ReferenceField(rekomendasi_teknologi)
+    nama = StringField(required=True)
+    desa_kelurahan = ReferenceField(desa)
+    kecamatan = ReferenceField(kecamatan)
+    kabupaten = ReferenceField(kabupaten)
+    kota = ReferenceField(kota)
+    provinsi = ReferenceField(provinsi)
+    kode_pos = StringField(required=True, default='00000')
+    #site_matchmaking = ListField(ReferenceField(site_matchmaking))
+    #site_matchmaking = ListField()
+    created_at = DateTimeField(required=True, default=datetime.now)
+    updated_at = DateTimeField(required=True, default=datetime.now)
+    status = ListField(required=True)
+
+    def serialize(self):
+        try:
+            return {
+                'id': str(self.id),
+                'latitude': self.latitude,
+                'longitude': self.longitude,
+                'nama': self.nama,
+                'desa_kelurahan': self.desa_kelurahan.serialize(),
+                'kecamatan': self.kecamatan.serialize(),
+                'kabupaten': self.kabupaten.serialize(),
+                'provinsi': self.provinsi.serialize(),
+                'kode_pos': self.kode_pos,
+                'created_at': self.created_at,
+                'updated_at': self.updated_at
+            }
+        except:
+            # except Exception as e:
+            # print(e)
+            return {
+                'id': str(self.id),
+                'latitude': self.latitude,
+                'longitude': self.longitude,
+                'nama': self.nama,
+                'desa_kelurahan': self.desa_kelurahan.serialize(),
+                'kecamatan': self.kecamatan.serialize(),
+                'kota': self.kota.serialize(),
+                'provinsi': self.provinsi.serialize(),
+                'kode_pos': self.kode_pos,
+                'created_at': self.created_at,
+                'updated_at': self.updated_at
+            }
 
 class doc_permohonan_rfi(Document):
     name = StringField()

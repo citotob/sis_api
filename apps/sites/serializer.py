@@ -3,7 +3,7 @@
 from rest_framework_mongoengine.serializers import DocumentSerializer
 from rest_framework_mongoengine import fields
 from rest_framework import serializers
-from .models import site_matchmaking, batch, vendor_application, Odp
+from .models import site_matchmaking, batch, vendor_application, site_offair
 
 """
 class ODPSerializer(DocumentSerializer):
@@ -46,10 +46,9 @@ class BatchSerializer(DocumentSerializer):
         # return instance
 
 
-"""
-class SiteSerializer(DocumentSerializer):
+
+class siteoffairSerializer(DocumentSerializer):
     class Meta:
-        model = site_location
-        fields = '__all__'
-        depth = 2
-"""
+        model = site_offair
+        #fields = '__all__'
+        depth = 1
