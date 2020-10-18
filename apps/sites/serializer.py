@@ -50,5 +50,5 @@ class BatchSerializer(DocumentSerializer):
 class siteoffairSerializer(DocumentSerializer):
     class Meta:
         model = site_offair
-        #fields = '__all__'
+        fields = '__all__'
         depth = 1

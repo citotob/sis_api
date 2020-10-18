@@ -1082,9 +1082,8 @@ def uploadsiteoffair(request):
 
 def getsiteoffair(request):
     try:
-        data_ = site_offair.objects.all()
-        serializer = siteoffairSerializer(data_,many=True)
-
+        data = site_offair.objects.all()
+        serializer = siteoffairSerializer(data, many=True)
         if len(serializer.data) > 0:
             return Response.ok(
                 values=json.loads(json.dumps(serializer.data, default=str)),
@@ -1095,7 +1094,9 @@ def getsiteoffair(request):
                 values=[],
                 message='Data tidak ada'
             )
-
     except Exception as e:
         print(e)
-        return Response.badRequest(message=str(e))
+        return Response.badRequest(
+            values=[],
+            message=str(e)
+        )
