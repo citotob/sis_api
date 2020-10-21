@@ -90,7 +90,7 @@ class rekomendasi_teknologi(Document):
 
 
 class site(Document):
-    unik_id = IntField(required=True, unique=True)
+    unik_id = StringField(required=True, unique=True)
     latitude = StringField(required=True)
     longitude = StringField(required=True)
     longlat = PointField()
