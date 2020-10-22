@@ -111,18 +111,18 @@ class UserInfo(Document):
 
 
 class UserToken(Document):
-    key = StringField(required=True)
+    key = StringField(required=True, unique=True)
     created = DateTimeField(
         default=(datetime.utcnow() + timedelta(hours=7)))
     updated = DateTimeField(
         default=(datetime.utcnow() + timedelta(hours=7)))
-    user = ReferenceField(UserInfo)
+    user = ReferenceField(UserInfo, unique=True)
 
-    meta = {
-        'indexes': [
-            {'fields': ('key', 'user'), 'unique': True}
-        ]
-    }
+    #meta = {
+    #    'indexes': [
+    #        {'fields': ('key', 'user'), 'unique': True}
+    #    ]
+    #}
 
 
 class Message(Document):
