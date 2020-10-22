@@ -10,3 +10,9 @@ class ODPSerializer(DocumentSerializer):
         model = Odp
         depth = 2
         exclude = ('vendorid.teknologi',)
+
+class siteonairSerializer(DocumentSerializer):
+    class Meta:
+        model = Odp
+        fields = '__all__'
+        depth = 0

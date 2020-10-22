@@ -7,5 +7,6 @@ urlpatterns = [
     path('uploadodp/', views.uploadodp),
     path('getodp/', views.getRecommendTech),
     path('addodp/', views.addodp),
+    path('get/', views.getodp),
     
 ]

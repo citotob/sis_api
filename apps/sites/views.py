@@ -1081,12 +1081,18 @@ def uploadsiteoffair(request):
 
 def getsiteoffair(request):
     try:
-        start = int(request.GET.get('start')) - 1
-        end = int(request.GET.get('end'))
+        #req_fields = ['latitude', 'longitude']
+        try:
+            start = int(request.GET.get('start')) - 1
+            end = int(request.GET.get('end'))
 
-        if start < 0:
-            start = 0
-        data = site_offair.objects.all()[start:end]
+            if start < 0:
+                start = 0
+        
+            data = site_offair.objects.all()[start:end]
+        except:
+            data = site_offair.objects.all()
+        
         serializer = siteoffairSerializer(data, many=True)
         if len(serializer.data) > 0:
             return Response.ok(

@@ -199,3 +199,35 @@ def getRecommendTech(request):
     except Exception as e:
         print(e)
         return Response.badRequest(message=str(e))
+
+def getodp(request):
+    try:
+        req_fields = ['latitude', 'longitude']
+        try:
+            start = int(request.GET.get('start')) - 1
+            end = int(request.GET.get('end'))
+
+            if start < 0:
+                start = 0
+        
+            data = Odp.objects.all().only(*req_fields)[start:end]
+        except:
+            data = Odp.objects.all().only(*req_fields)
+        
+        serializer = siteonairSerializer(data, many=True)
+        if len(serializer.data) > 0:
+            return Response.ok(
+                values=json.loads(json.dumps(serializer.data, default=str)),
+                message=f'{len(serializer.data)} Data'
+            )
+        else:
+            return Response.ok(
+                values=[],
+                message='Data tidak ada'
+            )
+    except Exception as e:
+        #print(e)
+        return Response.badRequest(
+            values=[],
+            message=str(e)
+        )
