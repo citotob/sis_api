@@ -14,5 +14,5 @@ class ODPSerializer(DocumentSerializer):
 class siteonairSerializer(DocumentSerializer):
     class Meta:
         model = Odp
-        fields = ['latitude', 'longitude']
+        fields = ['latitude', 'longitude', 'teknologi']
         depth = 0
