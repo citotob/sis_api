@@ -2,7 +2,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from apps.sites.models import *
-from apps.sites.serializer import VendorApplicationSerializer
+from apps.sites.serializer import VendorApplicationSerializer, CheckVendorApplicationSerializer
 # from vendor.models import *
 from userinfo.models import *
 from userinfo.views import authenticate_credentials
@@ -309,7 +309,7 @@ def getVendorApp(request):
                 message="Need Param 'vendor' & 'batch'"
             )
         data = vendor_application.objects(batchid=batch, vendorid=vendor)
-        serializer = VendorApplicationSerializer(data, many=True)
+        serializer = CheckVendorApplicationSerializer(data, many=True)
         if len(serializer.data) > 0:
             return Response.ok(
                 values=json.loads(json.dumps(serializer.data, default=str)),

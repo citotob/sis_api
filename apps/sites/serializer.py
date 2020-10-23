@@ -18,6 +18,10 @@ class VendorApplicationSerializer(DocumentSerializer):
         model = vendor_application
         depth = 2
 
+class CheckVendorApplicationSerializer(DocumentSerializer):
+    class Meta:
+        model = vendor_application
+        depth = 0
 
 class SiteMatchmakingSerializer(DocumentSerializer):
 
