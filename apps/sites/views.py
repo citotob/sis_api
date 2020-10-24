@@ -910,8 +910,10 @@ def getDashboard(request):
             xx=x
             if x=='FIBER OPTIK':
                 xx='FO'
+                aiOperational.pop('FIBER OPTIK', None)
             if x=='RADIO LINK':
                 xx='RL'
+                aiOperational.pop('RADIO LINK', None)
             aiOperational.update({
                 xx: Odp.objects(teknologi=x).count()
             })
