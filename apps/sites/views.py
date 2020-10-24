@@ -907,8 +907,13 @@ def getDashboard(request):
             "RADIO LINK": 0
         }
         for x in list(aiTech):
+            xx=x
+            if x=='FIBER OPTIK':
+                xx='FO'
+            if x=='RADIO LINK':
+                xx='RL'
             aiOperational.update({
-                x: Odp.objects(teknologi=x).count()
+                xx: Odp.objects(teknologi=x).count()
             })
 
         recommendTech = rekomendasi_teknologi.objects.only(
