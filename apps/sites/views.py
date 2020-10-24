@@ -894,12 +894,18 @@ def getDashboard(request):
 
         aiCount = Odp.objects.all().count()
         aiTech = Odp.objects.only('teknologi').distinct('teknologi')
-        aiOperational = {
-            "count": aiCount,
-            "FO": 0,
-            "VSAT": 0,
-            "RL": 0
-        }
+        #aiOperational = {
+        #    "count": aiCount,
+        #    "FO": 0,
+        #    "VSAT": 0,
+        #    "RL": 0
+        #}
+        #aiOperational = {
+        #    "count": aiCount,
+        #    "FIBER OPTIK": 0,
+        #    "VSAT": 0,
+        #    "RADIO LINK": 0
+        #}
         for x in list(aiTech):
             aiOperational.update({
                 x: Odp.objects(teknologi=x).count()

@@ -8,5 +8,6 @@ urlpatterns = [
     path('getodp/', views.getRecommendTech),
     path('addodp/', views.addodp),
     path('get/', views.getodp),
+    path('addlonglatfield/', views.addlonglatfield),
     
 ]

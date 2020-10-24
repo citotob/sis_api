@@ -5,6 +5,21 @@ from userinfo.models import vendor
 
 from datetime import timedelta, datetime
 
+class location_data(EmbeddedDocument):
+    name = StringField(required=True,default='-')
+    address = StringField(required=True,default='-')
+    description = StringField(required=True,default='-')
+    kodepos = StringField(required=True,default='-')
+    latitude = StringField(required=True,default='-')
+    longitude = StringField(required=True,default='-')
+    longlat = PointField()
+
+
+class requested(Document):
+    location = EmbeddedDocumentField(location_data)
+
+    meta = {'collection': 'request'}
+
 class provinsi(Document):
     #user = ReferenceField(UserInfo)
     name = StringField(required=True)

@@ -148,13 +148,13 @@ DATABASES = {'default': {
 
 #SESSION_ENGINE = 'mongoengine.django.sessions'
 
-MONGO_NAME = 'sis'
-MONGO_DATABASE_HOST = 'mongodb://userSIS:usercaptive@165.22.58.39:27017/sis'
-mongoengine.connect(MONGO_NAME, host=MONGO_DATABASE_HOST)
-
-#MONGO_NAME = 'monev'
-#MONGO_DATABASE_HOST = 'mongodb://monevdtn:monevdtn@202.182.55.252:27017/monev'
+#MONGO_NAME = 'sis'
+#MONGO_DATABASE_HOST = 'mongodb://userSIS:usercaptive@165.22.58.39:27017/sis'
 #mongoengine.connect(MONGO_NAME, host=MONGO_DATABASE_HOST)
+
+MONGO_NAME = 'pasti'
+MONGO_DATABASE_HOST = 'mongodb://pastiUser:userxyz@157.230.45.210:27017/pasti'
+mongoengine.connect(MONGO_NAME, host=MONGO_DATABASE_HOST)
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators

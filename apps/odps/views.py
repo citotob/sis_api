@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from odps.models import Odp
+from odps.models import Odp, requested, location_data
 from sites.models import kabupaten, kota
 from userinfo.models import vendor
 from odps.serializer import *
@@ -231,3 +231,32 @@ def getodp(request):
             values=[],
             message=str(e)
         )
+
+def addlonglatfield(request):
+    #try:
+    req_fields = ['location']
+    data = requested.objects.all().only(*req_fields)[0:1]
+    for dt in data:
+        print(dt.location.name)
+        lokasiData = location_data(
+                name=dt.location.name,
+                address=dt.location.address,
+                description=dt.location.description,
+                kodepos=dt.location.kodepos,
+                latitude=dt.location.latitude,
+                longitude=dt.location.longitude,
+                longlat=[float(dt.location.longitude), float(dt.location.latitude)],
+            )
+        dt.location=lokasiData,
+        dt.save()
+    #data.save 
+    return Response.ok(
+        values=[],
+        message='OK'
+    )
+    #except Exception as e:
+    #    #print(e)
+    #    return Response.badRequest(
+    #        values=[],
+    #        message=str(e)
+    #    )
