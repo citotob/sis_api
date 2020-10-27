@@ -372,6 +372,7 @@ def getDashboardData(request):
             "site_not_batch": siteNonBatchCount,
             "totallayananai": totallayananai,
             "totallayananaifo": totallayananaifo,
+            "totallayananairl": totallayananairl,
             "totallayananaivsat": totallayananaivsat,
         }
 
