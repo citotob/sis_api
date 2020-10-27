@@ -34,6 +34,8 @@ from math import radians, cos, sin, asin, sqrt
 from sites.serializer import *
 from mongoengine.queryset.visitor import Q
 
+from odps.models import Odp
+
 
 def getallvendor(request):
     # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
@@ -326,53 +328,61 @@ def getVendorApp(request):
 
 def getDashboardData(request):
 
-    try:
-        if request.method == "POST":
-            if not request.body:
-                raise Exception('Need Json Body')
-            body_data = json.loads(request.body)
-            vendorId = body_data.get('vendor', None)
+    #try:
+    if request.method == "POST":
+        if not request.body:
+            raise Exception('Need Json Body')
+        body_data = json.loads(request.body)
+        vendorId = body_data.get('vendor', None)
+        
+        if not vendorId:
+            raise Exception('Need Body `vendor`')
 
-            if not vendorId:
-                raise Exception('Need Body `vendor`')
+        try:
+            vendorData = vendor.objects.get(id=vendorId)
+        except vendor.DoesNotExist:
+            raise Exception('Vendor not Found')
 
-            try:
-                vendorData = vendor.objects.get(id=vendorId)
-            except vendor.DoesNotExist:
-                raise Exception('Vendor not Found')
+        vendorCount = vendor.objects.all().count()
+        activeUserCount = UserInfo.objects(
+            company=vendorData.id, status='verified').count()
+        requestedUserCount = UserInfo.objects(
+            company=vendorData.id, status='requested').count()
+        listBatch = vendor_application.objects(vendorid=vendorData.id)
+        batchCount = batch.objects(
+            id__in=[x.id for x in listBatch.scalar('batchid')]).count()
+        siteCount = site_matchmaking.objects(
+            batchid__exists=True, batchid__in=listBatch.scalar('id')).count()
+        rfiCount = listBatch.count()
+        
+        totallayananai = Odp.objects(vendorid=vendorData.id).count()
+        totallayananaifo = Odp.objects(vendorid=vendorData.id,teknologi__in=['FIBER OPTIK','FO']).count()
+        totallayananairl = Odp.objects(vendorid=vendorData.id,teknologi__in=['RADIO LINK','RL']).count()
+        totallayananaivsat = Odp.objects(vendorid=vendorData.id,teknologi='VSAT').count()
 
-            vendorCount = vendor.objects.all().count()
-            activeUserCount = UserInfo.objects(
-                company=vendorData.id, status='verified').count()
-            requestedUserCount = UserInfo.objects(
-                company=vendorData.id, status='requested').count()
-            listBatch = vendor_application.objects(vendorid=vendorData.id)
-            batchCount = batch.objects(
-                id__in=[x.id for x in listBatch.scalar('batchid')]).count()
-            siteCount = site_matchmaking.objects(
-                batchid__exists=True, batchid__in=listBatch.scalar('id')).count()
-            rfiCount = listBatch.count()
+        siteNonBatchCount = 0
 
-            siteNonBatchCount = 0
+        result = {
+            "vendor": vendorCount,
+            "active_user": activeUserCount,
+            "requested_user": requestedUserCount,
+            "batch": batchCount,
+            "site": siteCount,
+            "rfi": rfiCount,
+            "site_not_batch": siteNonBatchCount,
+            "totallayananai": totallayananai,
+            "totallayananaifo": totallayananaifo,
+            "totallayananaivsat": totallayananaivsat,
+        }
 
-            result = {
-                "vendor": vendorCount,
-                "active_user": activeUserCount,
-                "requested_user": requestedUserCount,
-                "batch": batchCount,
-                "site": siteCount,
-                "rfi": rfiCount,
-                "site_not_batch": siteNonBatchCount,
-            }
-
-            return Response.ok(
-                values=result
-            )
-        else:
-            raise Exception('Method Post Only')
-
-    except Exception as e:
-        return Response.badRequest(
-            values=[],
-            message=str(e)
+        return Response.ok(
+            values=result
         )
+    else:
+        raise Exception('Method Post Only')
+
+    #except Exception as e:
+    #    return Response.badRequest(
+    #        values=[],
+    #        message=str(e)
+    #    )
