@@ -704,11 +704,11 @@ def editbatch(request):
         tanggal_selesai_undangan = body_data.get('tanggal_selesai_undangan')
         status_ = body_data.get('status')
 
-        if status_ == 'Selesai':
-            return Response.ok(
-                values=[],
-                message='Status sudah selesai'
-            )
+        #if status_ == 'Selesai':
+        #    return Response.ok(
+        #        values=[],
+        #        message='Status sudah selesai'
+        #    )
 
         try:
             data_batch = batch.objects.get(id=ObjectId(batch_id))
