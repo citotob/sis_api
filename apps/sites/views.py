@@ -1133,7 +1133,6 @@ def calculatevendorscore(request):
     for dt_batch in data_batch:
         for dt_vendor in dt_batch.penyedia_undang:
             try:
-                print(dt_vendor.id)
                 data_ven_app = vendor_application.objects.filter(batchid=dt_batch.id,vendorid=dt_vendor.id)
                 if not data_ven_app:
                     #return Response.ok(

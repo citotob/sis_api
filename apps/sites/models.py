@@ -303,6 +303,8 @@ class vp_score(Document):
     vendorid = ReferenceField(vendor)
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
+"""
+
 
 class total_calc(Document):
     rfi = IntField(required=True, default=0)
@@ -310,16 +312,8 @@ class total_calc(Document):
     teknologi = IntField(required=True, default=0)
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
-"""
 
-class total_calc(Document):
-    rfi = FloatField(required=True, default=0)
-    vp = FloatField(required=True, default=0)
-    teknologi = FloatField(required=True, default=0)
-    harga = FloatField(required=True, default=0)
-    created_at = DateTimeField(required=True, default=datetime.now)
-    updated_at = DateTimeField(required=True, default=datetime.now)
-    
+
 class vendor_application(Document):
     users = ReferenceField(UserInfo)
     vendorid = ReferenceField(vendor)
