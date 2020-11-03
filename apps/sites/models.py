@@ -306,9 +306,10 @@ class vp_score(Document):
 
 
 class total_calc(Document):
-    rfi = IntField(required=True, default=0)
-    vp = IntField(required=True, default=0)
-    teknologi = IntField(required=True, default=0)
+    rfi = FloatField(required=True, default=0)
+    vp = FloatField(required=True, default=0)
+    teknologi = FloatField(required=True, default=0)
+    harga = FloatField(required=True, default=0)
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
 
