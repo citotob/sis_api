@@ -16,3 +16,9 @@ class siteonairSerializer(DocumentSerializer):
         model = Odp
         fields = ['latitude', 'longitude', 'teknologi']
         depth = 0
+
+class siteprovinsiSerializer(DocumentSerializer):
+    class Meta:
+        model = Odp
+        #fields = ['latitude', 'longitude', 'teknologi']
+        depth = 0

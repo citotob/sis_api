@@ -1126,6 +1126,63 @@ def getsiteoffair(request):
             message=str(e)
         )
 
+def getoffairprovinsi(request):
+    try:
+        provinsi = request.GET.get('provinsi')
+        try:
+            start = int(request.GET.get('start')) - 1
+            end = int(request.GET.get('end'))
+
+            if start < 0:
+                start = 0
+        
+            data = site_offair.objects.filter(provinsi=provinsi)[start:end]
+        except:
+            data = site_offair.objects.filter(provinsi=provinsi)
+        
+        serializer = siteoffairSerializer(data, many=True)
+        if len(serializer.data) > 0:
+            return Response.ok(
+                values=json.loads(json.dumps(serializer.data, default=str)),
+                message=f'{len(serializer.data)} Data'
+            )
+        else:
+            return Response.ok(
+                values=[],
+                message='Data tidak ada'
+            )
+    except Exception as e:
+        #print(e)
+        return Response.badRequest(
+            values=[],
+            message=str(e)
+        )
+
+def getodpprovinsi(request):
+    try:
+        provinsi = request.GET.get('provinsi')
+        #req_fields = ['latitude', 'longitude', 'teknologi']
+        
+        data = Odp.objects.filter(provinsi=provinsi)[0:9]#.only(*req_fields)
+        
+        serializer = siteprovinsiSerializer(data, many=True)
+        if len(serializer.data) > 0:
+            return Response.ok(
+                values=json.loads(json.dumps(serializer.data, default=str)),
+                message=f'{len(serializer.data)} Data'
+            )
+        else:
+            return Response.ok(
+                values=[],
+                message='Data tidak ada'
+            )
+    except Exception as e:
+        #print(e)
+        return Response.badRequest(
+            values=[],
+            message=str(e)
+        )
+
 def calculatevendorscore(request):
     try:
         data_batch = batch.objects.filter(status__status='Selesai',
