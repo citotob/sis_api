@@ -1171,19 +1171,13 @@ def calculatevendorscore(request):
         list_harga = []
         max_days_admin = 0
         min_days_admin = 0
-        lanjut = 1
         for dt_rfi in dt_smm.rfi_score:
-            data_rfiscore = rfi_score.objects.get(id=dt_rfi.id)
-            if data_rfiscore:
-                lanjut = 0
-                continue
             tgl_start = dt_rfi.vendor_app.tanggal_mulai_sla
             tgl_end = dt_rfi.integration + timedelta(dt_rfi.days_on_integration)
             days_work=int((tgl_end.date() - tgl_start.date()).days)
             list_days_work.append(days_work)
             list_harga.append(dt_rfi.biaya)
-        if lanjut==0:
-            break
+        
         if len(list_days_work)>0:
             list_days_work = sorted(list_days_work)        
             max_days_admin = list_days_work[-1]
@@ -1194,6 +1188,9 @@ def calculatevendorscore(request):
             min_harga = list_harga[0]
 
         for dt_rfi in dt_smm.rfi_score:
+            if dt_rfi.total_calc:
+                #print('continue')
+                continue
             vendor_tek = dt_rfi.rekomendasi_teknologi
             tek_score = 0
             if smm_tek==vendor_tek:
@@ -1201,9 +1198,14 @@ def calculatevendorscore(request):
             tgl_start = dt_rfi.vendor_app.tanggal_mulai_sla
             tgl_end = dt_rfi.integration + timedelta(dt_rfi.days_on_integration)
             days_work=int((tgl_end.date() - tgl_start.date()).days)
-            days_work = 1-((days_work-min_days_admin)/(max_days_admin-min_days_admin))
-
-            nilai_harga = 1-((dt_rfi.biaya-min_harga)/(max_harga-min_harga))
+            if max_days_admin-min_days_admin==0:
+                days_work=1
+            else:
+                days_work = 1-((days_work-min_days_admin)/(max_days_admin-min_days_admin))
+            if max_harga-min_harga==0:
+                nilai_harga=1
+            else:
+                nilai_harga = 1-((dt_rfi.biaya-min_harga)/(max_harga-min_harga))
             
             vpscore_kecepatan = (dt_rfi.vendor_app.vp_score_id.kecepatan-1)/(5-1)
             vpscore_ketepatan = (dt_rfi.vendor_app.vp_score_id.ketepatan-1)/(5-1)
