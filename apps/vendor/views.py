@@ -233,8 +233,9 @@ def getbatch(request):
         body_data = json.loads(request.body)
         vendor_id = body_data.get('penyedia')
 
-        data = batch.objects.filter(penyedia_undang=vendor_id, status__status='Dibuka',
-                                    tanggal_selesai_undangan__gte=datetime.utcnow() + timedelta(hours=7))
+        #data = batch.objects.filter(penyedia_undang=vendor_id, status__status='Dibuka',
+        #                            tanggal_selesai_undangan__gte=datetime.utcnow() + timedelta(hours=7))
+        data = batch.objects.filter(penyedia_undang=vendor_id, status__status='Dibuka')
 
         serializer = BatchSerializer(data, many=True)
         return Response.ok(
