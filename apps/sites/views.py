@@ -40,6 +40,8 @@ from userinfo.utils.notification import Notification
 import calendar
 from math import radians, cos, sin, asin, sqrt
 
+from django.db.models import Avg, Max, Min, Sum
+
 import openpyxl
 
 def getLaporan(request):
@@ -1128,39 +1130,60 @@ def calculatevendorscore(request):
     #try:
     #data_batch = batch.objects.filter(status__status='Selesai',
     #            tanggal_selesai_undangan=datetime.utcnow() + timedelta(hours=7))
-    data_batch = batch.objects.all()
-    
-    for dt_batch in data_batch:
-        for dt_vendor in dt_batch.penyedia_undang:
-            try:
-                data_ven_app = vendor_application.objects.filter(batchid=dt_batch.id,vendorid=dt_vendor.id)
-                if not data_ven_app:
-                    #return Response.ok(
-                    #    values=[],
-                    #    message='Vendor tidak ada'
-                    #)
-                    continue
-                data_smm = site_matchmaking.objects.filter(applicants=data_ven_app[0].id)
-                for dt_smm in data_smm: 
-                    smm_tek = dt_smm.siteid.rekomendasi_teknologi.teknologi
-                    tek_score = 0
-                    if smm_tek==data_ven_app[0].rfi_score_id.rekomendasi_teknologi:
-                        tek_score = 0
-                
-                    vpscore_kecepatan = (data_ven_app[0].vp_score_id.kecepatan-1)/(5-1)
-                    vpscore_ketepatan = (data_ven_app[0].vp_score_id.ketepatan-1)/(5-1)
-                    vpscore_kualitas = (data_ven_app[0].vp_score_id.kualitas-1)/(5-1)
-                    av_vp = (vpscore_kecepatan+vpscore_ketepatan+vpscore_kualitas)/3
-                    """
-                    data_total_calc = total_calc(
-                        teknologi=1
-                        vp=av_vp
-                    )
-                    data_total_calc.save()
-                    """
-            except:
-                continue
+    #data_batch = batch.objects.all()
+    data_smm = site_matchmaking.objects.all()
+    for dt_smm in data_smm: 
+        list_applicants = []
+        for dt in dt_smm.applicants:
+            list_applicants.append(dt.id)
+        #print(list_applicants)
+        data_days_admin = vendor_application.objects.filter(id__in=list_applicants).order_by('-days_sla')
+        if data_days_admin:
+            max_days_admin = days_admin[0]['days_sla']
+            min_days_admin = days_admin[len(days_admin)-1]['days_sla']
+            print(max_days_admin,min_days_admin)
+        #smm_tek = dt_smm.siteid.rekomendasi_teknologi.teknologi
+        """
+        list_days_admin = []
+        list_days_material = []
+        list_days_installation = []
+        list_days_on_air = []
+        list_days_on_integration = []
+        for dt_rfi in dt_smm.rfi_score:            
+            vendor_tek = dt_rfi.rekomendasi_teknologi
+            tek_score = 0
+            if smm_tek==vendor_tek:
+                tek_score = 0
 
+            list_days_admin.append({'id': dt_rfi.id,'days':(
+                    dt_rfi.vendor_app.tanggal_akhir_sla.date() - dt_rfi.vendor_app.tanggal_mulai_sla.date()).days})
+            list_days_material.append(dt_rfi.id,dt_rfi.days_material_on_site)
+            list_days_installation.append(dt_rfi.id,dt_rfi.days_installation)
+            list_days_on_air.append(dt_rfi.id,dt_rfi.days_on_air)
+            list_days_on_integration.append(dt_rfi.id,dt_rfi.days_on_integration)
+    
+        list_days_admin.sort(key='days')
+        print(list_days_admin)
+        """
+        #vpscore_kecepatan = (data_ven_app[0].vp_score_id.kecepatan-1)/(5-1)
+        #vpscore_ketepatan = (data_ven_app[0].vp_score_id.ketepatan-1)/(5-1)
+        #vpscore_kualitas = (data_ven_app[0].vp_score_id.kualitas-1)/(5-1)
+        #av_vp = (vpscore_kecepatan+vpscore_ketepatan+vpscore_kualitas)/3
+
+        #for dt_vendor in dt_batch.penyedia_undang:
+        #    try:
+        #        data_ven_app = vendor_application.objects.filter(batchid=dt_batch.id,vendorid=dt_vendor.id)
+        #        if not data_ven_app:
+        #            continue
+                
+        
+        #        data_total_calc = total_calc(
+        #            teknologi=1,
+        #            vp=av_vp
+        #        )
+        #        data_total_calc.save()
+        #    except:
+        #        continue
     return Response.ok(
         values=[],
         message='OK'

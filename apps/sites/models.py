@@ -279,20 +279,19 @@ class batch(Document):
             'updated_at': str(self.updated_at),
         }
 
+class doc_quotation(Document):
+    name = StringField()
+    path = StringField()
+    create_date = DateTimeField(required=True, default=datetime.now)
+    update_date = DateTimeField(required=True, default=datetime.now)
 
-class rfi_score(Document):
-    #rfi_doc = ReferenceField(rfi_doc)
-    rekomendasi_teknologi = StringField(required=True, default='-')
-    material_on_site = DateTimeField(required=True, default=datetime.now)
-    installation = DateTimeField(required=True, default=datetime.now)
-    on_air = DateTimeField(required=True, default=datetime.now)
-    integration = DateTimeField(required=True, default=datetime.now)
-    days_material_on_site = IntField(required=True, default=0)
-    days_installation = IntField(required=True, default=0)
-    days_on_air = IntField(required=True, default=0)
-    days_on_integration = IntField(required=True, default=0)
-    created_at = DateTimeField(required=True, default=datetime.now)
-    updated_at = DateTimeField(required=True, default=datetime.now)
+    def serialize(self):
+        return {
+            "name": self.name,
+            "path": self.path,
+            "create_date": self.create_date,
+            "update_date": self.update_date,
+        }
 
 
 """
@@ -319,14 +318,15 @@ class vendor_application(Document):
     vendorid = ReferenceField(vendor)
     batchid = ReferenceField(batch)
     #siteid = ReferenceField(site_matchmaking)
-    rfi_score_id = ReferenceField(rfi_score)
+    ##rfi_score_id = ReferenceField(rfi_score)
     vp_score_id = ReferenceField(VPScore)
-    #total_calc_id = ReferenceField(total_calc)
+    ##total_calc_id = ReferenceField(total_calc)
     rank = IntField(required=True, default=0)
     rfi_no = StringField(required=True, default='-')
     rfi_doc_id = ReferenceField(rfi_doc)
     tanggal_mulai_sla = DateTimeField(required=True, default=datetime.now)
     tanggal_akhir_sla = DateTimeField(required=True, default=datetime.now)
+    days_sla = IntField(required=True, default=0)
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
 
@@ -351,13 +351,32 @@ class vendor_application(Document):
             "updated_at": str(self.updated_at),
         }
 
+class rfi_score(Document):
+    #rfi_doc = ReferenceField(rfi_doc)
+    vendor_app = ReferenceField(vendor_application)
+    rekomendasi_teknologi = StringField(required=True, default='-')
+    material_on_site = DateTimeField(required=True, default=datetime.now)
+    installation = DateTimeField(required=True, default=datetime.now)
+    on_air = DateTimeField(required=True, default=datetime.now)
+    integration = DateTimeField(required=True, default=datetime.now)
+    days_material_on_site = IntField(required=True, default=0)
+    days_installation = IntField(required=True, default=0)
+    days_on_air = IntField(required=True, default=0)
+    days_on_integration = IntField(required=True, default=0)
+    doc_quotation = ReferenceField(doc_quotation)
+    biaya = FloatField(required=True, default=0)
+    total_calc = ReferenceField(total_calc)
+    created_at = DateTimeField(required=True, default=datetime.now)
+    updated_at = DateTimeField(required=True, default=datetime.now)
 
 class site_matchmaking(Document):
     siteid = ReferenceField(site)
     batchid = ReferenceField(batch)
     applicants = ListField(ReferenceField(vendor_application))
     # applicants = ListField()
-    total_calc_id = ReferenceField(total_calc)
+    rfi_score = ListField(ReferenceField(rfi_score))
+    #vp_score = ListField(ReferenceField(VPScore))
+    #total_calc = ReferenceField(total_calc)
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
 """

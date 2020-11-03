@@ -75,8 +75,10 @@ def respon(request):
             userid = body_data.get('userid')
             batchid = body_data.get('batch')
             rfi_no = body_data.get('rfi_no')
-            tanggal_mulai_sla = body_data.get('tanggal_mulai_sla')
-            tanggal_selesai_sla = body_data.get('tanggal_selesai_sla')
+            tanggal_mulai_sla = datetime.strptime(
+                body_data.get('tanggal_mulai_sla'), '%Y-%m-%d 00:00:00')
+            tanggal_selesai_sla = datetime.strptime(
+                body_data.get('tanggal_selesai_sla'), '%Y-%m-%d 23:59:59')
 
             try:
                 data_user = UserInfo.objects.get(id=ObjectId(userid))
@@ -87,7 +89,7 @@ def respon(request):
                 )
 
             data_vp_score = VPScore.objects.filter(
-                vendor=data_user.company.id).first()
+                vendor=data_user.company.id).order_by('-created_at').first()
             if not data_vp_score:
                 return Response.ok(
                     values=[],
@@ -101,7 +103,9 @@ def respon(request):
                 rank=1,
                 rfi_no=rfi_no,
                 tanggal_mulai_sla=tanggal_mulai_sla,
-                tanggal_akhir_sla=tanggal_selesai_sla
+                tanggal_akhir_sla=tanggal_selesai_sla,
+                days_sla=(
+                    tanggal_selesai_sla.date() - tanggal_mulai_sla.date()).days,
             )
 
             data_vendor_application.save()
@@ -168,7 +172,19 @@ def penawaran(request):
             tanggal_selesai_ir = datetime.strptime(
                 body_data.get('tanggal_selesai_ir'), '%Y-%m-%d 23:59:59')
 
+            try:
+                data_vendor_application = vendor_application.objects.get(
+                    batchid=batchid, vendorid=vendorid)
+            except vendor_application.DoesNotExist:
+                return Response.ok(
+                    values=[],
+                    message='vendor_application tidak ada'
+                )
+            #data_vendor_application.rfi_score_id = data_rfi_score.id
+            #data_vendor_application.save()
+
             data_rfi_score = rfi_score(
+                vendor_app=data_vendor_application.id,
                 rekomendasi_teknologi=rekomen_tek,
                 material_on_site=tanggal_mulai_material,
                 installation=tanggal_mulai_installation,
@@ -187,17 +203,6 @@ def penawaran(request):
             data_rfi_score.save()
 
             try:
-                data_vendor_application = vendor_application.objects.get(
-                    batchid=batchid, vendorid=vendorid)
-            except vendor_application.DoesNotExist:
-                return Response.ok(
-                    values=[],
-                    message='vendor_application tidak ada'
-                )
-            data_vendor_application.rfi_score_id = data_rfi_score.id
-            data_vendor_application.save()
-
-            try:
                 data_smm = site_matchmaking.objects.get(
                     batchid=batchid, siteid=siteid)
             except site_matchmaking.DoesNotExist:
@@ -207,6 +212,7 @@ def penawaran(request):
                 )
 
             data_smm.applicants.append(data_vendor_application.id)
+            data_smm.rfi_score.append(data_rfi_score.id)
             data_smm.save()
 
             # result = site_vendor.objects.get(id=ObjectId(data_site_vendor.id)).serialize()
@@ -233,8 +239,9 @@ def getbatch(request):
         body_data = json.loads(request.body)
         vendor_id = body_data.get('penyedia')
 
-        data = batch.objects.filter(penyedia_undang=vendor_id, status__status='Dibuka',
-                                    tanggal_selesai_undangan__gte=datetime.utcnow() + timedelta(hours=7))
+        #data = batch.objects.filter(penyedia_undang=vendor_id, status__status='Dibuka',
+        #                            tanggal_selesai_undangan__gte=datetime.utcnow() + timedelta(hours=7))
+        data = batch.objects.filter(penyedia_undang=vendor_id, status__status='Dibuka')
 
         serializer = BatchSerializer(data, many=True)
         return Response.ok(
