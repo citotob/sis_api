@@ -1139,36 +1139,23 @@ def calculatevendorscore(request):
         #print(list_applicants)
         data_days_admin = vendor_application.objects.filter(id__in=list_applicants).order_by('-days_sla')
         if data_days_admin:
-            max_days_admin = days_admin[0]['days_sla']
-            min_days_admin = days_admin[len(days_admin)-1]['days_sla']
-            print(max_days_admin,min_days_admin)
-        #smm_tek = dt_smm.siteid.rekomendasi_teknologi.teknologi
-        """
-        list_days_admin = []
-        list_days_material = []
-        list_days_installation = []
-        list_days_on_air = []
-        list_days_on_integration = []
+            max_days_admin = data_days_admin[0]['days_sla']
+            min_days_admin = data_days_admin[len(data_days_admin)-1]['days_sla']
+
+        smm_tek = dt_smm.siteid.rekomendasi_teknologi.teknologi
+        
         for dt_rfi in dt_smm.rfi_score:            
             vendor_tek = dt_rfi.rekomendasi_teknologi
             tek_score = 0
             if smm_tek==vendor_tek:
                 tek_score = 0
 
-            list_days_admin.append({'id': dt_rfi.id,'days':(
-                    dt_rfi.vendor_app.tanggal_akhir_sla.date() - dt_rfi.vendor_app.tanggal_mulai_sla.date()).days})
-            list_days_material.append(dt_rfi.id,dt_rfi.days_material_on_site)
-            list_days_installation.append(dt_rfi.id,dt_rfi.days_installation)
-            list_days_on_air.append(dt_rfi.id,dt_rfi.days_on_air)
-            list_days_on_integration.append(dt_rfi.id,dt_rfi.days_on_integration)
-    
-        list_days_admin.sort(key='days')
-        print(list_days_admin)
-        """
-        #vpscore_kecepatan = (data_ven_app[0].vp_score_id.kecepatan-1)/(5-1)
-        #vpscore_ketepatan = (data_ven_app[0].vp_score_id.ketepatan-1)/(5-1)
-        #vpscore_kualitas = (data_ven_app[0].vp_score_id.kualitas-1)/(5-1)
-        #av_vp = (vpscore_kecepatan+vpscore_ketepatan+vpscore_kualitas)/3
+            days_admin = 1-((dt_rfi.vendor_app.days_sla-min_days_admin)/(max_days_admin-min_days_admin))
+            print(days_admin)
+            #vpscore_kecepatan = (data_ven_app[0].vp_score_id.kecepatan-1)/(5-1)
+            #vpscore_ketepatan = (data_ven_app[0].vp_score_id.ketepatan-1)/(5-1)
+            #vpscore_kualitas = (data_ven_app[0].vp_score_id.kualitas-1)/(5-1)
+            #av_vp = (vpscore_kecepatan+vpscore_ketepatan+vpscore_kualitas)/3
 
         #for dt_vendor in dt_batch.penyedia_undang:
         #    try:
