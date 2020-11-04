@@ -811,7 +811,7 @@ def getbatch(request):
         data = batch.objects.get(id=batch_id)
         serializer = BatchSerializer(data)
         return Response.ok(
-            values=json.loads(json.dumps(serializer.data, default=str)),
+            values=list(json.loads(json.dumps(serializer.data, default=str))),
             message=f'{len(serializer.data)} Data'
         )
     except batch.DoesNotExist:
