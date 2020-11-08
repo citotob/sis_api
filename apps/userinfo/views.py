@@ -304,12 +304,11 @@ def verifyUser(request):
                 pass
             """
             subject = 'Verifikasi Akun Berhasil'
-            text_content = 'Terimakasih telah mendaftar\n'+user.username+'\n'+request.POST.get('company').upper()+'\n'+ \
+            text_content = 'Terimakasih telah mendaftar\n'+user.username+'\n'+ \
                     'Tim kami akan melakukan verifikasi terhadap data anda terlebih dahulu. Setelah verifikasi berhasil,\n'+ \
                     'anda akan menerima email konfirmasi untuk menginformasikan status pendaftaran akun anda.'
             template = 'email/webverifpengguna.html'
             d = {'username': user.username, 
-                    'company': request.POST.get('company').upper(),
                     'media_url': settings.URL_MEDIA,
                     'url_login': settings.URL_LOGIN}
             email_sender = settings.EMAIL_ADMIN
