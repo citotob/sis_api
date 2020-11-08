@@ -38,6 +38,8 @@ import random
 
 from vendorperformance.models import VPScore
 
+from publicservice.utils import send_mail
+
 def test(request):
     try:
         Notification(
@@ -301,6 +303,18 @@ def verifyUser(request):
             except:
                 pass
             """
+            subject = 'Verifikasi Akun Berhasil'
+            text_content = 'Terimakasih telah mendaftar\n'+user.username+'\n'+request.POST.get('company').upper()+'\n'+ \
+                    'Tim kami akan melakukan verifikasi terhadap data anda terlebih dahulu. Setelah verifikasi berhasil,\n'+ \
+                    'anda akan menerima email konfirmasi untuk menginformasikan status pendaftaran akun anda.'
+            template = 'email/webverifpengguna.html'
+            d = {'username': user.username, 
+                    'company': request.POST.get('company').upper(),
+                    'media_url': settings.URL_MEDIA,
+                    'url_login': settings.URL_LOGIN}
+            email_sender = settings.EMAIL_ADMIN
+            email_receipient = user.email
+            send_mail(subject,text_content,template,d,email_sender,email_receipient)
             return Response.ok(
                 values=user.serialize(),
                 message='Verify Success'
@@ -482,27 +496,20 @@ def register(request):
                 updated=datetime.datetime.utcnow() + datetime.timedelta(hours=7)
             )
             notif.save()
-            try:
-                subject = 'Registrasi Akun SMASLAB'
-                text_content = 'Terimakasih telah mendaftar\n'+user.username+'\n'+request.POST.get('company').upper()+'\n'+ \
+            """
+            subject = 'Registrasi Akun'
+            text_content = 'Terimakasih telah mendaftar\n'+user.username+'\n'+request.POST.get('company').upper()+'\n'+ \
                     'Tim kami akan melakukan verifikasi terhadap data anda terlebih dahulu. Setelah verifikasi berhasil,\n'+ \
                     'anda akan menerima email konfirmasi untuk menginformasikan status pendaftaran akun anda.'
-                htmly     = get_template('email/register.html')
-                d = {'username': user.username, 
-                            'company': request.POST.get('company').upper(),
-                            'media_url': settings.URL_MEDIA}
-                html_content = htmly.render(d)
-                sender = settings.EMAIL_ADMIN
-                receipient = user.email
-                msg = EmailMultiAlternatives(
-                    subject, text_content, sender, [receipient])
-                msg.attach_alternative(html_content, "text/html")
-                respone = msg.send()
-            except:
-                pass
-            #except Exception as e:
-            #    return Response.badRequest(message=str(e))
-            """
+            template = 'email/webpendaftaranberhasil.html'
+            d = {'username': user.username, 
+                    'company': request.POST.get('company').upper(),
+                    'media_url': settings.URL_MEDIA,
+                    'url_login': settings.URL_LOGIN}
+            email_sender = settings.EMAIL_ADMIN
+            email_receipient = user.email
+            send_mail(subject,text_content,template,d,email_sender,email_receipient)
+
             return Response.ok(
                 values=result,
                 message='User Created'

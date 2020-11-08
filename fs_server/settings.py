@@ -81,6 +81,8 @@ INSTALLED_APPS = [
     'userinfo.utils',
     'secrets',
     'odps',
+    'check',
+    'publicservice'
 ]
 
 
@@ -259,8 +261,8 @@ EMAIL_BACKEND = 'django_mailgun.MailgunBackend'
 MAILGUN_ACCESS_KEY = 'key-4cf3bba899c0ad2082a11990061c2be4'
 MAILGUN_SERVER_NAME = 'dev.datasintesa.id'
 
-EMAIL_ADMIN = 'SMASLAB Admin<admin@smaslab.id>'
+EMAIL_ADMIN = 'TEKSAS Admin<admin@smaslab.id>'
 
-URL_LOGIN = 'https://survejdev.datasintesa.id/login'
+URL_LOGIN = 'https://teksas.devlabs.id/login'
 URL_REGISTER = 'https://survejdev.datasintesa.id/register'
-URL_MEDIA = 'https://survejdev-api.datasintesa.id/media'
+URL_MEDIA = 'https://teksas-api.devlabs.id/media'
