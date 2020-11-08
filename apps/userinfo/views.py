@@ -280,29 +280,7 @@ def verifyUser(request):
             user.status = 'verified'
             user.update_date = dateNow
             user.save()
-            """
-            try:
-                subject = 'Verifikasi Akun SMASLAB Berhasil'
-                text_content = 'Akun anda telah berhasil diverifikasi\n'+user.username+'\n'+user.company.name+'\n'\
-                        'Silahkan untuk dapat melakukan log in melalui aplikasi ataupun website SMASLAB.\nhttps://survejdev.datasintesa.id/login'
-                #text_content = ''
-                htmly     = get_template('email/verif-akun.html')
-                
-                d = {'username': user.username, 
-                            'company': user.company.name,
-                        'message_top': 'Akun anda telah berhasil diverifikasi',
-                        'message_bottom': 'Silahkan untuk dapat melakukan log in melalui aplikasi ataupun website SMASLAB.\n'
-                            +settings.URL_LOGIN, 'media_url': settings.URL_MEDIA}
-                html_content = htmly.render(d)
-                sender = settings.EMAIL_ADMIN
-                receipient = user.email
-                msg = EmailMultiAlternatives(
-                    subject, text_content, sender, [receipient])
-                msg.attach_alternative(html_content, "text/html")
-                respone = msg.send()
-            except:
-                pass
-            """
+            
             subject = 'Verifikasi Akun Berhasil'
             text_content = 'Terimakasih telah mendaftar\n'+user.username+'\n'+ \
                     'Tim kami akan melakukan verifikasi terhadap data anda terlebih dahulu. Setelah verifikasi berhasil,\n'+ \
