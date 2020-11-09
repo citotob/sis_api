@@ -182,12 +182,15 @@ class site_offair(Document):
     updated_at = DateTimeField(required=True, default=datetime.now)
     status = ListField(required=True)
 
+    #meta = { 'allow_inheritance': True }
+
     def serialize(self):
         try:
             return {
                 'id': str(self.id),
                 'latitude': self.latitude,
                 'longitude': self.longitude,
+                'longlat': str(self.longlat),
                 'nama': self.nama,
                 'desa_kelurahan': self.desa_kelurahan.serialize(),
                 'kecamatan': self.kecamatan.serialize(),
@@ -204,6 +207,7 @@ class site_offair(Document):
                 'id': str(self.id),
                 'latitude': self.latitude,
                 'longitude': self.longitude,
+                'longlat': str(self.longlat),
                 'nama': self.nama,
                 'desa_kelurahan': self.desa_kelurahan.serialize(),
                 'kecamatan': self.kecamatan.serialize(),
