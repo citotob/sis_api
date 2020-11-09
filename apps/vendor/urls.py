@@ -8,6 +8,7 @@ urlpatterns = [
     # path('login/', tokenview.obtain_auth_token),
     path('respon/', views.respon),
     path('penawaran/', views.penawaran),
+    path('rfi/', views.penawaran_),
     path('getbatch/', views.getbatch),
     #path('getsite/', sites_views.getsite),
     path('getvendorapp/', views.getVendorApp),
