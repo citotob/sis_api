@@ -300,9 +300,9 @@ def verifyUser(request):
             print(e)
             #return HttpResponse(e)
             return Response.badRequest(
-                    values='null',
-                    message=str(e)
-                )
+                values='null',
+                message=str(e)
+            )
     else:
         return HttpResponse('Post Only')
 
