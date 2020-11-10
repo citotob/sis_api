@@ -16,7 +16,7 @@ bruteforce = views.checkAPI.as_view({
     'post': 'bruteforce',
 })
 disk = views.checkAPI.as_view({
-    'POST': 'disk',
+    'post': 'disk',
 })
 
 urlpatterns = [
