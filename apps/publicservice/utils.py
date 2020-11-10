@@ -6,8 +6,8 @@ def send_mail(subject, text_content, template, d, email_sender, email_receipient
     
     html_content = htmly.render(d)
     sender = email_sender
-    receipient = email_receipient
+    list_receipient = email_receipient
     msg = EmailMultiAlternatives(
-        subject, text_content, sender, [receipient])
+        subject, text_content, sender, list_receipient)
     msg.attach_alternative(html_content, "text/html")
     respone = msg.send()
