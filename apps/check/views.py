@@ -80,7 +80,7 @@ class checkAPI(ModelViewSet):
                 sender = settings.EMAIL_ADMIN
                 receipient = list_receipient
                 msg = EmailMultiAlternatives(
-                    subject, text_content, sender, [receipient])
+                    subject, text_content, sender, receipient)
                 msg.attach_alternative(html_content, "text/html")
                 respone = msg.send()
                 #print('Send email success')
@@ -119,7 +119,7 @@ class checkAPI(ModelViewSet):
                 sender = settings.EMAIL_ADMIN
                 receipient = list_receipient
                 msg = EmailMultiAlternatives(
-                    subject, text_content, sender, [receipient])
+                    subject, text_content, sender, receipient)
                 msg.attach_alternative(html_content, "text/html")
                 respone = msg.send()
                 #print('Send email success')
@@ -161,7 +161,7 @@ class checkAPI(ModelViewSet):
                 sender = settings.EMAIL_ADMIN
                 receipient = list_receipient
                 msg = EmailMultiAlternatives(
-                    subject, text_content, sender, [receipient])
+                    subject, text_content, sender, receipient)
                 msg.attach_alternative(html_content, "text/html")
                 respone = msg.send()
                 #print('Send email success')
@@ -201,7 +201,7 @@ class checkAPI(ModelViewSet):
                 sender = settings.EMAIL_ADMIN
                 receipient = list_receipient
                 msg = EmailMultiAlternatives(
-                    subject, text_content, sender, [receipient])
+                    subject, text_content, sender, receipient)
                 msg.attach_alternative(html_content, "text/html")
                 respone = msg.send()
                 #print('Send email success')
