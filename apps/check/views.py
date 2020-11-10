@@ -28,26 +28,26 @@ class checkAPI(ModelViewSet):
             list_receipient=[]
             for dt in data_user:
                 list_receipient.append(dt.email)
-            try:
-                subject = 'Load Notification'
-                text_content = 'Load Notification'
-                #text_content = ''
-                htmly     = get_template('email/check/webload.html')
-                
-                d = {'load': (load_/32)*100,
-                        'message_top': '',
-                        'message_bottom': '', 'media_url': settings.URL_MEDIA}
-                html_content = htmly.render(d)
-                sender = settings.EMAIL_ADMIN
-                receipient = list_receipient
-                msg = EmailMultiAlternatives(
-                    subject, text_content, sender, [receipient])
-                msg.attach_alternative(html_content, "text/html")
-                respone = msg.send()
-                #print('Send email success')
-            except:
+            #try:
+            subject = 'Load Notification'
+            text_content = 'Load Notification'
+            #text_content = ''
+            htmly     = get_template('email/check/webload.html')
+            
+            d = {'load': (load_/32)*100,
+                    'message_top': '',
+                    'message_bottom': '', 'media_url': settings.URL_MEDIA}
+            html_content = htmly.render(d)
+            sender = settings.EMAIL_ADMIN
+            receipient = list_receipient
+            msg = EmailMultiAlternatives(
+                subject, text_content, sender, [receipient])
+            msg.attach_alternative(html_content, "text/html")
+            respone = msg.send()
+            #print('Send email success')
+            #except:
             #    print('failed send email')
-                pass
+            #    pass
             return CustomResponse.ok(values=[])
         #except vendor.DoesNotExist:
         #    return CustomResponse().base(success=False, message='Id Not Found', status=status.HTTP_404_NOT_FOUND)
