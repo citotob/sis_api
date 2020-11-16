@@ -346,7 +346,7 @@ class vendor_application(Document):
             "id": str(self.id),
             "users": self.users.serialize(),
             "vp_score_id": self.vp_score_id.serialize(),
-            "total_calc": self.total_calc.serialize(),
+            #"total_calc": self.total_calc.serialize(),
             "rank": str(self.rank),
             "rfi_no": self.rfi_no,
             "rfi_doc_id": self.rfi_doc_id.serialize(),
