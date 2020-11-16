@@ -29,7 +29,8 @@ class SiteMatchmakingSerializer(DocumentSerializer):
         model = site_matchmaking
         depth = 3
     # fields = ['id', 'siteid', 'applicants', 'created_at', 'updated_at']
-        exclude = ('batchid',)#, 'applicants.batchid'
+        exclude = ('batchid','rfi_score.vendor_app.batchid','siteid.desa_kelurahan.kecamatan', 
+            'siteid.kecamatan.kabupaten', 'siteid.kecamatan.kota','siteid.kabupaten.provinsi')#, 'applicants.batchid'
 
 
 class BatchSerializer(DocumentSerializer):
