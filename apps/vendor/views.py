@@ -228,7 +228,7 @@ def penawaran_(request):
                 message='Site_matchmaking tidak ada'
             )
 
-        data_smm.applicants.append(data_vendor_application.id)
+        #data_smm.applicants.append(data_vendor_application.id)
         data_smm.rfi_score.append(data_rfi_score.id)
         data_smm.save()
 
@@ -319,7 +319,7 @@ def penawaran(request):
                 message='Site_matchmaking tidak ada'
             )
 
-        data_smm.applicants.append(data_vendor_application.id)
+        #data_smm.applicants.append(data_vendor_application.id)
         data_smm.rfi_score.append(data_rfi_score.id)
         data_smm.save()
 

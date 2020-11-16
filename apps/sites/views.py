@@ -822,25 +822,25 @@ def getbatch(request):
 
 
 def getallbatch(request):
-    try:
-        data = batch.objects.all()
-        serializer = BatchSerializer(data, many=True)
-        if len(serializer.data) > 0:
-            return Response.ok(
-                values=json.loads(json.dumps(serializer.data, default=str)),
-                message=f'{len(serializer.data)} Data'
-            )
-        else:
-            return Response.ok(
-                values=[],
-                message='Data tidak ada'
-            )
-    except Exception as e:
-        print(e)
-        return Response.badRequest(
-            values=[],
-            message=str(e)
+    #try:
+    data = batch.objects.all()
+    serializer = BatchSerializer(data, many=True)
+    if len(serializer.data) > 0:
+        return Response.ok(
+            values=json.loads(json.dumps(serializer.data, default=str)),
+            message=f'{len(serializer.data)} Data'
         )
+    else:
+        return Response.ok(
+            values=[],
+            message='Data tidak ada'
+        )
+    #except Exception as e:
+    #    print(e)
+    #    return Response.badRequest(
+    #        values=[],
+    #        message=str(e)
+    #    )
 
 
 def addodp(request):

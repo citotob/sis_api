@@ -27,9 +27,9 @@ class SiteMatchmakingSerializer(DocumentSerializer):
 
     class Meta:
         model = site_matchmaking
-        depth = 2
+        depth = 3
     # fields = ['id', 'siteid', 'applicants', 'created_at', 'updated_at']
-        exclude = ('batchid', 'applicants.batchid')
+        exclude = ('batchid',)#, 'applicants.batchid'
 
 
 class BatchSerializer(DocumentSerializer):

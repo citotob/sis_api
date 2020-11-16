@@ -377,7 +377,7 @@ class rfi_score(Document):
 class site_matchmaking(Document):
     siteid = ReferenceField(site)
     batchid = ReferenceField(batch)
-    applicants = ListField(ReferenceField(vendor_application))
+    #applicants = ListField(ReferenceField(vendor_application))
     # applicants = ListField()
     rfi_score = ListField(ReferenceField(rfi_score))
     #vp_score = ListField(ReferenceField(VPScore))
