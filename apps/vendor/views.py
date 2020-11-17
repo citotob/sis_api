@@ -279,6 +279,7 @@ def penawaran(request):
             body_data.get('tanggal_mulai_ir'), '%Y-%m-%d 00:00:00')
         tanggal_selesai_ir = datetime.strptime(
             body_data.get('tanggal_selesai_ir'), '%Y-%m-%d 23:59:59')
+        biaya = body_data.get('biaya')
 
         try:
             data_vendor_application = vendor_application.objects.get(
@@ -305,7 +306,8 @@ def penawaran(request):
             days_on_air=(tanggal_selesai_onair.date() -
                             tanggal_mulai_onair.date()).days,
             days_on_integration=(
-                tanggal_selesai_ir.date() - tanggal_mulai_ir.date()).days
+                tanggal_selesai_ir.date() - tanggal_mulai_ir.date()).days,
+            biaya=biaya,
         )
 
         data_rfi_score.save()

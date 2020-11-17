@@ -31,4 +31,6 @@ urlpatterns = [
     path('forgotpassword/', views.forgotpassword),
     path('resetpassword/', views.resetpassword),
 
+    path('changeimage/', views.changeimage),
+
 ]
