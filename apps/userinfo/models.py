@@ -103,6 +103,7 @@ class UserInfo(Document):
     doc = ReferenceField(DocumentUser)
     image = ReferenceField(ImageUser)
     token_reset = StringField()
+    expire_token = DateTimeField()
     create_date = DateTimeField(
         default=(datetime.utcnow() + timedelta(hours=7)))
     update_date = DateTimeField(

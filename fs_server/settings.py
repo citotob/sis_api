@@ -264,5 +264,6 @@ MAILGUN_SERVER_NAME = 'dev.datasintesa.id'
 EMAIL_ADMIN = 'TEKSAS Admin<admin@smaslab.id>'
 
 URL_LOGIN = 'https://teksas.devlabs.id/login'
-URL_REGISTER = 'https://survejdev.datasintesa.id/register'
+URL_REGISTER = 'https://teksas.devlabs.id/register'
 URL_MEDIA = 'https://teksas-api.devlabs.id/media'
+URL_RESETPASSWORD = 'https://teksas.devlabs.id/resetpassword'
