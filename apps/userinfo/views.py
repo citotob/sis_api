@@ -893,6 +893,7 @@ def resetpassword(request):
         try:
             req = request.body.decode("utf-8")
             data = json.loads(req)
+            print(data["token"])
             try:
                 user = UserInfo.objects.get(token_reset=data["token"])
             except UserInfo.DoesNotExist:
@@ -905,6 +906,7 @@ def resetpassword(request):
                 data['newpassword'], settings.SECRET_KEY, 'pbkdf2_sha256')
             user.update_date = datetime.datetime.utcnow() + datetime.timedelta(hours=7)
             user.token_reset = None
+            user.expire_token = None
             user.save()
             
             subject = 'Reset password'
@@ -917,7 +919,7 @@ def resetpassword(request):
                     'message_top': 'Atur Ulang Kata Sandi',
                     'message_bottom': 'Reset Password Telah Berhasil', 
                     'media_url': settings.URL_MEDIA,
-                        'login_url': URL_LOGIN}
+                        'login_url': settings.URL_LOGIN}
             html_content = htmly.render(d)
             sender = settings.EMAIL_ADMIN
             receipient = user.email
