@@ -124,7 +124,8 @@ class UserInfo(Document):
             "role": self.role.serialize(),
             "doc": self.doc.serialize(),
             "image": self.image.serialize(),
-            "token_reset": self.token_reset
+            "token_reset": self.token_reset,
+            "expire_token": self.expire_token,
         }
 
 

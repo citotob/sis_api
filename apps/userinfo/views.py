@@ -858,7 +858,7 @@ def forgotpassword(request):
             subject = 'Forgot password'
             text_content = 'Atur Ulang Kata Sandi\Jika Anda tidak melakukan rekues reset Kata Sandi akun, silahkan abaikan email ini'
             #text_content = ''
-            htmly     = get_template('email/webresetpassword.html')
+            htmly     = get_template('email/webforgotpassword.html')
             
             d = {'username': user.username, 
                         'company': user.company.name,
