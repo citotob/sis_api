@@ -907,29 +907,26 @@ def resetpassword(request):
             user.token_reset = None
             user.save()
             
-            """
-            try:
-                subject = 'Verifikasi Akun SMASLAB Berhasil'
-                text_content = 'Akun anda telah berhasil diverifikasi\n'+user.username+'\n'+user.company.name+'\n'\
-                        'Silahkan untuk dapat melakukan log in melalui aplikasi ataupun website SMASLAB.\nhttps://survejdev.datasintesa.id/login'
-                #text_content = ''
-                htmly     = get_template('email/verif-akun.html')
-                
-                d = {'username': user.username, 
-                            'company': user.company.name,
-                        'message_top': 'Akun anda telah berhasil diverifikasi',
-                        'message_bottom': 'Silahkan untuk dapat melakukan log in melalui aplikasi ataupun website SMASLAB.\n'
-                            +settings.URL_LOGIN, 'media_url': settings.URL_MEDIA}
-                html_content = htmly.render(d)
-                sender = settings.EMAIL_ADMIN
-                receipient = user.email
-                msg = EmailMultiAlternatives(
-                    subject, text_content, sender, [receipient])
-                msg.attach_alternative(html_content, "text/html")
-                respone = msg.send()
-            except:
-                pass
-            """
+            subject = 'Reset password'
+            text_content = 'Reset Password Telah Berhasil'
+            #text_content = ''
+            htmly     = get_template('email/webresetpassword.html')
+            
+            d = {'username': user.username, 
+                        'company': user.company.name,
+                    'message_top': 'Atur Ulang Kata Sandi',
+                    'message_bottom': 'Reset Password Telah Berhasil', 
+                    'media_url': settings.URL_MEDIA,
+                        'login_url': URL_LOGIN}
+            html_content = htmly.render(d)
+            sender = settings.EMAIL_ADMIN
+            receipient = user.email
+            msg = EmailMultiAlternatives(
+                subject, text_content, sender, [receipient])
+            msg.attach_alternative(html_content, "text/html")
+
+            respone = msg.send()
+
             return Response.ok(
                 values=user.serialize(),
                 message='Reset Success'
