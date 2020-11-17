@@ -60,7 +60,7 @@ def login(request):
             req = request.body.decode("utf-8")
             data = json.loads(req)
             token = data.get('token', 'none')
-            print(data)
+            #print(data)
             try:
                 user = UserInfo.objects.get(
                     username=data["username"], status="verified")
@@ -950,71 +950,71 @@ def resetpassword(request):
 
 def changeimage(request):
     if request.method == 'POST':
-        #try:
-        file = request.FILES['image']
-        if not file:
-            return Response.badRequest(message='No File Upload')
-        fs = FileSystemStorage(
-            location=f'{settings.MEDIA_ROOT}/user/image/',
-            base_url=f'{settings.MEDIA_URL}/user/image/'
-        )
-        data = request.POST.dict()
         try:
-            user = UserInfo.objects.get(id=data["userid"])
-        except UserInfo.DoesNotExist:
-            return Response.ok(
-                values=[],
-                message='User not found'
+            file = request.FILES['image']
+            if not file:
+                return Response.badRequest(message='No File Upload')
+            fs = FileSystemStorage(
+                location=f'{settings.MEDIA_ROOT}/user/image/',
+                base_url=f'{settings.MEDIA_URL}/user/image/'
             )
-        
-        filename = fs.save(file.name, file)
-        file_path = fs.url(filename)
-        doc_image = ImageUser(
-            name=file.name,
-            path=file_path,
-            create_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7),
-            update_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7)
-        )
-        doc_image.save()
-
-        user.image = ObjectId(doc_image.id)
-
-        user.save()
-        
-        result = UserInfo.objects.get(id=user.id).serialize()
-        """
-        try:
-            subject = 'Verifikasi Akun SMASLAB Berhasil'
-            text_content = 'Akun anda telah berhasil diverifikasi\n'+user.username+'\n'+user.company.name+'\n'\
-                    'Silahkan untuk dapat melakukan log in melalui aplikasi ataupun website SMASLAB.\nhttps://survejdev.datasintesa.id/login'
-            #text_content = ''
-            htmly     = get_template('email/verif-akun.html')
+            data = request.POST.dict()
+            try:
+                user = UserInfo.objects.get(id=data["userid"])
+            except UserInfo.DoesNotExist:
+                return Response.ok(
+                    values=[],
+                    message='User not found'
+                )
             
-            d = {'username': user.username, 
-                        'company': user.company.name,
-                    'message_top': 'Akun anda telah berhasil diverifikasi',
-                    'message_bottom': 'Silahkan untuk dapat melakukan log in melalui aplikasi ataupun website SMASLAB.\n'
-                        +settings.URL_LOGIN, 'media_url': settings.URL_MEDIA}
-            html_content = htmly.render(d)
-            sender = settings.EMAIL_ADMIN
-            receipient = user.email
-            msg = EmailMultiAlternatives(
-                subject, text_content, sender, [receipient])
-            msg.attach_alternative(html_content, "text/html")
-            respone = msg.send()
-        except:
-            pass
-        """
-        return Response.ok(
-            values=result,
-            message='Success'
-        )
-        #except Exception as e:
-        #    print(e)
-        #    #return HttpResponse(e)
-        #    return Response.badRequest(
-        #            values='null',
-        #            message=str(e)
-        #        )
+            filename = fs.save(file.name, file)
+            file_path = fs.url(filename)
+            doc_image = ImageUser(
+                name=file.name,
+                path=file_path,
+                create_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7),
+                update_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7)
+            )
+            doc_image.save()
+
+            user.image = ObjectId(doc_image.id)
+
+            user.save()
+            
+            result = UserInfo.objects.get(id=user.id).serialize()
+            """
+            try:
+                subject = 'Verifikasi Akun SMASLAB Berhasil'
+                text_content = 'Akun anda telah berhasil diverifikasi\n'+user.username+'\n'+user.company.name+'\n'\
+                        'Silahkan untuk dapat melakukan log in melalui aplikasi ataupun website SMASLAB.\nhttps://survejdev.datasintesa.id/login'
+                #text_content = ''
+                htmly     = get_template('email/verif-akun.html')
+                
+                d = {'username': user.username, 
+                            'company': user.company.name,
+                        'message_top': 'Akun anda telah berhasil diverifikasi',
+                        'message_bottom': 'Silahkan untuk dapat melakukan log in melalui aplikasi ataupun website SMASLAB.\n'
+                            +settings.URL_LOGIN, 'media_url': settings.URL_MEDIA}
+                html_content = htmly.render(d)
+                sender = settings.EMAIL_ADMIN
+                receipient = user.email
+                msg = EmailMultiAlternatives(
+                    subject, text_content, sender, [receipient])
+                msg.attach_alternative(html_content, "text/html")
+                respone = msg.send()
+            except:
+                pass
+            """
+            return Response.ok(
+                values=result,
+                message='Success'
+            )
+        except Exception as e:
+            print(e)
+            #return HttpResponse(e)
+            return Response.badRequest(
+                    values='null',
+                    message=str(e)
+                )
     else:
         return HttpResponse('Post Only')
