@@ -72,6 +72,21 @@ class DocumentUser(Document):
             "update_date": self.update_date,
         }
 
+class ImageUser(Document):
+    name = StringField()
+    path = StringField()
+    create_date = DateTimeField(
+        default=(datetime.utcnow() + timedelta(hours=7)))
+    update_date = DateTimeField(
+        default=(datetime.utcnow() + timedelta(hours=7)))
+
+    def serialize(self):
+        return {
+            "name": self.name,
+            "path": self.path,
+            "create_date": self.create_date,
+            "update_date": self.update_date,
+        }
 
 class UserInfo(Document):
     username = StringField(required=True, unique=True)
@@ -86,6 +101,7 @@ class UserInfo(Document):
     role = ReferenceField(UserRole)
     #surveyor = StringField(required=True)
     doc = ReferenceField(DocumentUser)
+    image = ReferenceField(ImageUser)
     token_reset = StringField()
     create_date = DateTimeField(
         default=(datetime.utcnow() + timedelta(hours=7)))
@@ -106,6 +122,7 @@ class UserInfo(Document):
             "comment": self.comment,
             "role": self.role.serialize(),
             "doc": self.doc.serialize(),
+            "image": self.image.serialize(),
             "token_reset": self.token_reset
         }
 
