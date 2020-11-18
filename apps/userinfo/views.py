@@ -893,7 +893,6 @@ def resetpassword(request):
         try:
             req = request.body.decode("utf-8")
             data = json.loads(req)
-            print(data["token"])
             try:
                 user = UserInfo.objects.get(token_reset=data["token"])
             except UserInfo.DoesNotExist:
