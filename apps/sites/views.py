@@ -1188,9 +1188,9 @@ def calculatevendorscore(request):
             min_harga = list_harga[0]
 
         for dt_rfi in dt_smm.rfi_score:
-            if dt_rfi.total_calc:
-                #print('continue')
-                continue
+            #if dt_rfi.total_calc:
+            #    #print('continue')
+            #    continue
             vendor_tek = dt_rfi.rekomendasi_teknologi
             tek_score = 0
             if smm_tek==vendor_tek:
@@ -1212,15 +1212,28 @@ def calculatevendorscore(request):
             vpscore_kualitas = (dt_rfi.vendor_app.vp_score_id.kualitas-1)/(5-1)
             av_vp = (vpscore_kecepatan+vpscore_ketepatan+vpscore_kualitas)/3
 
-            data_total_calc = total_calc(
-                rfi=days_work,
-                teknologi=tek_score,
-                vp=av_vp,
-                harga=nilai_harga
-            )
-            data_total_calc.save()
+            if not dt_rfi.total_calc:
+                data_total_calc = total_calc(
+                    rfi=days_work,
+                    teknologi=tek_score,
+                    vp=av_vp,
+                    harga=nilai_harga
+                )
+                data_total_calc.save()
 
-            dt_rfi.total_calc=data_total_calc.id
+                dt_rfi.total_calc=data_total_calc.id
+            else:
+                data_total_calc = total_calc.objects.get(id=dt_rfi.total_calc.id)
+                
+                if not data_total_calc:
+                    dt_rfi.total_calc = None
+                else:
+                    data_total_calc.rfi=days_work
+                    data_total_calc.teknologi=tek_score
+                    data_total_calc.vp=av_vp
+                    data_total_calc.harga=nilai_harga
+                data_total_calc.save()
+
             dt_rfi.save()
     return Response.ok(
         values=[],
