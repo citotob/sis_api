@@ -291,7 +291,7 @@ def verifyUser(request):
                     'url_login': settings.URL_LOGIN}
             email_sender = settings.EMAIL_ADMIN
             email_receipient = user.email
-            send_mail(subject,text_content,template,d,email_sender,email_receipient)
+            send_mail(subject,text_content,template,d,email_sender,[email_receipient])
             return Response.ok(
                 values=user.serialize(),
                 message='Verify Success'
