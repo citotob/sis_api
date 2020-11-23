@@ -40,6 +40,8 @@ from vendorperformance.models import VPScore
 
 from publicservice.utils import send_mail
 
+import requests
+
 def test(request):
     try:
         Notification(
@@ -59,6 +61,26 @@ def login(request):
         try:
             req = request.body.decode("utf-8")
             data = json.loads(req)
+
+            secret_key = settings.RECAPTCHA_SECRET_KEY
+
+            # captcha verification
+            d = {
+                'response': data.get('g-recaptcha-response'),
+                'secret': secret_key
+            }
+            resp = requests.post('https://www.google.com/recaptcha/api/siteverify', data=d)
+            result_json = resp.json()
+
+            print(result_json)
+
+            if not result_json.get('success'):
+                return Response.badRequest(
+                    values=[],
+                    message='recaptcha salah'
+                )
+            # end captcha verification
+            
             token = data.get('token', 'none')
             #print(data)
             try:

@@ -267,3 +267,6 @@ URL_LOGIN = 'https://teksas.devlabs.id/login'
 URL_REGISTER = 'https://teksas.devlabs.id/register'
 URL_MEDIA = 'https://teksas-api.devlabs.id/media'
 URL_RESETPASSWORD = 'https://teksas.devlabs.id/resetpassword'
+
+RECAPTCHA_SITE_KEY = "6LfRt-kZAAAAAK08jXgSumEsBGOhWjI-yY8kcvyE"
+RECAPTCHA_SECRET_KEY = "6LfRt-kZAAAAABgVg-g4FUIOEHAIv8HH8hX4agut"
