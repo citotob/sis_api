@@ -40,8 +40,10 @@ def uploadodp(request):
             if "TELKOM" in vndr:
                 vndr = "TELKOM"
             try:
+                #data_vendor = vendor.objects.get(
+                #    name__iexact=str(row[7].value))
                 data_vendor = vendor.objects.get(
-                    name__iexact=str(row[7].value))
+                    name__iexact=vndr)
             except vendor.DoesNotExist:
                 data_vendor = vendor(
                     name=str(row[7].value),
