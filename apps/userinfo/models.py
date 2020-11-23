@@ -96,7 +96,7 @@ class UserInfo(Document):
     email = StringField(required=True, unique=True)
     phone = StringField(required=True, default='-')
     status = StringField(required=True, choices=[
-                         'requested', 'verified', 'declined'], default='requested')
+                         'Belum Terverifikasi', 'Aktif', 'Ditolak'], default='Belum Terverifikasi')
     comment = StringField(required=False)
     role = ReferenceField(UserRole)
     #surveyor = StringField(required=True)

@@ -63,7 +63,7 @@ def login(request):
             #print(data)
             try:
                 user = UserInfo.objects.get(
-                    username=data["username"], status="verified")
+                    username=data["username"], status="Aktif")
             except UserInfo.DoesNotExist:
                 user = None
             if not user:
@@ -169,9 +169,9 @@ def getUser(request):
                 {'$limit': 20}]
 
     switcher = {
-        "requested": "requested",
-        "verified": "verified",
-        "declined": "declined",
+        "Belum Terverifikasi": "Belum Terverifikasi",
+        "Aktif": "Aktif",
+        "Ditolak": "Ditolak",
     }
     status = switcher.get(param, None)
 
@@ -277,7 +277,7 @@ def verifyUser(request):
                     values=[],
                     message='User not found'
                 )
-            user.status = 'verified'
+            user.status = 'Aktif'
             user.update_date = dateNow
             user.save()
             
@@ -322,7 +322,7 @@ def declineUser(request):
                     values=[],
                     message='User not found'
                 )
-            user.status = 'declined'
+            user.status = 'Ditolak'
             user.comment = data["comment"]
             user.update_date = dateNow
             user.save()

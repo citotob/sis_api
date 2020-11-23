@@ -462,9 +462,9 @@ def getDashboardData(request):
 
         vendorCount = vendor.objects.all().count()
         activeUserCount = UserInfo.objects(
-            company=vendorData.id, status='verified').count()
+            company=vendorData.id, status='Aktif').count()
         requestedUserCount = UserInfo.objects(
-            company=vendorData.id, status='requested').count()
+            company=vendorData.id, status='Belum Terverifikasi').count()
         listBatch = vendor_application.objects(vendorid=vendorData.id)
         batchCount = batch.objects(
             id__in=[x.id for x in listBatch.scalar('batchid')]).count()

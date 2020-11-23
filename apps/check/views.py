@@ -22,7 +22,7 @@ class checkAPI(ModelViewSet):
             load_ = request.data.get('load', None)
             if not load_:
                 raise TypeError('Load tidak boleh kosong')
-            data_user = UserInfo.objects.filter(role='5f73fdfc28751d590d835266', status='verified')
+            data_user = UserInfo.objects.filter(role='5f73fdfc28751d590d835266', status='Aktif')
             if not data_user:
                 return CustomResponse().base(success=False, message='User Not Found', status=status.HTTP_404_NOT_FOUND)
             list_receipient=[]
@@ -61,7 +61,7 @@ class checkAPI(ModelViewSet):
             status = request.data.get('status', None)
             if not status:
                 raise TypeError('Status tidak boleh kosong')
-            data_user = UserInfo.objects.filter(role='5f73fdfc28751d590d835266', status='verified')
+            data_user = UserInfo.objects.filter(role='5f73fdfc28751d590d835266', status='Aktif')
             if not data_user:
                 return CustomResponse().base(success=False, message='User Not Found', status=status.HTTP_404_NOT_FOUND)
             list_receipient=[]
@@ -100,7 +100,7 @@ class checkAPI(ModelViewSet):
             status = request.data.get('status', None)
             if not status:
                 raise TypeError('Status tidak boleh kosong')
-            data_user = UserInfo.objects.filter(role='5f73fdfc28751d590d835266', status='verified')
+            data_user = UserInfo.objects.filter(role='5f73fdfc28751d590d835266', status='Aktif')
             if not data_user:
                 return CustomResponse().base(success=False, message='User Not Found', status=status.HTTP_404_NOT_FOUND)
             list_receipient=[]
@@ -142,7 +142,7 @@ class checkAPI(ModelViewSet):
             threshold = request.data.get('threshold', None)
             if not threshold:
                 raise TypeError('threshold tidak boleh kosong')
-            data_user = UserInfo.objects.filter(role='5f73fdfc28751d590d835266', status='verified')
+            data_user = UserInfo.objects.filter(role='5f73fdfc28751d590d835266', status='Aktif')
             if not data_user:
                 return CustomResponse().base(success=False, message='User Not Found', status=status.HTTP_404_NOT_FOUND)
             list_receipient=[]
@@ -182,7 +182,7 @@ class checkAPI(ModelViewSet):
             if not disk_:
                 raise TypeError('disk tidak boleh kosong')
             
-            data_user = UserInfo.objects.filter(role='5f73fdfc28751d590d835266', status='verified')
+            data_user = UserInfo.objects.filter(role='5f73fdfc28751d590d835266', status='Aktif')
             if not data_user:
                 return CustomResponse().base(success=False, message='User Not Found', status=status.HTTP_404_NOT_FOUND)
             list_receipient=[]

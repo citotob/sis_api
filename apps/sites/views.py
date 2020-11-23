@@ -885,8 +885,8 @@ def addodp(request):
 def getDashboard(request):
     try:
         vendorCount = vendor.objects.all().count()
-        activeUserCount = UserInfo.objects(status='verified').count()
-        requestedUserCount = UserInfo.objects(status='requested').count()
+        activeUserCount = UserInfo.objects(status='Aktif').count()
+        requestedUserCount = UserInfo.objects(status='Belum Terverifikasi').count()
         batchCount = batch.objects.all().count()
         siteCount = site_matchmaking.objects(batchid__exists=True).count()
         rfiCount = vendor_application.objects.all().count()
