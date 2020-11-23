@@ -468,8 +468,10 @@ def getDashboardData(request):
         listBatch = vendor_application.objects(vendorid=vendorData.id)
         batchCount = batch.objects(
             id__in=[x.id for x in listBatch.scalar('batchid')]).count()
+        #siteCount = site_matchmaking.objects(
+        #    batchid__exists=True, batchid__in=listBatch.scalar('id')).count()
         siteCount = site_matchmaking.objects(
-            batchid__exists=True, batchid__in=listBatch.scalar('id')).count()
+            batchid__exists=True, batchid__in=listBatch.scalar('batchid')).count()
         rfiCount = listBatch.count()
         
         totallayananai = Odp.objects(vendorid=vendorData.id).count()
