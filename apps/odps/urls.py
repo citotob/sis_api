@@ -5,6 +5,7 @@ from . import views
 
 urlpatterns = [
     path('uploadodp/', views.uploadodp),
+    path('uploadodpbackup/', views.uploadodp1),
     path('getodp/', views.getRecommendTech),
     path('addodp/', views.addodp),
     path('get/', views.getodp),

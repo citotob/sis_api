@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from odps.models import Odp
+from odps.models import *
 from sites.models import kabupaten, kota
 from userinfo.models import vendor
 from odps.serializer import *
@@ -97,6 +97,154 @@ def uploadodp(request):
 
         return Response.ok(
             values=[],
+            message="OK"
+        )
+
+def uploadodp1(request):
+    if request.method == 'POST':
+        
+        lokasi_gagal = ''
+
+        odp_file = request.FILES["odp_file"]
+
+        # you may put validations here to check extension or file size
+
+        wb = openpyxl.load_workbook(odp_file)
+
+        # getting a particular sheet by name out of many sheets
+        worksheet = wb["AKSES INTERNET - 27092020"]
+
+        excel_data = list()
+        # iterating over the rows and
+        # getting value from each cell in row
+        id_gagal = []
+        for row in worksheet.iter_rows():
+            lanjut = True
+            if str(row[1].value) == 'None':
+                break
+            if str(row[0].value).upper() == 'NO URUT':
+                continue
+            try:
+                data_vendor = vendor.objects.get(
+                    name__iexact=str(row[8].value).strip())
+                #data_vendor = vendor.objects.get(
+                #    name__iexact=vndr)
+            except vendor.DoesNotExist:
+                data_vendor = vendor(
+                    name=str(row[8].value),
+                    latitude='0',
+                    longitude='0',
+                    longlat=[0, 0],
+                )
+                data_vendor.save()
+
+            tekno = str(row[9].value).strip()
+            if "VSAT" in str(row[9].value):
+                tekno = "VSAT"
+            else:
+                if "RADIO" in str(row[9].value):
+                    tekno = "RL"
+                else:
+                    if "FIBER" in str(row[9].value):
+                        tekno = "FO"
+
+            data_prov = provinsi.objects.filter(
+                name=str(row[2].value).strip()).first()
+            if not data_prov:
+                json_dict = {}
+                json_dict["baris"] = str(row[0].value).strip()
+                json_dict["provinsi"] = str(row[2].value).strip()
+                id_gagal.append(json_dict)
+                continue
+                #break
+
+            data_kab = kabupaten.objects.filter(
+                name='KAB. '+str(row[3].value).strip(), provinsi=data_prov.id).first()
+            if not data_kab:
+                data_kota = kota.objects.filter(
+                    name='KOTA '+str(row[3].value).strip(), provinsi=data_prov.id).first()
+                if not data_kota:
+                    json_dict = {}
+                    json_dict["baris"] = str(row[0].value).strip()
+                    json_dict["provinsi_id"] = data_prov.id
+                    json_dict["provinsi"] = data_prov.name
+                    json_dict["kab_kota"] = str(row[3].value).strip()
+                    id_gagal.append(json_dict)
+                    continue
+                    #break
+            
+            if data_kab:
+                data_kec = kecamatan.objects.filter(
+                    name=str(row[4].value).strip(),kabupaten=data_kab.id).first()
+                kab_kot_id = data_kab.id
+                kab_kot_name = data_kab.name
+            else:
+                data_kec = kecamatan.objects.filter(
+                    name=str(row[4].value).strip(),kota=data_kota.id).first()
+                kab_kot_id = data_kota.id
+                kab_kot_name = data_kota.name
+            if not data_kec:
+                json_dict = {}
+                json_dict["baris"] = str(row[0].value).strip()
+                json_dict["kab_kota_id"] = kab_kot_id
+                json_dict["kab_kota"] = kab_kot_name
+                json_dict["kecamatan"] = str(row[4].value).strip()
+                id_gagal.append(json_dict)
+                continue
+                #break
+
+            data_desa = desa.objects.filter(
+                name=str(row[5].value).strip(),kecamatan=data_kec.id).first()
+            if not data_desa:
+                json_dict = {}
+                json_dict["baris"] = str(row[0].value).strip()
+                json_dict["kecamatan_id"] = data_kec.id
+                json_dict["kecamatan"] = data_kec.name
+                json_dict["desa"] = str(row[5].value).strip()
+                id_gagal.append(json_dict)
+                continue
+                #break
+
+            try:
+                create_date = datetime.strptime(
+                    str(row[13].value), '%Y-%m-%d 00:00:00')
+            except:
+                json_dict = {}
+                json_dict["baris"] = str(row[0].value).strip()
+                json_dict["tanggal"] = str(row[13].value)
+                id_gagal.append(json_dict)
+                continue
+            #try:
+            data_odp = Odp_backup(
+                latitude=str(row[7].value).replace(',','.'),
+                longitude=str(row[6].value).replace(',','.'),
+                longlat=[float(str(row[6].value).replace(',','.')), float(str(row[7].value).replace(',','.'))],
+                teknologi=tekno,
+                nama=str(row[1].value).strip(),
+                desa_kelurahan=data_desa.name,
+                kecamatan=data_kec.name,
+                provinsi=data_prov.name,
+                vendorid=data_vendor.name,
+                created_at=datetime.strptime(
+                    str(row[13].value), '%Y-%m-%d 00:00:00'),
+                updated_at=datetime.strptime(
+                    str(row[13].value), '%Y-%m-%d 00:00:00')
+            )
+
+            if data_kab:
+                data_odp.kabupaten=data_kab.name
+            else:
+                data_odp.kota=data_kota.name
+            data_odp.save()
+            #except Exception as e:
+            #    json_dict = {}
+            #    json_dict["baris"] = str(row[0].value).strip()
+            #    json_dict["error"] = str(e)
+            #    id_gagal.append(json_dict)
+            #    continue
+        #print(id_gagal)
+        return Response.ok(
+            values=json.loads(json.dumps(id_gagal, default=str)),
             message="OK"
         )
 
