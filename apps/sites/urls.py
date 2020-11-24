@@ -16,7 +16,7 @@ urlpatterns = [
 
     path('uploadsiteoffair/', views.uploadsiteoffair),
     path('getoffair/', views.getsiteoffair),
-    path('getlisoffair/', views.getsiteoffairid),
+    path('getlistoffair/', views.getoffairid),
     path('getoffairbyid/', views.getoffairbyid),
     path('getoffairprovinsi/', views.getoffairprovinsi),
 
