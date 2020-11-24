@@ -214,34 +214,34 @@ def uploadodp1(request):
                 json_dict["tanggal"] = str(row[13].value)
                 id_gagal.append(json_dict)
                 continue
-            #try:
-            data_odp = Odp_backup(
-                latitude=str(row[7].value).replace(',','.'),
-                longitude=str(row[6].value).replace(',','.'),
-                longlat=[float(str(row[6].value).replace(',','.')), float(str(row[7].value).replace(',','.'))],
-                teknologi=tekno,
-                nama=str(row[1].value).strip(),
-                desa_kelurahan=data_desa.name,
-                kecamatan=data_kec.name,
-                provinsi=data_prov.name,
-                vendorid=data_vendor.name,
-                created_at=datetime.strptime(
-                    str(row[13].value), '%Y-%m-%d 00:00:00'),
-                updated_at=datetime.strptime(
-                    str(row[13].value), '%Y-%m-%d 00:00:00')
-            )
+            try:
+                data_odp = Odp_backup(
+                    latitude=str(row[7].value).replace(',','.'),
+                    longitude=str(row[6].value).replace(',','.'),
+                    longlat=[float(str(row[6].value).replace(',','.')), float(str(row[7].value).replace(',','.'))],
+                    teknologi=tekno,
+                    nama=str(row[1].value).strip(),
+                    desa_kelurahan=data_desa.name,
+                    kecamatan=data_kec.name,
+                    provinsi=data_prov.name,
+                    vendorid=data_vendor.name,
+                    created_at=datetime.strptime(
+                        str(row[13].value), '%Y-%m-%d 00:00:00'),
+                    updated_at=datetime.strptime(
+                        str(row[13].value), '%Y-%m-%d 00:00:00')
+                )
 
-            if data_kab:
-                data_odp.kabupaten=data_kab.name
-            else:
-                data_odp.kota=data_kota.name
-            data_odp.save()
-            #except Exception as e:
-            #    json_dict = {}
-            #    json_dict["baris"] = str(row[0].value).strip()
-            #    json_dict["error"] = str(e)
-            #    id_gagal.append(json_dict)
-            #    continue
+                if data_kab:
+                    data_odp.kabupaten=data_kab.name
+                else:
+                    data_odp.kota=data_kota.name
+                data_odp.save()
+            except Exception as e:
+                json_dict = {}
+                json_dict["baris"] = str(row[0].value).strip()
+                json_dict["error"] = str(e)
+                id_gagal.append(json_dict)
+                continue
         #print(id_gagal)
         return Response.ok(
             values=json.loads(json.dumps(id_gagal, default=str)),
