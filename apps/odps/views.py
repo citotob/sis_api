@@ -138,14 +138,14 @@ def uploadodp1(request):
                 )
                 data_vendor.save()
 
-            tekno = str(row[9].value).strip()
-            if "VSAT" in str(row[9].value):
+            tekno = str(row[10].value).strip()
+            if "VSAT" in str(row[10].value):
                 tekno = "VSAT"
             else:
-                if "RADIO" in str(row[9].value):
+                if "RADIO" in str(row[10].value):
                     tekno = "RL"
                 else:
-                    if "FIBER" in str(row[9].value):
+                    if "FIBER" in str(row[10].value):
                         tekno = "FO"
 
             data_prov = provinsi.objects.filter(
