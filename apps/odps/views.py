@@ -152,7 +152,7 @@ def uploadodp1(request):
                 name=str(row[2].value).strip()).first()
             if not data_prov:
                 json_dict = {}
-                json_dict["baris"] = str(row[0].value).strip()
+                json_dict["No Urut"] = str(row[0].value).strip()
                 json_dict["provinsi"] = str(row[2].value).strip()
                 id_gagal.append(json_dict)
                 continue
@@ -165,7 +165,7 @@ def uploadodp1(request):
                     name='KOTA '+str(row[3].value).strip(), provinsi=data_prov.id).first()
                 if not data_kota:
                     json_dict = {}
-                    json_dict["baris"] = str(row[0].value).strip()
+                    json_dict["No Urut"] = str(row[0].value).strip()
                     json_dict["provinsi_id"] = data_prov.id
                     json_dict["provinsi"] = data_prov.name
                     json_dict["kab_kota"] = str(row[3].value).strip()
@@ -185,7 +185,7 @@ def uploadodp1(request):
                 kab_kot_name = data_kota.name
             if not data_kec:
                 json_dict = {}
-                json_dict["baris"] = str(row[0].value).strip()
+                json_dict["No Urut"] = str(row[0].value).strip()
                 json_dict["kab_kota_id"] = kab_kot_id
                 json_dict["kab_kota"] = kab_kot_name
                 json_dict["kecamatan"] = str(row[4].value).strip()
@@ -197,7 +197,7 @@ def uploadodp1(request):
                 name=str(row[5].value).strip(),kecamatan=data_kec.id).first()
             if not data_desa:
                 json_dict = {}
-                json_dict["baris"] = str(row[0].value).strip()
+                json_dict["No Urut"] = str(row[0].value).strip()
                 json_dict["kecamatan_id"] = data_kec.id
                 json_dict["kecamatan"] = data_kec.name
                 json_dict["desa"] = str(row[5].value).strip()
@@ -210,7 +210,7 @@ def uploadodp1(request):
                     str(row[13].value), '%Y-%m-%d 00:00:00')
             except:
                 json_dict = {}
-                json_dict["baris"] = str(row[0].value).strip()
+                json_dict["No Urut"] = str(row[0].value).strip()
                 json_dict["tanggal"] = str(row[13].value)
                 id_gagal.append(json_dict)
                 continue
@@ -238,7 +238,7 @@ def uploadodp1(request):
                 data_odp.save()
             except Exception as e:
                 json_dict = {}
-                json_dict["baris"] = str(row[0].value).strip()
+                json_dict["No Urut"] = str(row[0].value).strip()
                 json_dict["error"] = str(e)
                 id_gagal.append(json_dict)
                 continue
