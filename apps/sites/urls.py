@@ -16,6 +16,8 @@ urlpatterns = [
 
     path('uploadsiteoffair/', views.uploadsiteoffair),
     path('getoffair/', views.getsiteoffair),
+    path('getlisoffair/', views.getsiteoffairid),
+    path('getoffairbyid/', views.getoffairbyid),
     path('getoffairprovinsi/', views.getoffairprovinsi),
 
     path('calculatevendorscore/', views.calculatevendorscore),

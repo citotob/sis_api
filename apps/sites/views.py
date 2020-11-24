@@ -1126,6 +1126,60 @@ def getsiteoffair(request):
             message=str(e)
         )
 
+def getsiteoffairid(request):
+    try:
+        req_fields = ['unik_id','nama']
+        
+        data = site_offair.objects.all().only(*req_fields)
+        
+        result = []
+        for dt in data:
+            json_dict = {}
+            json_dict["unik_id"] = dt.unik_id
+            json_dict["nama"] = dt.nama
+            result.append(json_dict)
+        if len(result) > 0:
+            return Response.ok(
+                values=result,
+                message=f'{len(result)} Data'
+            )
+        else:
+            return Response.ok(
+                values=[],
+                message='Data tidak ada'
+            )
+    except Exception as e:
+        #print(e)
+        return Response.badRequest(
+            values=[],
+            message=str(e)
+        )
+
+def getoffairbyid(request):
+    #try:
+    body_data = json.loads(request.body)
+    unikid = body_data.get('unik_id')
+    
+    try:
+        data = site_offair.objects.get(unik_id=unikid)
+    except site_offair.DoesNotExist:
+        return Response.ok(
+            values=[],
+            message='data tidak ada'
+        )
+
+    serializer = siteoffairSerializer(data)#, many=True
+    return Response.ok(
+        values=json.loads(json.dumps(serializer.data, default=str)),
+        message=f'{len(serializer.data)} Data'
+    )
+    #except Exception as e:
+    #    #print(e)
+    #    return Response.badRequest(
+    #        values=[],
+    #        message=str(e)
+    #    )
+
 def getoffairprovinsi(request):
     try:
         provinsi = request.GET.get('provinsi')
