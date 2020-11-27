@@ -10,7 +10,7 @@ class provinsi(Document):
     name = StringField(required=True)
     tanggal_pembuatan = DateTimeField(required=True, default=datetime.now)
     tanggal_perubahan = DateTimeField(required=True, default=datetime.now)
-    prefix = StringField(required=True)
+    prefix = StringField()
     meta = {
         'strict': False,
     }
@@ -104,7 +104,7 @@ class desa(Document):
             'tanggal_pembuatan': str(self.tanggal_pembuatan),
             'tanggal_perubahan': str(self.tanggal_perubahan),
         }
-
+"""
 class Odp(Document):
     #unik_id = IntField(required=True, unique=True)
     latitude = StringField(required=True, unique=True)
@@ -119,6 +119,24 @@ class Odp(Document):
     provinsi = ReferenceField(provinsi)
     kode_pos = StringField(required=True, default='00000')
     vendorid = ReferenceField(vendor)
+    created_at = DateTimeField(required=True, default=datetime.now)
+    updated_at = DateTimeField(required=True, default=datetime.now)
+"""
+
+class Odp(Document):
+    #unik_id = IntField(required=True, unique=True)
+    latitude = StringField(required=True, unique=True)
+    longitude = StringField(required=True, unique=True)
+    longlat = PointField()
+    teknologi = StringField()
+    nama = StringField(required=True)
+    desa_kelurahan = StringField()
+    kecamatan = StringField()
+    kabupaten = StringField()
+    kota = StringField()
+    provinsi = StringField()
+    kode_pos = StringField(required=True, default='00000')
+    vendorid = StringField()
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
 

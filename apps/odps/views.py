@@ -13,6 +13,8 @@ from turfpy.transformation import circle
 
 import openpyxl
 
+from bson import ObjectId
+
 def uploadodp(request):
     if request.method == 'POST':
         
@@ -151,12 +153,17 @@ def uploadodp1(request):
             data_prov = provinsi.objects.filter(
                 name=str(row[2].value).strip()).first()
             if not data_prov:
+                """
                 json_dict = {}
                 json_dict["No Urut"] = str(row[0].value).strip()
                 json_dict["provinsi"] = str(row[2].value).strip()
                 id_gagal.append(json_dict)
                 continue
-                #break
+                """
+                data_prov = provinsi(
+                    name=str(row[2].value).upper()
+                )
+                data_prov.save()
 
             data_kab = kabupaten.objects.filter(
                 name='KAB. '+str(row[3].value).strip(), provinsi=data_prov.id).first()
@@ -164,6 +171,7 @@ def uploadodp1(request):
                 data_kota = kota.objects.filter(
                     name='KOTA '+str(row[3].value).strip(), provinsi=data_prov.id).first()
                 if not data_kota:
+                    """
                     json_dict = {}
                     json_dict["No Urut"] = str(row[0].value).strip()
                     json_dict["provinsi_id"] = data_prov.id
@@ -171,7 +179,12 @@ def uploadodp1(request):
                     json_dict["kab_kota"] = str(row[3].value).strip()
                     id_gagal.append(json_dict)
                     continue
-                    #break
+                    """
+                    data_kab = kabupaten(
+                        name=str(row[3].value).strip().upper(),
+                        provinsi=ObjectId(data_prov.id)
+                    )
+                    data_kab.save()
             
             if data_kab:
                 data_kec = kecamatan.objects.filter(
@@ -184,6 +197,7 @@ def uploadodp1(request):
                 kab_kot_id = data_kota.id
                 kab_kot_name = data_kota.name
             if not data_kec:
+                """
                 json_dict = {}
                 json_dict["No Urut"] = str(row[0].value).strip()
                 json_dict["kab_kota_id"] = kab_kot_id
@@ -191,11 +205,24 @@ def uploadodp1(request):
                 json_dict["kecamatan"] = str(row[4].value).strip()
                 id_gagal.append(json_dict)
                 continue
-                #break
+                """
+                if data_kab:
+                    data_kec = kecamatan(
+                        name=str(row[4].value).strip().upper(),
+                        kabupaten=ObjectId(kab_kot_id)
+                    )
+                    data_kec.save()
+                else:
+                    data_kec = kecamatan(
+                        name=str(row[4].value).strip().upper(),
+                        kota=ObjectId(kab_kot_id)
+                    )
+                    data_kec.save()
 
             data_desa = desa.objects.filter(
                 name=str(row[5].value).strip(),kecamatan=data_kec.id).first()
             if not data_desa:
+                """
                 json_dict = {}
                 json_dict["No Urut"] = str(row[0].value).strip()
                 json_dict["kecamatan_id"] = data_kec.id
@@ -203,7 +230,12 @@ def uploadodp1(request):
                 json_dict["desa"] = str(row[5].value).strip()
                 id_gagal.append(json_dict)
                 continue
-                #break
+                """
+                data_desa = desa(
+                    name=str(row[5].value).strip().upper(),
+                    kecamatan=ObjectId(data_kec.id)
+                )
+                data_desa.save()
 
             try:
                 create_date = datetime.strptime(
@@ -225,10 +257,8 @@ def uploadodp1(request):
                     kecamatan=data_kec.name,
                     provinsi=data_prov.name,
                     vendorid=data_vendor.name,
-                    created_at=datetime.strptime(
-                        str(row[13].value), '%Y-%m-%d 00:00:00'),
-                    updated_at=datetime.strptime(
-                        str(row[13].value), '%Y-%m-%d 00:00:00')
+                    created_at=create_date,
+                    updated_at=create_date
                 )
 
                 if data_kab:
