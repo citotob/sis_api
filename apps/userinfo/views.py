@@ -72,7 +72,7 @@ def login(request):
             resp = requests.post('https://www.google.com/recaptcha/api/siteverify', data=d)
             result_json = resp.json()
 
-            print(result_json)
+            #print(result_json)
 
             if not result_json.get('success'):
                 return Response.badRequest(
