@@ -22,5 +22,7 @@ urlpatterns = [
 
     path('calculatevendorscore/', views.calculatevendorscore),
 
+    path('cloneoffair/', views.clonesiteoffair),
+
 
 ]

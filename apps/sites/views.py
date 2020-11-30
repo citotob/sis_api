@@ -1104,11 +1104,14 @@ def getsiteoffair(request):
             if start < 0:
                 start = 0
         
-            data = site_offair.objects.all()[start:end]
+            #data = site_offair.objects.all()[start:end]
+            data = site_offair_norel.objects.all()[start:end]
         except:
-            data = site_offair.objects.all()
+            #data = site_offair.objects.all()
+            data = site_offair_norel.objects.all()
         
-        serializer = siteoffairSerializer(data, many=True)
+        #serializer = siteoffairSerializer(data, many=True)
+        serializer = siteoffairSerializer_norel(data, many=True)
         if len(serializer.data) > 0:
             return Response.ok(
                 values=json.loads(json.dumps(serializer.data, default=str)),
@@ -1312,3 +1315,57 @@ def calculatevendorscore(request):
     #        values=[],
     #        message=str(e)
     #    )        
+
+def clonesiteoffair(request):
+    try:
+        #req_fields = ['latitude', 'longitude']
+        data = site_offair.objects.all()
+
+        for dt in data:
+            data_prov = provinsi.objects.get(
+                id=dt.provinsi.id)
+            try:
+                data_kab = kabupaten.objects.get(id=dt.kabupaten.id, provinsi=data_prov.id)
+            except kabupaten.DoesNotExist:
+                data_kota = kota.objects.get(id=dt.kota.id, provinsi=data_prov.id)
+            if data_kab:
+                data_kec = kecamatan.objects.get(
+                    id=dt.kecamatan.id, kabupaten=data_kab.id)
+            else:
+                data_kec = kecamatan.objects.get(
+                    id=dt.kecamatan.id, kota=data_kota.id)
+            data_desa = desa.objects.get(
+                    id=dt.desa_kelurahan.id, kecamatan=data_kec.id)
+
+            data_siteoffair = site_offair_norel(
+                    unik_id=dt.unik_id,
+                    latitude=dt.latitude,
+                    longitude=dt.longitude,
+                    longlat=[float(dt.longitude), float(dt.latitude)],
+                    nama=dt.nama,
+                    desa_kelurahan=data_desa.name,
+                    kecamatan=data_kec.name,
+                    provinsi=data_prov.name,
+                )
+
+            status_ = {'status': 'buka', 'tanggal_pembuatan': datetime.utcnow(
+                ) + timedelta(hours=7)}
+            data_siteoffair.status.append(status_)
+
+            if data_kab:
+                data_siteoffair.kabupaten = data_kab.name
+            else:
+                data_siteoffair.kota = data_kota.name
+            
+            data_siteoffair.save()
+        
+        return Response.ok(
+            values=[],
+            message='Berhasil'
+        )
+    except Exception as e:
+        #print(e)
+        return Response.badRequest(
+            values=[],
+            message=str(e)
+        )

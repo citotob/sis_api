@@ -218,6 +218,58 @@ class site_offair(Document):
                 'updated_at': self.updated_at
             }
 
+class site_offair_norel(Document):
+    unik_id = StringField(required=True, default='-')
+    latitude = StringField(required=True, unique=True)
+    longitude = StringField(required=True, unique=True)
+    longlat = PointField()
+    nama = StringField(required=True)
+    desa_kelurahan = StringField()
+    kecamatan = StringField()
+    kabupaten = StringField()
+    kota = StringField()
+    provinsi = StringField()
+    kode_pos = StringField(required=True, default='00000')
+    created_at = DateTimeField(required=True, default=datetime.now)
+    updated_at = DateTimeField(required=True, default=datetime.now)
+    status = ListField(required=True)
+
+    #meta = { 'allow_inheritance': True }
+
+    def serialize(self):
+        try:
+            return {
+                'id': str(self.id),
+                'latitude': self.latitude,
+                'longitude': self.longitude,
+                'longlat': str(self.longlat),
+                'nama': self.nama,
+                'desa_kelurahan': self.desa_kelurahan,
+                'kecamatan': self.kecamatan,
+                'kabupaten': self.kabupaten,
+                'provinsi': self.provinsi,
+                'kode_pos': self.kode_pos,
+                'created_at': self.created_at,
+                'updated_at': self.updated_at
+            }
+        except:
+            # except Exception as e:
+            # print(e)
+            return {
+                'id': str(self.id),
+                'latitude': self.latitude,
+                'longitude': self.longitude,
+                'longlat': str(self.longlat),
+                'nama': self.nama,
+                'desa_kelurahan': self.desa_kelurahan,
+                'kecamatan': self.kecamatan,
+                'kota': self.kota,
+                'provinsi': self.provinsi,
+                'kode_pos': self.kode_pos,
+                'created_at': self.created_at,
+                'updated_at': self.updated_at
+            }
+
 class doc_permohonan_rfi(Document):
     name = StringField()
     path = StringField()
