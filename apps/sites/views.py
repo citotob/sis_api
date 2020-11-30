@@ -894,7 +894,8 @@ def getDashboard(request):
         vendorListQuery = vendor.objects.all()
         vendorList = VendorScoreSerializer(vendorListQuery, many=True)
 
-        aiCount = Odp.objects.filter(teknologi__in=['VSAT','FIBER OPTIK','RADIO LINK']).count()
+        #aiCount = Odp.objects.filter(teknologi__in=['VSAT','FIBER OPTIK','RADIO LINK']).count()
+        aiCount = Odp.objects.filter(teknologi__in=['VSAT','FO','RL']).count()
         aiTech = Odp.objects.only('teknologi').distinct('teknologi')
         aiOperational = {
             "count": aiCount,
