@@ -155,10 +155,6 @@ MONGO_NAME = 'sis'
 MONGO_DATABASE_HOST = 'mongodb://userSIS:SISpassword2020#@103.129.220.176:27017/sis'
 mongoengine.connect(MONGO_NAME, host=MONGO_DATABASE_HOST)
 
-#MONGO_NAME = 'monev'
-#MONGO_DATABASE_HOST = 'mongodb://monevdtn:monevdtn@202.182.55.252:27017/monev'
-#mongoengine.connect(MONGO_NAME, host=MONGO_DATABASE_HOST)
-
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 
