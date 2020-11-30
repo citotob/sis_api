@@ -896,26 +896,26 @@ def getDashboard(request):
 
         aiCount = Odp.objects.filter(teknologi__in=['VSAT','FIBER OPTIK','RADIO LINK']).count()
         aiTech = Odp.objects.only('teknologi').distinct('teknologi')
-        #aiOperational = {
-        #    "count": aiCount,
-        #    "FO": 0,
-        #    "VSAT": 0,
-        #    "RL": 0
-        #}
         aiOperational = {
             "count": aiCount,
-            "FIBER OPTIK": 0,
+            "FO": 0,
             "VSAT": 0,
-            "RADIO LINK": 0
+            "RL": 0
         }
+        #aiOperational = {
+        #    "count": aiCount,
+        #    "FIBER OPTIK": 0,
+        #    "VSAT": 0,
+        #    "RADIO LINK": 0
+        #}
         for x in list(aiTech):
             xx=x
-            if x=='FIBER OPTIK':
-                xx='FO'
-                aiOperational.pop('FIBER OPTIK', None)
-            if x=='RADIO LINK':
-                xx='RL'
-                aiOperational.pop('RADIO LINK', None)
+            #if x=='FIBER OPTIK':
+            #    xx='FO'
+            #    aiOperational.pop('FIBER OPTIK', None)
+            #if x=='RADIO LINK':
+            #    xx='RL'
+            #    aiOperational.pop('RADIO LINK', None)
             aiOperational.update({
                 xx: Odp.objects(teknologi=x).count()
             })
