@@ -151,7 +151,8 @@ DATABASES = {'default': {
 #SESSION_ENGINE = 'mongoengine.django.sessions'
 
 MONGO_NAME = 'sis'
-MONGO_DATABASE_HOST = 'mongodb://userSIS:usercaptive@165.22.58.39:27017/sis'
+#MONGO_DATABASE_HOST = 'mongodb://userSIS:usercaptive@165.22.58.39:27017/sis'
+MONGO_DATABASE_HOST = 'mongodb://userSIS:SISpassword2020#@103.129.220.176:27017/sis'
 mongoengine.connect(MONGO_NAME, host=MONGO_DATABASE_HOST)
 
 #MONGO_NAME = 'monev'
