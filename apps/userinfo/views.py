@@ -61,7 +61,7 @@ def login(request):
         try:
             req = request.body.decode("utf-8")
             data = json.loads(req)
-            """
+            
             secret_key = settings.RECAPTCHA_SECRET_KEY
 
             # captcha verification
@@ -80,7 +80,7 @@ def login(request):
                     message='recaptcha salah'
                 )
             # end captcha verification
-            """
+            
             token = data.get('token', 'none')
             #print(data)
             try:
