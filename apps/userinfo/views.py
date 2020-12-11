@@ -417,132 +417,132 @@ def register(request):
         file = request.FILES['doc']
         if not file:
             return Response.badRequest(message='No File Upload')
-        #try:
-        fs = FileSystemStorage(
-            location=f'{settings.MEDIA_ROOT}/user/documents/',
-            base_url=f'{settings.MEDIA_URL}/user/documents/'
-        )
-        
         try:
-            data_vendor = vendor.objects.get(
-                name__iexact=request.POST.get('company'))
-        except vendor.DoesNotExist:
-            data_vendor = vendor(
-                name=request.POST.get('company'),
-                latitude='0',
-                longitude='0',
-                longlat=[0, 0],
-                created_at=datetime.datetime.utcnow() + datetime.timedelta(hours=7),
-                updated_at=datetime.datetime.utcnow() + datetime.timedelta(hours=7)
-            )
-            data_vendor.save()
-
-            try:
-                data_role = UserRole.objects.get(id=ObjectId(request.POST.get('role')))
-            except UserRole.DoesNotExist:
-                return Response.ok(
-                    values=[],
-                    message='Role ridak ada'
-                )
-            #data_VPScore = VPScore(vendor=data_vendor.id)
-            #data_VPScore.save()
-
-        user = UserInfo(
-            name=request.POST.get('name'),
-            username=request.POST.get('username').lower(),
-            password=make_password(
-                request.POST.get('password'), settings.SECRET_KEY, 'pbkdf2_sha256'),
-            email=request.POST.get('email').lower(),
-            phone=request.POST.get('phone'),
-            company=ObjectId(data_vendor.id),
-            role=ObjectId(request.POST.get('role')),
-            create_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7),
-            update_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7)
-            # surveyor=request.POST.get('surveyor'),
-        )
-        user.save()
-        filename = fs.save(file.name, file)
-        file_path = fs.url(filename)
-        doc = DocumentUser(
-            name=file.name,
-            path=file_path,
-            create_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7),
-            update_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7)
-        )
-        doc.save()
-
-        user.doc = ObjectId(doc.id)
-        user.save()
-
-        try:
-            file_image = request.FILES['image']
-
             fs = FileSystemStorage(
-                location=f'{settings.MEDIA_ROOT}/user/image/',
-                base_url=f'{settings.MEDIA_URL}/user/image/'
+                location=f'{settings.MEDIA_ROOT}/user/documents/',
+                base_url=f'{settings.MEDIA_URL}/user/documents/'
             )
+            
+            try:
+                data_vendor = vendor.objects.get(
+                    name__iexact=request.POST.get('company'))
+            except vendor.DoesNotExist:
+                data_vendor = vendor(
+                    name=request.POST.get('company'),
+                    latitude='0',
+                    longitude='0',
+                    longlat=[0, 0],
+                    created_at=datetime.datetime.utcnow() + datetime.timedelta(hours=7),
+                    updated_at=datetime.datetime.utcnow() + datetime.timedelta(hours=7)
+                )
+                data_vendor.save()
 
-            filename = fs.save(file_image.name, file_image)
+                try:
+                    data_role = UserRole.objects.get(id=ObjectId(request.POST.get('role')))
+                except UserRole.DoesNotExist:
+                    return Response.ok(
+                        values=[],
+                        message='Role ridak ada'
+                    )
+                #data_VPScore = VPScore(vendor=data_vendor.id)
+                #data_VPScore.save()
+
+            user = UserInfo(
+                name=request.POST.get('name'),
+                username=request.POST.get('username').lower(),
+                password=make_password(
+                    request.POST.get('password'), settings.SECRET_KEY, 'pbkdf2_sha256'),
+                email=request.POST.get('email').lower(),
+                phone=request.POST.get('phone'),
+                company=ObjectId(data_vendor.id),
+                role=ObjectId(request.POST.get('role')),
+                create_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7),
+                update_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7)
+                # surveyor=request.POST.get('surveyor'),
+            )
+            user.save()
+            filename = fs.save(file.name, file)
             file_path = fs.url(filename)
-            doc_image = ImageUser(
-                name=file_image.name,
+            doc = DocumentUser(
+                name=file.name,
                 path=file_path,
                 create_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7),
                 update_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7)
             )
-            doc_image.save()
-        except:
-            doc_image = ImageUser(
-                name='user.jpg',
-                path='/media/user/image/user.jpg',
-                create_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7),
-                update_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7)
+            doc.save()
+
+            user.doc = ObjectId(doc.id)
+            user.save()
+
+            try:
+                file_image = request.FILES['image']
+
+                fs = FileSystemStorage(
+                    location=f'{settings.MEDIA_ROOT}/user/image/',
+                    base_url=f'{settings.MEDIA_URL}/user/image/'
+                )
+
+                filename = fs.save(file_image.name, file_image)
+                file_path = fs.url(filename)
+                doc_image = ImageUser(
+                    name=file_image.name,
+                    path=file_path,
+                    create_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7),
+                    update_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7)
+                )
+                doc_image.save()
+            except:
+                doc_image = ImageUser(
+                    name='user.jpg',
+                    path='/media/user/image/user.jpg',
+                    create_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7),
+                    update_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7)
+                )
+                doc_image.save()
+            user.image = ObjectId(doc_image.id)
+            user.save()
+
+            result = UserInfo.objects.get(id=user.id).serialize()
+            """
+            usersadmin = UserInfo.objects.filter(role__in=['5f13b1fa478ef95f4f0a83a7','5f13b353386bf295b4169efe'])
+            #usersadmin = list(usersadmin['id'])
+            userto_ = []
+            for usr in usersadmin:
+                userto_.append(usr.username)
+
+            #usersadmin = UserInfo.objects.filter(role__in=['5f13b1fa478ef95f4f0a83a7','5f13b353386bf295b4169efe']).first()
+            #userfrom = usersadmin.id
+            notif = Message(
+                title='Registrasi Akun SMASLAB',
+                message='1 Permintaan verifikasi baru dari '+user.name,
+                userfrom=user.username,
+                userto=userto_,
+                redirect='/admin',
+                status='new',
+                created=datetime.datetime.utcnow() + datetime.timedelta(hours=7),
+                updated=datetime.datetime.utcnow() + datetime.timedelta(hours=7)
             )
-            doc_image.save()
-        user.image = ObjectId(doc_image.id)
-        user.save()
+            notif.save()
+            """
+            subject = 'Registrasi Akun'
+            text_content = 'Terimakasih telah mendaftar\n'+user.username+'\n'+request.POST.get('company').upper()+'\n'+ \
+                    'Tim kami akan melakukan verifikasi terhadap data anda terlebih dahulu. Setelah verifikasi berhasil,\n'+ \
+                    'anda akan menerima email konfirmasi untuk menginformasikan status pendaftaran akun anda.'
+            template = 'email/webpendaftaranberhasil.html'
+            d = {'username': user.username, 
+                    'company': request.POST.get('company').upper(),
+                    'media_url': settings.URL_MEDIA,
+                    'url_login': settings.URL_LOGIN}
+            email_sender = settings.EMAIL_ADMIN
+            email_receipient = user.email
+            send_mail(subject,text_content,template,d,email_sender,[email_receipient])
 
-        result = UserInfo.objects.get(id=user.id).serialize()
-        """
-        usersadmin = UserInfo.objects.filter(role__in=['5f13b1fa478ef95f4f0a83a7','5f13b353386bf295b4169efe'])
-        #usersadmin = list(usersadmin['id'])
-        userto_ = []
-        for usr in usersadmin:
-            userto_.append(usr.username)
-
-        #usersadmin = UserInfo.objects.filter(role__in=['5f13b1fa478ef95f4f0a83a7','5f13b353386bf295b4169efe']).first()
-        #userfrom = usersadmin.id
-        notif = Message(
-            title='Registrasi Akun SMASLAB',
-            message='1 Permintaan verifikasi baru dari '+user.name,
-            userfrom=user.username,
-            userto=userto_,
-            redirect='/admin',
-            status='new',
-            created=datetime.datetime.utcnow() + datetime.timedelta(hours=7),
-            updated=datetime.datetime.utcnow() + datetime.timedelta(hours=7)
-        )
-        notif.save()
-        """
-        subject = 'Registrasi Akun'
-        text_content = 'Terimakasih telah mendaftar\n'+user.username+'\n'+request.POST.get('company').upper()+'\n'+ \
-                'Tim kami akan melakukan verifikasi terhadap data anda terlebih dahulu. Setelah verifikasi berhasil,\n'+ \
-                'anda akan menerima email konfirmasi untuk menginformasikan status pendaftaran akun anda.'
-        template = 'email/webpendaftaranberhasil.html'
-        d = {'username': user.username, 
-                'company': request.POST.get('company').upper(),
-                'media_url': settings.URL_MEDIA,
-                'url_login': settings.URL_LOGIN}
-        email_sender = settings.EMAIL_ADMIN
-        email_receipient = user.email
-        send_mail(subject,text_content,template,d,email_sender,[email_receipient])
-
-        return Response.ok(
-            values=result,
-            message='User Created'
-        )
-        #except Exception as e:
-        #    return Response.badRequest(message=str(e))
+            return Response.ok(
+                values=result,
+                message='User Created'
+            )
+        except Exception as e:
+            return Response.badRequest(message=str(e))
 
 
 def createRole(request):
