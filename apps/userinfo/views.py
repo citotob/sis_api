@@ -442,7 +442,7 @@ def register(request):
                 except UserRole.DoesNotExist:
                     return Response.ok(
                         values=[],
-                        message='Role ridak ada'
+                        message='Role tidak ada'
                     )
                 #data_VPScore = VPScore(vendor=data_vendor.id)
                 #data_VPScore.save()
