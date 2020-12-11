@@ -542,7 +542,13 @@ def register(request):
                 message='User Created'
             )
         except Exception as e:
-            return Response.badRequest(message=str(e))
+            if "'code': 11000" in str(e):
+                if "username" in str(e):
+                    return Response.badRequest(message="username sudah ada")
+                else:
+                    return Response.badRequest(message="email sudah ada")
+            else:
+                return Response.badRequest(message=str(e))
 
 
 def createRole(request):
