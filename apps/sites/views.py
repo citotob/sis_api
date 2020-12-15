@@ -325,7 +325,7 @@ def uploadsite(request):
         wb = openpyxl.load_workbook(excel_file)
 
         # getting a particular sheet by name out of many sheets
-        worksheet = wb["List Lokasi Survey"]
+        worksheet = wb["LIST SITE"]
 
         excel_data = list()
         # iterating over the rows and
