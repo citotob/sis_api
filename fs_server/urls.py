@@ -33,6 +33,7 @@ urlpatterns = [
     path('vendorperformance/', include('vendorperformance.urls')),
     path('odp/', include('odps.urls')),
     path('check/', include('check.urls')),
+    path('util/', include('publicservice.urls')),
 ]
 
 # Add media and static files

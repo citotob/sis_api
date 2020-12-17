@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        .title{
+            margin-top: 20px;
+            font-style: normal;
+            font-weight: bold;
+            font-size: 24px;
+            text-transform: uppercase;
+            color: #073030;
+        }
+        .button{
+            background: #E7883A;
+            border: 1px solid #073030;
+            box-sizing: border-box;
+            border-radius: 5px;
+            font-style: normal;
+            font-weight: bold;
+            font-size: 16px;
+            text-align: center;
+            color: #FFFFFF;
+            margin-top: 30px;
+            padding: 8px 24px;
+        }
+        .bottom-text{
+            margin-top: 30px;
+            font-style: normal;
+            font-weight: 600;
+            font-size: 16px;
+            line-height: 16px;
+            text-align: center;
+            color: #19324A;
+        }
+        .card-title{
+            font-style: normal;
+            font-weight: bold;
+            font-size: 24px;
+            text-align: center;
+            color: #49ADAD;
+            margin-top: 25px;
+            margin-bottom: 5px;
+        }
+        .card-subtitle{
+            font-style: normal;
+            font-weight: normal;
+            font-size: 16px;
+            text-align: center;
+            color: #808080;
+            margin-top: 5px;
+            margin-bottom: 25px;
+        }
+        .card {
+            background-color: white;
+            box-shadow: 0 4px 0 0 #072F2F;
+            transition: 0.3s;
+            width: 100%;
+            border-radius: 4.62px;
+        }
+        .container {
+            padding: 2px 16px;
+        }
+        /* Float four columns side by side */
+        .column {
+            float:left;
+            width: 30%;
+            padding: 0 10px;
+        }
+
+        /* Remove extra left and right margins, due to padding */
+        .row {
+            margin: 0 -5px;
+            margin-top: 30px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+            flex-direction: row;
+        }
+
+        /* Clear floats after the columns */
+        .row:after {
+            content: "";
+            clear: both;
+        }
+    </style>
+    <!-- <head>
+        <title>Page Title</title>
+    </head> -->
+    <body style="background-color: #F1F8FF;">
+        <div class="title"><center>LAPORAN</center></div>
+        <!-- Row 1 -->
+        <hr>
+        <div class="row">
+            <div class="column">
+                <div class="card">
+                    <div class="container">
+                        <div class="card-title">15</div> 
+                        <div class="card-subtitle">Penyedia Terdaftar</div> 
+                    </div>
+                </div>
+            </div>
+            <div class="column">
+                <div class="card">
+                    <div class="container">
+                        <div class="card-title">20</div> 
+                        <div class="card-subtitle">Pengguna Aktif</div> 
+                    </div>
+                </div>
+            </div>
+            <div class="column">
+                <div class="card">
+                    <div class="container">
+                        <div class="card-title">25</div> 
+                        <div class="card-subtitle">Pengguna Belum Terverifikasi</div> 
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 2 -->
+        <div class="row">
+            <div class="column">
+                <div class="card">
+                    <div class="container">
+                        <div class="card-title">50</div> 
+                        <div class="card-subtitle">Total Batch Dibuat</div> 
+                    </div>
+                </div>
+            </div>
+            <div class="column">
+                <div class="card">
+                    <div class="container">
+                        <div class="card-title">102</div> 
+                        <div class="card-subtitle">Titik AI Terdaftar Dalam batch</div> 
+                    </div>
+                </div>
+            </div>
+            <div class="column">
+                <div class="card">
+                    <div class="container">
+                        <div class="card-title">100</div> 
+                        <div class="card-subtitle">Total Pengajuan RFI terbuat</div> 
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr>
+
+        <div class="bottom-text"><center>Lihat Seluruh Laporan</center></div>
+        <center><a href="https://teksas.devlabs.id/" target="_blank"><button class="button">Dashboard</button></a></center>
+    </body>
+</html>
