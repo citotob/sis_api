@@ -32,28 +32,44 @@ class publicServiceAPI(ModelViewSet):
         max_ = max(dt_penduduk)
         min_ = min(dt_penduduk)
         scaler = minmax_scale(dt_penduduk)
-        cluster = {
-            'low': [],
-            'mid': [],
-            'high': [],
-        }
+        #cluster = {
+        #    'low': [],
+        #    'mid': [],
+        #    'high': [],
+        #}
+        cluster = []
         for i, (k, v) in enumerate(result):
         #for dt in result:
             #print(scaler[i])
             if scaler[i] <= 1/3:
-                cluster['high'].append({
+                #cluster['high'].append({
+                #    'provinsi': result[i][k],
+                #    'jumlah_penduduk': result[i][v]
+                #})
+                cluster.append({
                     'provinsi': result[i][k],
-                    'jumlah_penduduk': result[i][v]
+                    'jumlah_penduduk': result[i][v],
+                    'potensi': 'high'
                 })
             elif scaler[i] <= 2/3:
-                cluster['mid'].append({
+                #cluster['mid'].append({
+                #    'provinsi': result[i][k],
+                #    'jumlah_penduduk': result[i][v]
+                #})
+                cluster.append({
                     'provinsi': result[i][k],
-                    'jumlah_penduduk': result[i][v]
+                    'jumlah_penduduk': result[i][v],
+                    'potensi': 'mid'
                 })
             else:
-                cluster['low'].append({
+                #cluster['low'].append({
+                #    'provinsi': result[i][k],
+                #    'jumlah_penduduk': result[i][v]
+                #})
+                cluster.append({
                     'provinsi': result[i][k],
-                    'jumlah_penduduk': result[i][v]
+                    'jumlah_penduduk': result[i][v],
+                    'potensi': 'low'
                 })
         """
         data_user = UserInfo.objects.filter(role='5f73fdfc28751d590d835266', status='Aktif')
