@@ -49,7 +49,8 @@ class publicServiceAPI(ModelViewSet):
                 cluster.append({
                     'provinsi': result[i][k],
                     'jumlah_penduduk': result[i][v],
-                    'potensi': 'high'
+                    'potensi': 'high',
+                    'nilai': scaler[i]
                 })
             elif scaler[i] <= 2/3:
                 #cluster['mid'].append({
@@ -59,7 +60,8 @@ class publicServiceAPI(ModelViewSet):
                 cluster.append({
                     'provinsi': result[i][k],
                     'jumlah_penduduk': result[i][v],
-                    'potensi': 'mid'
+                    'potensi': 'mid',
+                    'nilai': scaler[i]
                 })
             else:
                 #cluster['low'].append({
@@ -69,7 +71,8 @@ class publicServiceAPI(ModelViewSet):
                 cluster.append({
                     'provinsi': result[i][k],
                     'jumlah_penduduk': result[i][v],
-                    'potensi': 'low'
+                    'potensi': 'low',
+                    'nilai': scaler[i]
                 })
         """
         data_user = UserInfo.objects.filter(role='5f73fdfc28751d590d835266', status='Aktif')
