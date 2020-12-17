@@ -41,7 +41,7 @@ class publicServiceAPI(ModelViewSet):
         #for dt in result:
             #print(scaler[i])
             if scaler[i] <= 1/3:
-                cluster['hign'].append({
+                cluster['high'].append({
                     'provinsi': result[i][k],
                     'jumlah_penduduk': result[i][v]
                 })
