@@ -418,7 +418,7 @@ def uploadbts(request):
                     latitude=str(row[9].value).replace(',','.'),
                     longitude=str(row[10].value).replace(',','.'),
                     longlat=[float(str(row[10].value).replace(',','.')), float(str(row[9].value).replace(',','.'))],
-                    nama=str(row[1].value).strip(),
+                    nama=str(row[8].value).strip(),
                     desa_kelurahan=data_desa.name,
                     kecamatan_name=data_kec.name,
                     provinsi_name=data_prov.name,
