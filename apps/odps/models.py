@@ -158,7 +158,7 @@ class Odp_backup(Document):
     updated_at = DateTimeField(required=True, default=datetime.now)
 
 class bts_onair(Document):
-    unik_id = IntField(required=True, unique=True)
+    unik_id = StringField(required=True, unique=True)
     latitude = StringField(required=True, unique=True)
     longitude = StringField(required=True, unique=True)
     longlat = PointField()
