@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.db.models import Count
 
 from datetime import datetime
 import requests
@@ -10,98 +11,120 @@ from rest_framework import status
 
 from sklearn.preprocessing import minmax_scale
 
+from odps.models import *
+from .serializer import *
+
+
 class publicServiceAPI(ModelViewSet):
     def clusterpenduduk(self, request, format=None):
+        try:
+            url = "https://www.bps.go.id/indikator/indikator/download_json/0000/api_pub/50/da_03/1"
+            headers = {'Content-type': 'application/json'}
+            #d = {"month":month, "year":year}
+            res = requests.get(url).json()#, data=json.dumps(d)
+
+            result = []
+            dt_penduduk = []
+            #print(max(res['data']))
+            for dt in res['data']:
+                if dt['label']!='Indonesia':
+                    json_dict = {}
+                    json_dict['provinsi'] = dt['label']
+                    json_dict['jumlah_penduduk'] = float(dt['penduduk_jumlah_penduduk'].replace(' ','').replace(',','.'))
+                    result.append(json_dict)
+                    dt_penduduk.append(float(dt['penduduk_jumlah_penduduk'].replace(' ','').replace(',','.')))
+
+            max_ = max(dt_penduduk)
+            min_ = min(dt_penduduk)
+            scaler = minmax_scale(dt_penduduk)
+            #cluster = {
+            #    'low': [],
+            #    'mid': [],
+            #    'high': [],
+            #}
+            cluster = []
+            for i, (k, v) in enumerate(result):
+            #for dt in result:
+                #print(scaler[i])
+                if scaler[i] <= 1/3:
+                    #cluster['high'].append({
+                    #    'provinsi': result[i][k],
+                    #    'jumlah_penduduk': result[i][v]
+                    #})
+                    cluster.append({
+                        'provinsi': result[i][k],
+                        'jumlah_penduduk': result[i][v],
+                        'potensi': 'high',
+                        'nilai': scaler[i]
+                    })
+                elif scaler[i] <= 2/3:
+                    #cluster['mid'].append({
+                    #    'provinsi': result[i][k],
+                    #    'jumlah_penduduk': result[i][v]
+                    #})
+                    cluster.append({
+                        'provinsi': result[i][k],
+                        'jumlah_penduduk': result[i][v],
+                        'potensi': 'mid',
+                        'nilai': scaler[i]
+                    })
+                else:
+                    #cluster['low'].append({
+                    #    'provinsi': result[i][k],
+                    #    'jumlah_penduduk': result[i][v]
+                    #})
+                    cluster.append({
+                        'provinsi': result[i][k],
+                        'jumlah_penduduk': result[i][v],
+                        'potensi': 'low',
+                        'nilai': scaler[i]
+                    })
+            return CustomResponse.ok(values=cluster)
+        except TypeError as e:
+            return CustomResponse().base(success=False, message=str(e), status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return CustomResponse().base(success=False, message=str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def clusteraionair(self, request, format=None):
         #try:
-        url = "https://www.bps.go.id/indikator/indikator/download_json/0000/api_pub/50/da_03/1"
-        headers = {'Content-type': 'application/json'}
-        #d = {"month":month, "year":year}
-        res = requests.get(url).json()#, data=json.dumps(d)
-
+        #data_odp = Odp.objects.values_list('provinsi').annotate(total=Count('provinsi')).order_by('total')
+        data_odp = Odp.objects.aggregate([
+            {'$group' : {'_id':"$provinsi", 'total':{'$sum':1}}}
+        ])
         result = []
-        dt_penduduk = []
-        #print(max(res['data']))
-        for dt in res['data']:
-            if dt['label']!='Indonesia':
-                json_dict = {}
-                json_dict['provinsi'] = dt['label']
-                json_dict['jumlah_penduduk'] = float(dt['penduduk_jumlah_penduduk'].replace(' ','').replace(',','.'))
-                result.append(json_dict)
-                dt_penduduk.append(float(dt['penduduk_jumlah_penduduk'].replace(' ','').replace(',','.')))
+        dt_odp = []
+        
+        for dt in list(data_odp):
+            json_dict = {}
+            json_dict['provinsi'] = dt['_id']
+            json_dict['total'] = dt['total']
+            result.append(json_dict)
+            dt_odp.append(dt['total'])
 
-        max_ = max(dt_penduduk)
-        min_ = min(dt_penduduk)
-        scaler = minmax_scale(dt_penduduk)
-        #cluster = {
-        #    'low': [],
-        #    'mid': [],
-        #    'high': [],
-        #}
+        scaler = minmax_scale(dt_odp)
         cluster = []
         for i, (k, v) in enumerate(result):
-        #for dt in result:
-            #print(scaler[i])
             if scaler[i] <= 1/3:
-                #cluster['high'].append({
-                #    'provinsi': result[i][k],
-                #    'jumlah_penduduk': result[i][v]
-                #})
                 cluster.append({
                     'provinsi': result[i][k],
-                    'jumlah_penduduk': result[i][v],
+                    'total': result[i][v],
                     'potensi': 'high',
                     'nilai': scaler[i]
                 })
             elif scaler[i] <= 2/3:
-                #cluster['mid'].append({
-                #    'provinsi': result[i][k],
-                #    'jumlah_penduduk': result[i][v]
-                #})
                 cluster.append({
                     'provinsi': result[i][k],
-                    'jumlah_penduduk': result[i][v],
+                    'total': result[i][v],
                     'potensi': 'mid',
                     'nilai': scaler[i]
                 })
             else:
-                #cluster['low'].append({
-                #    'provinsi': result[i][k],
-                #    'jumlah_penduduk': result[i][v]
-                #})
                 cluster.append({
                     'provinsi': result[i][k],
-                    'jumlah_penduduk': result[i][v],
+                    'total': result[i][v],
                     'potensi': 'low',
                     'nilai': scaler[i]
                 })
-        """
-        data_user = UserInfo.objects.filter(role='5f73fdfc28751d590d835266', status='Aktif')
-        if not data_user:
-            return CustomResponse().base(success=False, message='User Not Found', status=status.HTTP_404_NOT_FOUND)
-        list_receipient=[]
-        for dt in data_user:
-            list_receipient.append(dt.email)
-        #try:
-        subject = 'Load Notification'
-        text_content = 'Load Notification'
-        #text_content = ''
-        htmly     = get_template('email/check/webload.html')
-        
-        d = {'load': (load_/32)*100,
-                'message_top': '',
-                'message_bottom': '', 'media_url': settings.URL_MEDIA}
-        html_content = htmly.render(d)
-        sender = settings.EMAIL_ADMIN
-        receipient = list_receipient
-        msg = EmailMultiAlternatives(
-            subject, text_content, sender, receipient)
-        msg.attach_alternative(html_content, "text/html")
-        respone = msg.send()
-        #print('Send email success')
-        #except:
-        #    print('failed send email')
-        #    pass
-        """
         return CustomResponse.ok(values=cluster)
         #except TypeError as e:
         #    return CustomResponse().base(success=False, message=str(e), status=status.HTTP_404_NOT_FOUND)
