@@ -12,7 +12,7 @@ from rest_framework import status
 from sklearn.preprocessing import minmax_scale
 
 from odps.models import *
-from .serializer import *
+#from .serializer import *
 
 
 class publicServiceAPI(ModelViewSet):
@@ -86,50 +86,49 @@ class publicServiceAPI(ModelViewSet):
             return CustomResponse().base(success=False, message=str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def clusteraionair(self, request, format=None):
-        #try:
-        #data_odp = Odp.objects.values_list('provinsi').annotate(total=Count('provinsi')).order_by('total')
-        data_odp = Odp.objects.aggregate([
-            {'$group' : {'_id':"$provinsi", 'total':{'$sum':1}}}
-        ])
-        result = []
-        dt_odp = []
-        
-        for dt in list(data_odp):
-            json_dict = {}
-            json_dict['provinsi'] = dt['_id']
-            json_dict['total'] = dt['total']
-            result.append(json_dict)
-            dt_odp.append(dt['total'])
+        try:
+            data_odp = Odp.objects.aggregate([
+                {'$group' : {'_id':"$provinsi", 'total':{'$sum':1}}}
+            ])
+            result = []
+            dt_odp = []
+            
+            for dt in list(data_odp):
+                json_dict = {}
+                json_dict['provinsi'] = dt['_id']
+                json_dict['total'] = dt['total']
+                result.append(json_dict)
+                dt_odp.append(dt['total'])
 
-        scaler = minmax_scale(dt_odp)
-        cluster = []
-        for i, (k, v) in enumerate(result):
-            if scaler[i] <= 1/3:
-                cluster.append({
-                    'provinsi': result[i][k],
-                    'total': result[i][v],
-                    'potensi': 'high',
-                    'nilai': scaler[i]
-                })
-            elif scaler[i] <= 2/3:
-                cluster.append({
-                    'provinsi': result[i][k],
-                    'total': result[i][v],
-                    'potensi': 'mid',
-                    'nilai': scaler[i]
-                })
-            else:
-                cluster.append({
-                    'provinsi': result[i][k],
-                    'total': result[i][v],
-                    'potensi': 'low',
-                    'nilai': scaler[i]
-                })
-        return CustomResponse.ok(values=cluster)
-        #except TypeError as e:
-        #    return CustomResponse().base(success=False, message=str(e), status=status.HTTP_404_NOT_FOUND)
-        #except Exception as e:
-        #    return CustomResponse().base(success=False, message=str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            scaler = minmax_scale(dt_odp)
+            cluster = []
+            for i, (k, v) in enumerate(result):
+                if scaler[i] <= 1/3:
+                    cluster.append({
+                        'provinsi': result[i][k],
+                        'total': result[i][v],
+                        'potensi': 'high',
+                        'nilai': scaler[i]
+                    })
+                elif scaler[i] <= 2/3:
+                    cluster.append({
+                        'provinsi': result[i][k],
+                        'total': result[i][v],
+                        'potensi': 'mid',
+                        'nilai': scaler[i]
+                    })
+                else:
+                    cluster.append({
+                        'provinsi': result[i][k],
+                        'total': result[i][v],
+                        'potensi': 'low',
+                        'nilai': scaler[i]
+                    })
+            return CustomResponse.ok(values=cluster)
+        except TypeError as e:
+            return CustomResponse().base(success=False, message=str(e), status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return CustomResponse().base(success=False, message=str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def getDashboard(request):
         try:
