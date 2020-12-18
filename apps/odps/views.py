@@ -391,15 +391,15 @@ def uploadbts(request):
                 )
                 data_desa.save()
                 """
-            try:
-                create_date = datetime.strptime(
-                    str(row[11].value).replace('.',':'), '%Y-%m-%d %H:%M:%S')
-            except:
-                json_dict = {}
-                json_dict["unik_id"] = str(row[0].value).strip()
-                json_dict["tanggal_pembuatan"] = str(row[11].value)
-                id_gagal.append(json_dict)
-                continue
+            #try:
+            create_date = datetime.strptime(
+                str(row[11].value)[:19].replace('.',':'), '%Y-%m-%d %H:%M:%S')
+            #except:
+            #    json_dict = {}
+            #    json_dict["unik_id"] = str(row[0].value).strip()
+            #    json_dict["tanggal_pembuatan"] = str(row[11].value)
+            #    id_gagal.append(json_dict)
+            #    continue
             try:
                 access_date = datetime.strptime(
                     str(row[12].value).replace('.',':'), '%Y-%m-%d %H:%M:%S')
@@ -419,7 +419,6 @@ def uploadbts(request):
                     desa_kelurahan=data_desa.name,
                     kecamatan_name=data_kec.name,
                     provinsi_name=data_prov.name,
-                    vendorid=data_vendor.name,
                     created_at=create_date,
                     updated_at=create_date,
                     access_date=access_date,
