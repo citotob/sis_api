@@ -354,6 +354,7 @@ def uploadbts(request):
                 
                 json_dict = {}
                 json_dict["unik_id"] = str(row[0].value).strip()
+                json_dict["provinsi"] = data_prov.name
                 json_dict["kab_kota_id"] = kab_kot_id
                 json_dict["kab_kota"] = kab_kot_name
                 json_dict["kecamatan"] = str(row[6].value).strip()
@@ -379,6 +380,8 @@ def uploadbts(request):
                 
                 json_dict = {}
                 json_dict["unik_id"] = str(row[0].value).strip()
+                json_dict["provinsi"] = data_prov.name
+                json_dict["kab_kota"] = kab_kot_name
                 json_dict["kecamatan_id"] = data_kec.id
                 json_dict["kecamatan"] = data_kec.name
                 json_dict["desa"] = str(row[7].value).strip()
