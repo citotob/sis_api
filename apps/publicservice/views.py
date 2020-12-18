@@ -132,20 +132,20 @@ class publicServiceAPI(ModelViewSet):
 
     def clusterbtsonair(self, request, format=None):
         try:
-            data_odp = Odp.objects.aggregate([
-                {'$group' : {'_id':"$provinsi", 'total':{'$sum':1}}}
+            data_bts = bts_onair.objects.aggregate([
+                {'$group' : {'_id':"$provinsi_name", 'total':{'$sum':1}}}
             ])
             result = []
-            dt_odp = []
+            dt_bts = []
             
-            for dt in list(data_odp):
+            for dt in list(data_bts):
                 json_dict = {}
                 json_dict['provinsi'] = dt['_id']
                 json_dict['total'] = dt['total']
                 result.append(json_dict)
-                dt_odp.append(dt['total'])
+                dt_bts.append(dt['total'])
 
-            scaler = minmax_scale(dt_odp)
+            scaler = minmax_scale(dt_bts)
             cluster = []
             for i, (k, v) in enumerate(result):
                 if scaler[i] <= 1/3:
