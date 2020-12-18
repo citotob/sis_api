@@ -9,10 +9,14 @@ clusterpenduduk = views.publicServiceAPI.as_view({
 clusteraionair = views.publicServiceAPI.as_view({
     'get': 'clusteraionair',
 })
+clusterbtsonair = views.publicServiceAPI.as_view({
+    'get': 'clusterbtsonair',
+})
 
 urlpatterns = [
     path('clusterpenduduk/', clusterpenduduk),
     path('clusterai/onair/', clusteraionair),
+    path('clusterbts/onair/', clusterbtsonair),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
