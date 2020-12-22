@@ -53,7 +53,6 @@ ch.setLevel(logging.DEBUG)
 logger.addHandler(handler)
 logger.addHandler(ch)
 
-
 from django.db import transaction 
 from enum import Enum
 class ChatConsumer(WebsocketConsumer):
@@ -69,7 +68,7 @@ class ChatConsumer(WebsocketConsumer):
     #Calculate all winnings
     m_list_result = []
     def connect(self):
-        async_to_sync(self.channel_layer.group_add)("survey", self.channel_name)
+        async_to_sync(self.channel_layer.group_add)("sis", self.channel_name)
         self.accept()
 
     #Solo broadcast

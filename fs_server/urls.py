@@ -26,6 +26,7 @@ from userinfo import views
 urlpatterns = [
     # url('fcm/', include('fcm.urls')),
     #path('admin/', admin.site.urls),
+    #path('', include('userinfo.urls')),
     path('user/', include('userinfo.urls')),
     path('site/', include('sites.urls')),
     path('vendor/', include('vendor.urls')),
