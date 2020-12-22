@@ -63,7 +63,7 @@ class VendorPerformanceAPI(ModelViewSet):
                 serializer.save()
                 return CustomResponse().base(values=serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
-            print(e)
+            return CustomResponse().base(success=False, message=str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, format=None):
