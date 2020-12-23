@@ -5,6 +5,7 @@ import json
 class NotifConsumer(WebsocketConsumer):
 
     def connect(self):
+        async_to_sync(self.channel_layer.group_add)("sis", self.channel_name)
         self.accept()
 
     def disconnect(self, close_code):

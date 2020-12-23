@@ -1,6 +1,10 @@
-from django.urls import re_path
+from django.urls import re_path, path
 from .consumer import NotifConsumer
 
+#websocket_urlpatterns = [
+#    re_path('', NotifConsumer.as_asgi()),
+#]
+
 websocket_urlpatterns = [
-    re_path(r'', NotifConsumer.as_asgi()),
+    path('ws/', NotifConsumer),
 ]
