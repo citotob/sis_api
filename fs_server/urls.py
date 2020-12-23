@@ -35,6 +35,7 @@ urlpatterns = [
     path('odp/', include('odps.urls')),
     path('check/', include('check.urls')),
     path('util/', include('publicservice.urls')),
+    path('', include('notification.urls')),
 ]
 
 # Add media and static files
