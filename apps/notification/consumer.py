@@ -1,4 +1,18 @@
+#websocket
+
 from channels.generic.websocket import WebsocketConsumer
+from asgiref.sync import async_to_sync
+
+
+from channels.generic.websocket import AsyncWebsocketConsumer
+import json
+from userinfo.models import UserInfo
+import random
+
+from channels.layers import get_channel_layer
+channel_layer = get_channel_layer()
+from asgiref.sync import async_to_sync
+
 import json
 
 
