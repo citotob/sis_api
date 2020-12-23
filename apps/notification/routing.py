@@ -6,5 +6,5 @@ from .consumer import NotifConsumer
 #]
 
 websocket_urlpatterns = [
-    path('ws/', NotifConsumer),
+    path('socket.io/', NotifConsumer),
 ]
