@@ -9,7 +9,8 @@ from rest_framework import status
 from django.core.exceptions import SuspiciousOperation
 from .customResponse import CustomResponse
 from .serializer import NotificationSerializer, NotificationCreateSerializer
-
+from .consumer import NotifConsumer
+import json
 # Create your views here.
 
 
@@ -41,12 +42,14 @@ class NotificationView(APIView):
 
     def post(self, request):
         try:
-            print(request.data)
-            serializer = NotificationCreateSerializer(data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                return CustomResponse().base(values=serializer.data, status=status.HTTP_201_CREATED)
-            return CustomResponse.badRequest(serializer.errors)
+            id = request.data.get('id')
+            # serializer = NotificationCreateSerializer(data=request.data)
+            # if serializer.is_valid():
+            #     serializer.save()
+            #     return CustomResponse().base(values=serializer.data, status=status.HTTP_201_CREATED)
+            # return CustomResponse.badRequest(serializer.errors)
+            notif = NotifConsumer()
+            notif.send_message(to=id, message='hai')
         except NotFound as e:
             return CustomResponse().base(message=str(e), status=status.HTTP_404_NOT_FOUND)
         except SuspiciousOperation as e:
