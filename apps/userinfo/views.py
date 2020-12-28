@@ -42,6 +42,8 @@ from publicservice.utils import send_mail
 
 import requests
 
+from notification.utils.CustomNotification import CustomNotification
+
 def test(request):
     try:
         Notification(
@@ -302,7 +304,7 @@ def verifyUser(request):
             user.status = 'Aktif'
             user.update_date = dateNow
             user.save()
-            
+            print(user.id)
             subject = 'Verifikasi Akun Berhasil'
             text_content = 'Terimakasih telah mendaftar\n'+user.username+'\n'+ \
                     'Tim kami akan melakukan verifikasi terhadap data anda terlebih dahulu. Setelah verifikasi berhasil,\n'+ \
@@ -314,6 +316,14 @@ def verifyUser(request):
             email_sender = settings.EMAIL_ADMIN
             email_receipient = user.email
             send_mail(subject,text_content,template,d,email_sender,[email_receipient])
+
+            if not userfrom:
+                userfrom = '5f7403aae58dd8f91811ac76'
+            
+            notif = CustomNotification()
+            notif.create(to=[user.id], from_=ObjectId(userfrom), type='user verified', 
+                title='Verifikasi email berhasil', message='Verifikasi email berhasil', push_message='Ada pesan baru1')
+
             return Response.ok(
                 values=user.serialize(),
                 message='Verify Success'
@@ -536,6 +546,16 @@ def register(request):
             email_sender = settings.EMAIL_ADMIN
             email_receipient = user.email
             send_mail(subject,text_content,template,d,email_sender,[email_receipient])
+
+            req_fields = ['id']
+            admin_users = UserInfo.objects.filter(role='5f73fdfc28751d590d835266', status='Aktif').only(*req_fields)
+            if admin_users:
+                list_admin_users=[]
+                for usr in admin_users:
+                    list_admin_users.append(usr.id)
+                notif = CustomNotification()
+                notif.create(to=list_admin_users, from_=user.id, type='new user', 
+                    title='Pendaftaran berhasil', message='berhasil mendaftar', push_message='Ada pesan baru')
 
             return Response.ok(
                 values=result,

@@ -8,7 +8,7 @@ class CustomNotification():
 
     def create(self, from_, to, type, title, message, push_message):
         data = {
-            "from": from_,
+            "from_": from_,
             "to": to,
             "type": type,
             "title": title,
@@ -20,7 +20,7 @@ class CustomNotification():
             serializer.save()
             notif = NotifConsumer()
             for x in to:
-                notif.send_message(x, push_message)
+                notif.send_message(str(x), push_message)
             return serializer.data
 
         raise ValidationError(serializer.errors)
