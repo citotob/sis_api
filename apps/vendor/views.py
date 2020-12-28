@@ -261,6 +261,7 @@ def penawaran(request):
         siteid = body_data.get('siteid')
         batchid = body_data.get('batchid')
         vendorid = body_data.get('vendorid')
+        userfrom = body_data.get('userfrom')
 
         rekomen_tek = body_data.get('teknologi')
         tanggal_mulai_material = datetime.strptime(
@@ -328,6 +329,20 @@ def penawaran(request):
         # result = site_vendor.objects.get(id=ObjectId(data_site_vendor.id)).serialize()
         serializer = rfi_scoreSerializer(data_rfi_score)
         #result = serializer.data
+
+        req_fields = ['id']
+        admin_users = UserInfo.objects.filter(role='5f73fdfc28751d590d835266', status='Aktif').only(*req_fields)
+        if admin_users:
+            try:
+                data_batch=Batch.objects.get(id=ObjectId(batchid))
+                list_admin_users=[]
+                for usr in admin_users:
+                    list_admin_users.append(usr.id)
+                notif = CustomNotification()
+                notif.create(to=list_admin_users, from_=ObjectId(userfrom), type='batch offer submitted', 
+                    title='User telah mengajukan penawaran', message='penawaran batch '+data_batch.judul+' telah diajukan', push_message='Ada pesan baru')
+            except batch.DoesNotExist:
+                pass                
 
         return Response.ok(
             values=json.loads(json.dumps(serializer.data, default=str)),

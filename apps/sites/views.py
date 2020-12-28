@@ -1379,7 +1379,9 @@ def sendinvitation(request):
     try:
         body_data = json.loads(request.body)
 
-        batch = body_data.get('batch')
+        batchid = body_data.get('batchid')
+        data_batch=batch.objects.get(id=ObjectId(batchid))
+        
         from_ = body_data.get('from')
         to_ = body_data.get('to').split(',')
         
@@ -1391,8 +1393,12 @@ def sendinvitation(request):
                 for usr in vendor_users:
                     list_vendor_users.append(usr.id)
                 notif = CustomNotification()
+                title_='Undangan batch berhasil dikirim'
+                if data_batch.type == 'VIP':
+                    title_='Invitation personal'
+
                 notif.create(to=list_vendor_users, from_=ObjectId(from_), type='batch sent', 
-                    title='Undangan batch berhasil dikirim', message='batch '+batch+' telah terkirim', push_message='Ada pesan baru batch')
+                    title=title_, message='batch '+data_batch.judul+' telah terkirim', push_message='Ada pesan baru')
         
         return Response.ok(
             values=[],
