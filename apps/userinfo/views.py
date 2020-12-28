@@ -322,7 +322,7 @@ def verifyUser(request):
             
             notif = CustomNotification()
             notif.create(to=[user.id], from_=ObjectId(userfrom), type='user verified', 
-                title='Verifikasi email berhasil', message='Verifikasi email berhasil', push_message='Ada pesan baru1')
+                title='Verifikasi email berhasil', message='Verifikasi email berhasil', push_message='Ada pesan baru')
 
             return Response.ok(
                 values=user.serialize(),

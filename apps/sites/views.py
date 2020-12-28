@@ -44,6 +44,8 @@ from django.db.models import Avg, Max, Min, Sum
 
 import openpyxl
 
+from notification.utils.CustomNotification import CustomNotification
+
 def getLaporan(request):
 
     if request.method == "POST":
@@ -1368,6 +1370,35 @@ def clonesiteoffair(request):
         )
     except Exception as e:
         #print(e)
+        return Response.badRequest(
+            values=[],
+            message=str(e)
+        )
+
+def sendinvitation(request):
+    try:
+        body_data = json.loads(request.body)
+
+        batch = body_data.get('batch')
+        from_ = body_data.get('from')
+        to_ = body_data.get('to').split(',')
+        
+        for vn in to_:
+            req_fields = ['id']
+            vendor_users = UserInfo.objects.filter(company=ObjectId(vn), status='Aktif').only(*req_fields)
+            if vendor_users:
+                list_vendor_users=[]
+                for usr in vendor_users:
+                    list_vendor_users.append(usr.id)
+                notif = CustomNotification()
+                notif.create(to=list_vendor_users, from_=ObjectId(from_), type='batch sent', 
+                    title='Undangan batch berhasil dikirim', message='batch '+batch+' telah terkirim', push_message='Ada pesan baru batch')
+        
+        return Response.ok(
+            values=[],
+            message='Berhasil'
+        )
+    except Exception as e:
         return Response.badRequest(
             values=[],
             message=str(e)
