@@ -13,7 +13,11 @@ from sklearn.preprocessing import minmax_scale
 
 from odps.models import *
 #from .serializer import *
+from django.conf import settings
 
+from .utils import send_mail
+from userinfo.models import UserInfo
+from sites.models import *
 
 class publicServiceAPI(ModelViewSet):
     def clusterpenduduk(self, request, format=None):
@@ -261,186 +265,126 @@ class publicServiceAPI(ModelViewSet):
                 message=str(e)
             )
 
-    def getLaporan(request):
+    def getLaporan(self, request, format=None):
+        #try:
+        #bulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni",
+        #        "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
+        
+        #req = request.body.decode("utf-8")
+        #data = json.loads(req)
+        #month = data['month']
+        #year = data['year']
 
-        if request.method == "POST":
+        #pastMonth = data['month'] - 1
+        #pastYear = year
 
-            bulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni",
-                    "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
+        #if pastMonth == 0:
+        #    pastMonth = 12
+        #    pastYear = year-1
 
-            try:
-                req = request.body.decode("utf-8")
-                data = json.loads(req)
-                month = data['month']
-                year = data['year']
+        #if month is None or year is None:
+        #    return CustomResponse.ok(message='Need Json Body "month" & "year"')
 
-                pastMonth = data['month'] - 1
-                pastYear = year
+        vendorCount = vendor.objects.all().count()
+        activeUserCount = UserInfo.objects(status='Aktif').count()
+        requestedUserCount = UserInfo.objects(status='Belum Terverifikasi').count()
+        batchCount = batch.objects.all().count()
+        siteCount = site_matchmaking.objects(batchid__exists=True).count()
+        rfiCount = vendor_application.objects.all().count()
+        """
+        siteNonBatchCount = 0
+        vendorListQuery = vendor.objects.all()
+        vendorList = VendorScoreSerializer(vendorListQuery, many=True)
 
-                if pastMonth == 0:
-                    pastMonth = 12
-                    pastYear = year-1
+        aiCount = Odp.objects.filter(teknologi__in=['VSAT','FO','RL']).count()
+        aiTech = Odp.objects.only('teknologi').distinct('teknologi')
+        aiOperational = {
+            "count": aiCount,
+            "FO": 0,
+            "VSAT": 0,
+            "RL": 0
+        }
+        
+        for x in list(aiTech):
+            xx=x
+            aiOperational.update({
+                xx: Odp.objects(teknologi=x).count()
+            })
 
-                ai = '5f16b4ba149882a98fc6655e'
-                bts = '5f1521524f9c6764c713d73c'
+        recommendTech = rekomendasi_teknologi.objects.only(
+            'teknologi').distinct('teknologi')
+        siteAICount = site.objects.all().count()
+        aiNew = {
+            "count": siteAICount,
+            "FO": 0,
+            "VSAT": 0,
+            "RL": 0
+        }
+        for x in list(recommendTech):
+            query = rekomendasi_teknologi.objects(teknologi=x).scalar('id')
+            aiNew.update({
+                x: site.objects(rekomendasi_teknologi__in=query).count()
+            })
 
-                if month is None or year is None:
-                    return Response.badRequest(message='Need Json Body "month" & "year"')
-                    
-                def pipelineDate(month, year, jenis):
+        date = datetime.now()
+        listMonth = calendar.month_abbr[1:13]
+        reportSite = {}
+        reportRFi = {}
+        for x in range(11, -1, -1):
+            dateReport = date - relativedelta(months=x)
+            year = dateReport.year
+            month = dateReport.month
+            lastDate = calendar.monthrange(year=year, month=month)[1]
+            gte = datetime(year, month, 1, 00, 00, 00)
+            lte = datetime(year, month, lastDate, 23, 59, 59)
+            reportSite.update({
+                f'{listMonth[month-1]} {year}': batch.objects(created_at__gte=gte, created_at__lte=lte).count()
+            })
+            reportRFi.update({
+                f'{listMonth[month-1]} {year}': vendor_application.objects(created_at__gte=gte, created_at__lte=lte).count()
+            })
+        
+        result = {
+            "vendor": vendorCount,
+            "active_user": activeUserCount,
+            "requested_user": requestedUserCount,
+            "batch": batchCount,
+            "site": siteCount,
+            "rfi": rfiCount,
+            "site_not_batch": siteNonBatchCount,
+            "vendor_list": json.loads(json.dumps(vendorList.data, default=str)),
+            "running_ai": aiOperational,
+            "new_ai": aiNew,
+            "report": {
+                "site": reportSite,
+                "rfi": reportRFi
+            }
+        }
+        """
+        executive = [x.email for x in UserInfo.objects.filter(
+            role=ObjectId('5f73fe3428751d590d835267'))]
 
-                    lastDay = calendar.monthrange(year=year, month=month)[1]
-                    return [
-                        {
-                            '$addFields': {
-                                'lastStatus': {
-                                    '$arrayElemAt': [
-                                        '$status', 0
-                                    ]
-                                }
-                            }
-                        }, {
-                            '$match': {
-                                'lastStatus.tanggal_pembuatan': {
-                                    '$gte': datetime(year, month, 1, 00, 00, 00, tzinfo=timezone.utc),
-                                    '$lte': datetime(year, month, lastDay, 23, 59, 59, tzinfo=timezone.utc)
-                                },
-                                'nomorSurvey': '1'
-                            }
-                        }, {
-                            '$count': 'count'
-                        }
-                    ]
+        subject = 'Laporan'
+        text_content = ''
+        template = 'email/executive/EmailLaporan.html'
+        d = {#'username': user.username, 
+                'media_url': settings.URL_MEDIA,
+                'url_login': settings.URL_LOGIN,
+                'vendorCount': vendorCount,
+                'activeUserCount': activeUserCount,
+                'requestedUserCount': requestedUserCount,
+                'batchCount': batchCount,
+                'siteCount': siteCount,
+                'rfiCount': rfiCount
+            }
+        email_sender = settings.EMAIL_ADMIN
+        email_receipient = executive
+        send_mail(subject,text_content,template,d,email_sender,email_receipient)
 
-                def pipelineTotal(jenis, status):
-                    return [
-                        {
-                            '$match': {
-                                'jenissurvey': ObjectId(jenis),
-                                #'status.status': status,
-                            }
-                        }, {
-                            '$count': 'count'
-                        }
-                    ]
+        return CustomResponse.ok(message='Berhasil')
+        #except TypeError as e:
+        #    return CustomResponse().base(success=False, message=str(e), status=status.HTTP_404_NOT_FOUND)
+        #except Exception as e:
+        #    return CustomResponse().base(success=False, message=str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-                def getPenugasanAISurvey():
-                    hasil_survey = hasilSurvey.objects.filter(
-                        status__status="Submitted", nomorSurvey='1').count()
-                    return hasil_survey
-
-                def getPenugasanBTSSurvey():
-                    hasil_survey = hasilSurveybts.objects.filter(
-                        status__status="Submitted", nomorSurvey='1').count()
-                    return hasil_survey
-
-                def getBTSSurvey(month, year):
-                    lastDay = calendar.monthrange(year=year, month=month)[1]
-                    from_ = datetime(year, month, 1, 00, 00, 00, tzinfo=timezone.utc)
-                    to_ = datetime(year, month, lastDay, 23, 59, 59, tzinfo=timezone.utc)
-                    hasil_survey = hasilSurveybts.objects.filter(status__status="Submitted", status__0__tanggal_pembuatan__gte=from_,
-                                                        status__0__tanggal_pembuatan__lte=to_, nomorSurvey='1').count()
-                    return hasil_survey
-
-                penugasanAITotal = list(
-                    Penugasan.objects.aggregate(pipelineTotal(jenis=ai, status='assigned')))[0]['count']
-                penugasanBTSTotal = list(
-                    Penugasan.objects.aggregate(pipelineTotal(jenis=bts, status='assigned')))[0]['count']
-
-                penugasanAITotalFinish = getPenugasanAISurvey()
-                penugasanBTSTotalFinish = getPenugasanBTSSurvey()
-
-                penugasanPersentaseAI = (
-                    penugasanAITotalFinish/penugasanAITotal) * 100
-                penugasanPersentaseBTS = (
-                    penugasanBTSTotalFinish / penugasanBTSTotal) * 100
-
-                penugasanAISekarangList = list(
-                    hasilSurvey.objects.aggregate(pipelineDate(jenis=ai, month=month, year=year)))
-                penugasanBTSSekarangList = getBTSSurvey(month=month, year=year)
-                
-                penugasanAISebelumnyaList = list(
-                    hasilSurvey.objects.aggregate(pipelineDate(jenis=ai, month=pastMonth, year=pastYear)))
-                penugasanBTSSebelumnyaList = getBTSSurvey(month=pastMonth, year=pastYear)
-                
-                penugasanAISekarang = 0 if len(
-                    penugasanAISekarangList) == 0 else penugasanAISekarangList[0]['count']
-
-                penugasanBTSSekarang = 0 if penugasanBTSSekarangList == 0 else penugasanBTSSekarangList
-
-                penugasanAISebelumnya = 0 if len(
-                    penugasanAISebelumnyaList) == 0 else penugasanAISebelumnyaList[0]['count']
-                penugasanBTSSebelumnya = 0 if penugasanBTSSebelumnyaList == 0 else penugasanBTSSebelumnyaList
-                
-                #persentasiKenaikanAI = ((
-                #    abs(penugasanAISekarang - penugasanAISebelumnya)) / penugasanAISebelumnya) * 100 if penugasanAISebelumnya > 0 else 0
-                persentasiKenaikanAI = ( penugasanAISekarang / penugasanAITotal) * 100 if penugasanAITotal > 0 else 0
-                #persentasiKenaikanBTS = ((
-                #    abs(penugasanBTSSekarang - penugasanBTSSebelumnya)) / penugasanBTSSebelumnya) * 100 if penugasanBTSSebelumnya > 0 else 0
-                persentasiKenaikanBTS = ( penugasanBTSSekarang / penugasanBTSTotal) * 100 if penugasanBTSTotal > 0 else 0
-
-                #try:
-                subject = f'Monthly Report SMASLAB {bulan[month-1]} {year}'
-                text_content = ''
-                htmly = get_template('email/executive/executive.html')
-                
-                d = {
-                    'bulan': f'{bulan[month-1]} {year}',
-
-                    'ai_finish': penugasanAITotalFinish,
-                    'ai_total': penugasanAITotal,
-
-                    'bts_finish': penugasanBTSTotalFinish,
-                    'bts_total': penugasanBTSTotal,
-
-                    'ai_persentase': round(penugasanPersentaseAI, 2),
-                    'ai_penambahan': round(persentasiKenaikanAI, 2),
-                    'ai_bulan': penugasanAISekarang,
-
-                    'bts_persentase': round(penugasanPersentaseBTS, 2),
-                    'bts_penambahan': round(persentasiKenaikanBTS, 2),
-                    'bts_bulan': penugasanBTSSekarang,
-
-                    #'ai_perubahan': 'Kenaikan' if penugasanAISekarang > penugasanAISebelumnya else 'Penurunan' if penugasanAISekarang < penugasanAISebelumnya else 'Tidak ada Perubahan',
-                    'ai_perubahan': 'Terdapat Kenaikan' if persentasiKenaikanAI > 0 else 'Tidak ada penambahan',
-                    #'ai_persentase_penambahan': f'{round(persentasiKenaikanAI, 2)}%' if penugasanAISekarang != penugasanAISebelumnya else '',
-                    'ai_persentase_penambahan': f'{round(persentasiKenaikanAI, 2)}%' if persentasiKenaikanAI > 0 else '',
-
-                    #'bts_perubahan': 'Kenaikan' if penugasanBTSSekarang > penugasanBTSSebelumnya else 'Penurunan' if penugasanBTSSekarang < penugasanBTSSebelumnya else 'Tidak ada Perubahan',
-                    #'bts_persentase_penambahan': f'{round(persentasiKenaikanBTS, 2)}%' if penugasanBTSSekarang != penugasanBTSSebelumnya else '',
-                    'bts_perubahan': 'Terdapat Kenaikan' if persentasiKenaikanBTS > 0 else 'Tidak ada penambahan',
-                    'bts_persentase_penambahan': f'{round(persentasiKenaikanBTS, 2)}%' if persentasiKenaikanBTS > 0 else '',
-
-                    'media_url': settings.URL_MEDIA,
-                    'survej_url': settings.URL_LOGIN,
-
-                    'message_bottom': 'silahkan login akun SMASLAB untuk melihat detil laporan melalui aplikasi mobile ataupun website '+settings.URL_LOGIN
-
-                }
-
-                executive = [x.email for x in UserInfo.objects.filter(
-                    role=ObjectId('5f27f7a6ea250a01d2b99d7a'))]
-
-                html_content = htmly.render(d)
-                sender = settings.EMAIL_ADMIN
-
-                msg = EmailMultiAlternatives(
-                    subject, text_content, sender, executive)
-                msg.attach_alternative(html_content, "text/html")
-                response = msg.send()
-                #print('asdad', response)
-                #except:
-                #    pass
-
-            except Exception as e:
-                print(e)
-            #return HttpResponse(f' & ')
-            return Response.ok(
-                values=[],
-                message='Berhasil'
-            )
-        #return HttpResponse(f'asd')
-        return Response.badRequest(
-            values=[],
-            message='Gagal'
-        )
+    

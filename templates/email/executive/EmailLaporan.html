@@ -93,7 +93,7 @@
             <div class="column">
                 <div class="card">
                     <div class="container">
-                        <div class="card-title">15</div> 
+                        <div class="card-title">{{vendorCount}}</div> 
                         <div class="card-subtitle">Penyedia Terdaftar</div> 
                     </div>
                 </div>
@@ -101,7 +101,7 @@
             <div class="column">
                 <div class="card">
                     <div class="container">
-                        <div class="card-title">20</div> 
+                        <div class="card-title">{{activeUserCount}}</div> 
                         <div class="card-subtitle">Pengguna Aktif</div> 
                     </div>
                 </div>
@@ -109,7 +109,7 @@
             <div class="column">
                 <div class="card">
                     <div class="container">
-                        <div class="card-title">25</div> 
+                        <div class="card-title">{{requestedUserCount}}</div> 
                         <div class="card-subtitle">Pengguna Belum Terverifikasi</div> 
                     </div>
                 </div>
@@ -121,7 +121,7 @@
             <div class="column">
                 <div class="card">
                     <div class="container">
-                        <div class="card-title">50</div> 
+                        <div class="card-title">{{batchCount}}</div> 
                         <div class="card-subtitle">Total Batch Dibuat</div> 
                     </div>
                 </div>
@@ -129,7 +129,7 @@
             <div class="column">
                 <div class="card">
                     <div class="container">
-                        <div class="card-title">102</div> 
+                        <div class="card-title">{{siteCount}}</div> 
                         <div class="card-subtitle">Titik AI Terdaftar Dalam batch</div> 
                     </div>
                 </div>
@@ -137,7 +137,7 @@
             <div class="column">
                 <div class="card">
                     <div class="container">
-                        <div class="card-title">100</div> 
+                        <div class="card-title">{{rfiCount}}</div> 
                         <div class="card-subtitle">Total Pengajuan RFI terbuat</div> 
                     </div>
                 </div>
@@ -146,6 +146,6 @@
         <hr>
 
         <div class="bottom-text"><center>Lihat Seluruh Laporan</center></div>
-        <center><a href="https://teksas.devlabs.id/" target="_blank"><button class="button">Dashboard</button></a></center>
+        <center><a href="{{url_login}}" target="_blank"><button class="button">Dashboard</button></a></center>
     </body>
 </html>
