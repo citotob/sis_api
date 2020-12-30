@@ -281,7 +281,7 @@ class publicServiceAPI(ModelViewSet):
             subject = 'Laporan'
             text_content = ''
             template = 'email/executive/EmailLaporan.html'
-            d = {#'username': user.username, 
+            d = { 
                     'media_url': settings.URL_MEDIA,
                     'url_login': settings.URL_LOGIN,
                     'vendorCount': vendorCount,
