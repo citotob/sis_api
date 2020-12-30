@@ -135,3 +135,4 @@ media/.DS_Store
 .DS_Store
 *.txt
 *.txt
+templates/email/.DS_Store
