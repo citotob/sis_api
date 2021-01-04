@@ -32,7 +32,7 @@ def getKabupaten(request):
             #return Response.badRequest(
             #    message='Province Does Not Exist'
             #)
-            return Response.base(
+            return Response().base(
                 success=False,
                 message='Province Does Not Exist',
                 status=404
@@ -86,9 +86,9 @@ def getKecamatan(request):
                 #return Response.badRequest(
                 #    message='Kabupaten/Kota Does Not Exist'
                 #)
-                return Response.base(
+                return Response().base(
                     success=False,
-                    message='Province Does Not Exist',
+                    message='Kabupaten/kota Does Not Exist',
                     status=404
                 )
         try:
@@ -125,9 +125,9 @@ def getDesa(request):
             #return Response.badRequest(
             #    message='Kecamatan Does Not Exist'
             #)
-            return Response.base(
+            return Response().base(
                 success=False,
-                message='Province Does Not Exist',
+                message='Kecamatan Does Not Exist',
                 status=404
             )
 

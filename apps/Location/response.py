@@ -4,7 +4,7 @@ from django.http import JsonResponse
 
 class Response:
 
-    def base(self=None, data=None, count=0, status=200, success='True', message=''):
+    def base(self, data=None, count=0, status=200, success='True', message=''):
         if data is None:
             data = []
 
