@@ -1441,11 +1441,7 @@ def sendinvitation(request):
         to_ = body_data.get('to').split(',')
         
         for vn in to_:
-            not_found = False
-            for pu in vendors:
-                if ObjectId(vn) == pu:
-                    not_found=True
-            if not not_found:
+            if not ObjectId(vn) in vendors:
                 data_batch.penyedia_undang.append(ObjectId(vn))
                 data_batch.save()
             req_fields = ['id']
