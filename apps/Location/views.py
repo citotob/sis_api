@@ -29,8 +29,13 @@ def getKabupaten(request):
             provinsi = None
 
         if not provinsi:
-            return Response.badRequest(
-                message='Province Does Not Exist'
+            #return Response.badRequest(
+            #    message='Province Does Not Exist'
+            #)
+            return Response.base(
+                success=False,
+                message='Province Does Not Exist',
+                status=404
             )
         else:
             data = Kabupaten.objects(provinsi=provinsi.id)
@@ -42,6 +47,9 @@ def getKabupaten(request):
             )
     except Exception as e:
         print(e)
+        return Response.badRequest(
+            message=str(e)
+        )
 
 
 def getKecamatan(request):
@@ -75,8 +83,13 @@ def getKecamatan(request):
             try:
                 kabupaten_kota = Kota.objects.get(id=kabkot)
             except Kota.DoesNotExist:
-                return Response.badRequest(
-                    message='Kabupaten/Kota Does Not Exist'
+                #return Response.badRequest(
+                #    message='Kabupaten/Kota Does Not Exist'
+                #)
+                return Response.base(
+                    success=False,
+                    message='Province Does Not Exist',
+                    status=404
                 )
         try:
             data = Kecamatan.objects(kabupaten=kabupaten_kota.id)
@@ -109,8 +122,13 @@ def getDesa(request):
         try:
             kecamatan = Kecamatan.objects.get(id=kec)
         except Kecamatan.DoesNotExist:
-            return Response.badRequest(
-                message='Kecamatan Does Not Exist'
+            #return Response.badRequest(
+            #    message='Kecamatan Does Not Exist'
+            #)
+            return Response.base(
+                success=False,
+                message='Province Does Not Exist',
+                status=404
             )
 
         data = Desa.objects(kecamatan=kecamatan.id)
