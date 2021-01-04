@@ -88,9 +88,15 @@ def uploadodp(request):
                         data_kab_kot = kota.objects.get(id=ObjectId(str(row[2].value)))
                         data_odp.kota = data_kab_kot.id
                     except kota.DoesNotExist:
-                        return Response.ok(
+                        #return Response.ok(
+                        #    values=[],
+                        #    message="kabkot " + str(row[2].value) +" tidak ada"
+                        #)
+                        return Response().base(
+                            success=False,
                             values=[],
-                            message="kabkot " + str(row[2].value) +" tidak ada"
+                            message="kabkot " + str(row[2].value) +" tidak ada",
+                            status=404
                         )
                 
                 data_odp.save()
@@ -542,9 +548,15 @@ def getRecommendTech(request):
                 message=f'{len(serializer.data)} Data'
             )
         else:
-            return Response.ok(
+            #return Response.ok(
+            #    values=[],
+            #    message='Data tidak ada'
+            #)
+            return Response().base(
+                success=False,
                 values=[],
-                message='Data tidak ada'
+                message='Data tidak ada',
+                status=404
             )
 
     except Exception as e:
@@ -572,9 +584,15 @@ def getodp(request):
                 message=f'{len(serializer.data)} Data'
             )
         else:
-            return Response.ok(
+            #return Response.ok(
+            #    values=[],
+            #    message='Data tidak ada'
+            #)
+            return Response().base(
+                success=False,
                 values=[],
-                message='Data tidak ada'
+                message='Data tidak ada',
+                status=404
             )
     except Exception as e:
         #print(e)

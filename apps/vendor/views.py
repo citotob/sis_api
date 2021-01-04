@@ -83,17 +83,27 @@ def respon(request):
             try:
                 data_user = UserInfo.objects.get(id=ObjectId(userid))
             except UserInfo.DoesNotExist:
-                return Response.ok(
-                    values=[],
-                    message='User tidak ada'
+                #return Response.ok(
+                #    values=[],
+                #    message='User tidak ada'
+                #)
+                return Response().base(
+                    success=False,
+                    message='User tidak ada',
+                    status=404
                 )
 
             data_vp_score = VPScore.objects.filter(
                 vendor=data_user.company.id).order_by('-created_at').first()
             if not data_vp_score:
-                return Response.ok(
-                    values=[],
-                    message='vp_score tidak ada'
+                #return Response.ok(
+                #    values=[],
+                #    message='vp_score tidak ada'
+                #)
+                return Response().base(
+                    success=False,
+                    message='vp_score tidak ada',
+                    status=404
                 )
             data_vendor_application = vendor_application(
                 users=userid,
@@ -181,9 +191,14 @@ def penawaran_(request):
             data_vendor_application = vendor_application.objects.get(
                 batchid=batchid, vendorid=vendorid)
         except vendor_application.DoesNotExist:
-            return Response.ok(
-                values=[],
-                message='vendor_application tidak ada'
+            #return Response.ok(
+            #    values=[],
+            #    message='vendor_application tidak ada'
+            #)
+            return Response().base(
+                success=False,
+                message='vendor_application tidak ada',
+                status=404
             )
         #data_vendor_application.rfi_score_id = data_rfi_score.id
         #data_vendor_application.save()
@@ -223,9 +238,14 @@ def penawaran_(request):
             data_smm = site_matchmaking.objects.get(
                 batchid=batchid, siteid=siteid)
         except site_matchmaking.DoesNotExist:
-            return Response.ok(
-                values=[],
-                message='Site_matchmaking tidak ada'
+            #return Response.ok(
+            #    values=[],
+            #    message='Site_matchmaking tidak ada'
+            #)
+            return Response().base(
+                success=False,
+                message='Site_matchmaking tidak ada',
+                status=404
             )
 
         #data_smm.applicants.append(data_vendor_application.id)
@@ -286,9 +306,14 @@ def penawaran(request):
             data_vendor_application = vendor_application.objects.get(
                 batchid=batchid, vendorid=vendorid)
         except vendor_application.DoesNotExist:
-            return Response.ok(
-                values=[],
-                message='vendor_application tidak ada'
+            #return Response.ok(
+            #    values=[],
+            #    message='vendor_application tidak ada'
+            #)
+            return Response().base(
+                success=False,
+                message='vendor_application tidak ada',
+                status=404
             )
         #data_vendor_application.rfi_score_id = data_rfi_score.id
         #data_vendor_application.save()
@@ -317,9 +342,14 @@ def penawaran(request):
             data_smm = site_matchmaking.objects.get(
                 batchid=batchid, siteid=siteid)
         except site_matchmaking.DoesNotExist:
-            return Response.ok(
-                values=[],
-                message='Site_matchmaking tidak ada'
+            #return Response.ok(
+            #    values=[],
+            #    message='Site_matchmaking tidak ada'
+            #)
+            return Response().base(
+                success=False,
+                message='Site_matchmaking tidak ada',
+                status=404
             )
 
         #data_smm.applicants.append(data_vendor_application.id)
@@ -428,9 +458,14 @@ def getsite(request):
             message=f'{len(site_list)} Data'
         )
     else:
-        return Response.ok(
-            values=[],
-            message='Data tidak ada'
+        #return Response.ok(
+        #    values=[],
+        #    message='Data tidak ada'
+        #)
+        return Response().base(
+            success=False,
+            message='Data tidak ada',
+            status=404
         )
 
 
@@ -450,9 +485,14 @@ def getVendorApp(request):
                 message=f'{len(serializer.data)} Data'
             )
         else:
-            return Response.ok(
-                values=[],
-                message='Data tidak ada'
+            #return Response.ok(
+            #    values=[],
+            #    message='Data tidak ada'
+            #)
+            return Response().base(
+                success=False,
+                message='Data tidak ada',
+                status=404
             )
     except Exception as e:
         print(e)
@@ -460,64 +500,64 @@ def getVendorApp(request):
 
 def getDashboardData(request):
 
-    #try:
-    if request.method == "POST":
-        if not request.body:
-            raise Exception('Need Json Body')
-        body_data = json.loads(request.body)
-        vendorId = body_data.get('vendor', None)
-        
-        if not vendorId:
-            raise Exception('Need Body `vendor`')
+    try:
+        if request.method == "POST":
+            if not request.body:
+                raise Exception('Need Json Body')
+            body_data = json.loads(request.body)
+            vendorId = body_data.get('vendor', None)
+            
+            if not vendorId:
+                raise Exception('Need Body `vendor`')
 
-        try:
-            vendorData = vendor.objects.get(id=vendorId)
-        except vendor.DoesNotExist:
-            raise Exception('Vendor not Found')
+            try:
+                vendorData = vendor.objects.get(id=vendorId)
+            except vendor.DoesNotExist:
+                raise Exception('Vendor not Found')
 
-        vendorCount = vendor.objects.all().count()
-        activeUserCount = UserInfo.objects(
-            company=vendorData.id, status='Aktif').count()
-        requestedUserCount = UserInfo.objects(
-            company=vendorData.id, status='Belum Terverifikasi').count()
-        listBatch = vendor_application.objects(vendorid=vendorData.id)
-        batchCount = batch.objects(
-            id__in=[x.id for x in listBatch.scalar('batchid')]).count()
-        #siteCount = site_matchmaking.objects(
-        #    batchid__exists=True, batchid__in=listBatch.scalar('id')).count()
-        siteCount = site_matchmaking.objects(
-            batchid__exists=True, batchid__in=listBatch.scalar('batchid')).count()
-        rfiCount = listBatch.count()
-        
-        totallayananai = Odp.objects(vendorid=vendorData.id).count()
-        totallayananaifo = Odp.objects(vendorid=vendorData.id,teknologi__in=['FIBER OPTIK','FO']).count()
-        totallayananairl = Odp.objects(vendorid=vendorData.id,teknologi__in=['RADIO LINK','RL']).count()
-        totallayananaivsat = Odp.objects(vendorid=vendorData.id,teknologi='VSAT').count()
+            vendorCount = vendor.objects.all().count()
+            activeUserCount = UserInfo.objects(
+                company=vendorData.id, status='Aktif').count()
+            requestedUserCount = UserInfo.objects(
+                company=vendorData.id, status='Belum Terverifikasi').count()
+            listBatch = vendor_application.objects(vendorid=vendorData.id)
+            batchCount = batch.objects(
+                id__in=[x.id for x in listBatch.scalar('batchid')]).count()
+            #siteCount = site_matchmaking.objects(
+            #    batchid__exists=True, batchid__in=listBatch.scalar('id')).count()
+            siteCount = site_matchmaking.objects(
+                batchid__exists=True, batchid__in=listBatch.scalar('batchid')).count()
+            rfiCount = listBatch.count()
+            
+            totallayananai = Odp.objects(vendorid=vendorData.id).count()
+            totallayananaifo = Odp.objects(vendorid=vendorData.id,teknologi__in=['FIBER OPTIK','FO']).count()
+            totallayananairl = Odp.objects(vendorid=vendorData.id,teknologi__in=['RADIO LINK','RL']).count()
+            totallayananaivsat = Odp.objects(vendorid=vendorData.id,teknologi='VSAT').count()
 
-        siteNonBatchCount = 0
+            siteNonBatchCount = 0
 
-        result = {
-            "vendor": vendorCount,
-            "active_user": activeUserCount,
-            "requested_user": requestedUserCount,
-            "batch": batchCount,
-            "site": siteCount,
-            "rfi": rfiCount,
-            "site_not_batch": siteNonBatchCount,
-            "totallayananai": totallayananai,
-            "totallayananaifo": totallayananaifo,
-            "totallayananairl": totallayananairl,
-            "totallayananaivsat": totallayananaivsat,
-        }
+            result = {
+                "vendor": vendorCount,
+                "active_user": activeUserCount,
+                "requested_user": requestedUserCount,
+                "batch": batchCount,
+                "site": siteCount,
+                "rfi": rfiCount,
+                "site_not_batch": siteNonBatchCount,
+                "totallayananai": totallayananai,
+                "totallayananaifo": totallayananaifo,
+                "totallayananairl": totallayananairl,
+                "totallayananaivsat": totallayananaivsat,
+            }
 
-        return Response.ok(
-            values=result
+            return Response.ok(
+                values=result
+            )
+        else:
+            raise Exception('Method Post Only')
+
+    except Exception as e:
+        return Response.badRequest(
+            values=[],
+            message=str(e)
         )
-    else:
-        raise Exception('Method Post Only')
-
-    #except Exception as e:
-    #    return Response.badRequest(
-    #        values=[],
-    #        message=str(e)
-    #    )

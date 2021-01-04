@@ -91,9 +91,14 @@ def login(request):
             except UserInfo.DoesNotExist:
                 user = None
             if not user:
-                return Response.badRequest(
-                    values='null',
-                    message='User not found'
+                #return Response.badRequest(
+                #    values='null',
+                #    message='User not found'
+                #)
+                return Response().base(
+                    success=False,
+                    message='User not found',
+                    status=404
                 )
             check = check_password(data['password'], user.password)
             if check:
@@ -155,15 +160,25 @@ def getUserByRole(request):
     try:
         dataRole = UserRole.objects.get(name=role)
     except UserRole.DoesNotExist:
-        return Response.badRequest(
+        #return Response.badRequest(
+        #    message='Role not Found',
+        #)
+        return Response().base(
+            success=False,
             message='Role not Found',
+            status=404
         )
 
     try:
         data = UserInfo.objects.filter(role=dataRole.id)
     except UserInfo.DoesNotExist:
-        return Response.badRequest(
+        #return Response.badRequest(
+        #    message='User not Found',
+        #)
+        return Response().base(
+            success=False,
             message='User not Found',
+            status=404
         )
 
     result = []
@@ -297,9 +312,14 @@ def verifyUser(request):
             try:
                 user = UserInfo.objects.get(id=data["id"])
             except UserInfo.DoesNotExist:
-                return Response.ok(
-                    values=[],
-                    message='User not found'
+                #return Response.ok(
+                #    values=[],
+                #    message='User not found'
+                #)
+                return Response().base(
+                    success=False,
+                    message='User not Found',
+                    status=404
                 )
             user.status = 'Aktif'
             user.update_date = dateNow
@@ -350,9 +370,14 @@ def declineUser(request):
             try:
                 user = UserInfo.objects.get(id=data["id"])
             except UserInfo.DoesNotExist:
-                return Response.ok(
-                    values=[],
-                    message='User not found'
+                #return Response.ok(
+                #    values=[],
+                #    message='User not found'
+                #)
+                return Response().base(
+                    success=False,
+                    message='User not Found',
+                    status=404
                 )
             user.status = 'Ditolak'
             user.comment = data["comment"]
@@ -405,9 +430,14 @@ def removeuser(request):
             try:
                 user = UserInfo.objects.get(id=data["id"])
             except UserInfo.DoesNotExist:
-                return Response.ok(
-                    values=[],
-                    message='User not found'
+                #return Response.ok(
+                #    values=[],
+                #    message='User not found'
+                #)
+                return Response().base(
+                    success=False,
+                    message='User not Found',
+                    status=404
                 )
             user.delete()
             
@@ -450,9 +480,14 @@ def register(request):
                 try:
                     data_role = UserRole.objects.get(id=ObjectId(request.POST.get('role')))
                 except UserRole.DoesNotExist:
-                    return Response.ok(
-                        values=[],
-                        message='Role tidak ada'
+                    #return Response.ok(
+                    #    values=[],
+                    #    message='Role tidak ada'
+                    #)
+                    return Response().base(
+                        success=False,
+                        message='Role tidak ada',
+                        status=404
                     )
                 #data_VPScore = VPScore(vendor=data_vendor.id)
                 #data_VPScore.save()
@@ -578,9 +613,14 @@ def createRole(request):
             data = json.loads(x)
             try:
                 data_role = UserRole.objects.get(name__iexact=data['name'])
-                return Response.ok(
-                    values=[],
-                    message='Data sudah ada'
+                #return Response.ok(
+                #    values=[],
+                #    message='Data sudah ada'
+                #)
+                return Response().base(
+                    success=False,
+                    message='Data sudah ada',
+                    status=409
                 )
             except UserRole.DoesNotExist:
                 pass
@@ -616,9 +656,14 @@ def getRole(request):
             message=f'{len(result)} Data Found'
         )
     else:
-        return Response.ok(
-            values=result,
+        #return Response.ok(
+        #    values=result,
+        #    message='No Data',
+        #)
+        return Response().base(
+            success=False,
             message='No Data',
+            status=404
         )
     return HttpResponse('Success')
 
@@ -668,15 +713,25 @@ def getStaffSurvey(request):
     try:
         datarole = UserRole.objects.get(name=role)
     except UserRole.DoesNotExist:
-        return Response.badRequest(
+        #return Response.badRequest(
+        #    message='UserRole not Found',
+        #)
+        return Response().base(
+            success=False,
             message='UserRole not Found',
+            status=404
         )
     try:
         datauser = UserInfo.objects.filter(role=ObjectId(
             datarole.id), company=ObjectId(company))
     except UserInfo.DoesNotExist:
-        return Response.badRequest(
+        #return Response.badRequest(
+        #    message='User not Found',
+        #)
+        return Response().base(
+            success=False,
             message='User not Found',
+            status=404
         )
 
     result = []
@@ -704,9 +759,14 @@ def changepassword(request):
             except UserInfo.DoesNotExist:
                 user = None
             if not user:
-                return Response.badRequest(
-                    values='null',
-                    message='User not found'
+                #return Response.badRequest(
+                #    values='null',
+                #    message='User not found'
+                #)
+                return Response().base(
+                    success=False,
+                    message='User not Found',
+                    status=404
                 )
             check = check_password(data['password'], user.password)
             if check:
@@ -769,16 +829,26 @@ def sendnotif(request):
                     message=message,
                 ).send_message()
             except UserToken.DoesNotExist:
-                return Response.badRequest(
-                    values=[],
-                    message='User tidak ada'
+                #return Response.badRequest(
+                #    values=[],
+                #    message='User tidak ada'
+                #)
+                return Response().base(
+                    success=False,
+                    message='User tidak ada',
+                    status=404
                 )
             try:
                 user = UserInfo.objects.get(id=userto)
             except UserInfo.DoesNotExist:
-                return Response.badRequest(
-                    values=[],
-                    message='User tujuan tidak ada'
+                #return Response.badRequest(
+                #    values=[],
+                #    message='User tujuan tidak ada'
+                #)
+                return Response().base(
+                    success=False,
+                    message='User tujuan tidak ada',
+                    status=404
                 )
             notif = Message(
                 title=title,
@@ -868,8 +938,13 @@ def updatesurveyor(request):
     try:
         datauser = UserInfo.objects.filter(role=ObjectId('5f13b370386bf295b4169f00'))
     except UserInfo.DoesNotExist:
-        return Response.badRequest(
+        #return Response.badRequest(
+        #    message='User not Found',
+        #)
+        return Response().base(
+            success=False,
             message='User not Found',
+            status=404
         )
     for dt in datauser:
         dt.name = dt.username
@@ -891,9 +966,14 @@ def forgotpassword(request):
             try:
                 user = UserInfo.objects.get(email=data["email"])
             except UserInfo.DoesNotExist:
-                return Response.ok(
-                    values=[],
-                    message='User not found'
+                #return Response.ok(
+                #    values=[],
+                #    message='User not found'
+                #)
+                return Response().base(
+                    success=False,
+                    message='User not Found',
+                    status=404
                 )
             
             token = id_generator(10, str(user.id))
@@ -944,9 +1024,14 @@ def resetpassword(request):
             try:
                 user = UserInfo.objects.get(token_reset=data["token"])
             except UserInfo.DoesNotExist:
-                return Response.ok(
-                    values=[],
-                    message='User not found'
+                #return Response.ok(
+                #    values=[],
+                #    message='User not found'
+                #)
+                return Response().base(
+                    success=False,
+                    message='User not Found',
+                    status=404
                 )
             
             user.password = make_password(
@@ -1005,9 +1090,14 @@ def changeimage(request):
             try:
                 user = UserInfo.objects.get(id=data["userid"])
             except UserInfo.DoesNotExist:
-                return Response.ok(
-                    values=[],
-                    message='User not found'
+                #return Response.ok(
+                #    values=[],
+                #    message='User not found'
+                #)
+                return Response().base(
+                    success=False,
+                    message='User not Found',
+                    status=404
                 )
             
             filename = fs.save(file.name, file)

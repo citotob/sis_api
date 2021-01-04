@@ -616,9 +616,14 @@ def addsite(request):
                     dat.latitude), float(longitude), float(latitude))
                 # print(a)
                 if a <= radius:
-                    return Response.ok(
-                        values=[],
-                        message='Data sudah ada'
+                    #return Response.ok(
+                    #    values=[],
+                    #    message='Data sudah ada'
+                    #)
+                    return Response().base(
+                        success=False,
+                        message='Data sudah ada',
+                        status=409
                     )
 
             try:
@@ -671,7 +676,12 @@ def addsite(request):
                 data_batch.sites.append(ObjectId(data_site_matchmaking.id))
                 data_batch.save()
             except batch.DoesNotExist:
-                return Response.badRequest(message='Batch tidak ada')
+                #return Response.badRequest(message='Batch tidak ada')
+                return Response().base(
+                    success=False,
+                    message='Batch tidak ada',
+                    status=404
+                )
 
             results = site.objects.get(id=ObjectId(data_site.id))
 
@@ -719,7 +729,12 @@ def editbatch(request):
         try:
             data_batch = batch.objects.get(id=ObjectId(batch_id))
         except batch.DoesNotExist:
-            return Response.ok(message='Batch tidak ada')
+            #return Response.ok(message='Batch tidak ada')
+            return Response().base(
+                success=False,
+                message='Batch tidak ada',
+                status=404
+            )
 
         data_batch.tanggal_mulai_undangan = tanggal_mulai_undangan
         data_batch.tanggal_selesai_undangan = tanggal_selesai_undangan
@@ -819,9 +834,14 @@ def getbatch(request):
             message=f'{len(serializer.data)} Data'
         )
     except batch.DoesNotExist:
-        return Response.ok(
-            values=[],
-            message='Data tidak ada'
+        #return Response.ok(
+        #    values=[],
+        #    message='Data tidak ada'
+        #)
+        return Response().base(
+            success=False,
+            message='Data tidak ada',
+            status=404
         )
 
 
@@ -835,9 +855,14 @@ def getallbatch(request):
                 message=f'{len(serializer.data)} Data'
             )
         else:
-            return Response.ok(
-                values=[],
-                message='Data tidak ada'
+            #return Response.ok(
+            #    values=[],
+            #    message='Data tidak ada'
+            #)
+            return Response().base(
+                success=False,
+                message='Data tidak ada',
+                status=404
             )
     except Exception as e:
         print(e)
@@ -1123,9 +1148,14 @@ def getsiteoffair(request):
                 message=f'{len(serializer.data)} Data'
             )
         else:
-            return Response.ok(
-                values=[],
-                message='Data tidak ada'
+            #return Response.ok(
+            #    values=[],
+            #    message='Data tidak ada'
+            #)
+            return Response().base(
+                success=False,
+                message='Data tidak ada',
+                status=404
             )
     except Exception as e:
         #print(e)
@@ -1152,9 +1182,14 @@ def getoffairid(request):
                 message=f'{len(result)} Data'
             )
         else:
-            return Response.ok(
-                values=[],
-                message='Data tidak ada'
+            #return Response.ok(
+            #    values=[],
+            #    message='Data tidak ada'
+            #)
+            return Response().base(
+                success=False,
+                message='Data tidak ada',
+                status=404
             )
     except Exception as e:
         #print(e)
@@ -1171,9 +1206,14 @@ def getoffairbyid(request):
         try:
             data = site_offair.objects.get(unik_id=unikid)
         except site_offair.DoesNotExist:
-            return Response.ok(
-                values=[],
-                message='data tidak ada'
+            #return Response.ok(
+            #    values=[],
+            #    message='data tidak ada'
+            #)
+            return Response().base(
+                success=False,
+                message='Data tidak ada',
+                status=404
             )
 
         serializer = siteoffairSerializer(data)#, many=True
@@ -1209,9 +1249,14 @@ def getoffairprovinsi(request):
                 message=f'{len(serializer.data)} Data'
             )
         else:
-            return Response.ok(
-                values=[],
-                message='Data tidak ada'
+            #return Response.ok(
+            #    values=[],
+            #    message='Data tidak ada'
+            #)
+            return Response().base(
+                success=False,
+                message='Data tidak ada',
+                status=404
             )
     except Exception as e:
         #print(e)
@@ -1380,12 +1425,29 @@ def sendinvitation(request):
         body_data = json.loads(request.body)
 
         batchid = body_data.get('batchid')
-        data_batch=batch.objects.get(id=ObjectId(batchid))
+        vendors = []
+        try:
+            data_batch=batch.objects.get(id=ObjectId(batchid))
+            for pu in data_batch.penyedia_undang:
+                vendors.append(pu.id)
+        except batch.DoesNotExist:
+            return Response().base(
+                success=False,
+                message='Batch Does Not Exist',
+                status=404
+            )
         
         from_ = body_data.get('from')
         to_ = body_data.get('to').split(',')
         
         for vn in to_:
+            not_found = False
+            for pu in vendors:
+                if ObjectId(vn) == pu:
+                    not_found=True
+            if not not_found:
+                data_batch.penyedia_undang.append(ObjectId(vn))
+                data_batch.save()
             req_fields = ['id']
             vendor_users = UserInfo.objects.filter(company=ObjectId(vn), status='Aktif').only(*req_fields)
             if vendor_users:
