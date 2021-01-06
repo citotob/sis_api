@@ -14,8 +14,8 @@ channel_layer = get_channel_layer()
 class NotifConsumer(WebsocketConsumer):
 
     def connect(self):
-        print('====connect ws====')
         id = self.scope['url_route']['kwargs']['id']
+        print('====connect ws==== '+id)
         if not id:
             self.close()
         async_to_sync(self.channel_layer.group_add)(
@@ -28,6 +28,7 @@ class NotifConsumer(WebsocketConsumer):
             if self.channel_name in y.keys():
                 async_to_sync(self.channel_layer.group_discard)(
                     x, self.channel_name)
+                print('====disconnect ws==== '+self.channel_name)
 
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
