@@ -28,7 +28,7 @@ class NotifConsumer(WebsocketConsumer):
             if self.channel_name in y.keys():
                 async_to_sync(self.channel_layer.group_discard)(
                     x, self.channel_name)
-        print('====disconnect ws==== '+self.channel_name)
+        print('====disconnect ws====')
 
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
