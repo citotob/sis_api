@@ -507,11 +507,21 @@ def uploadsite(request):
                     lokasi_gagal += '{' + \
                         str(row[6].value)+', '+str(row[7].value)+'}, '
             except:
-                lokasi_gagal += '{' + \
-                    str(row[6].value)+', '+str(row[7].value)+'}, '
+                #lokasi_gagal += '{' + \
+                #    str(row[6].value)+', '+str(row[7].value)+'}, '
+                json_dict = {}
+                json_dict["no"] = str(row[0].value).strip()
+                json_dict["latitude"] = str(row[6].value)
+                json_dict["longitude"] = str(row[7].value)
+                id_gagal.append(json_dict)
+                continue
+        #return Response.ok(
+        #    values=[],
+        #    message=lokasi_gagal
+        #)
         return Response.ok(
-            values=[],
-            message=lokasi_gagal
+            values=json.loads(json.dumps(id_gagal, default=str)),
+            message="OK"
         )
 
 
