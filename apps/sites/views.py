@@ -332,7 +332,7 @@ def uploadsite(request):
         excel_data = list()
         # iterating over the rows and
         # getting value from each cell in row
-
+        id_gagal = []
         for row in worksheet.iter_rows():
             try:
                 lanjut = True
@@ -343,52 +343,101 @@ def uploadsite(request):
                 data_provinsi = provinsi.objects.filter(
                     name=str(row[2].value).upper()).first()
                 if data_provinsi is None:
-                    data_provinsi = provinsi(
-                        name=str(row[2].value).upper()
-                    )
-                    data_provinsi.save()
-
+                    #data_provinsi = provinsi(
+                    #    name=str(row[2].value).upper()
+                    #)
+                    #data_provinsi.save()
+                    json_dict = {}
+                    json_dict["no"] = str(row[0].value).strip()
+                    json_dict["provinsi"] = str(row[2].value).strip()
+                    id_gagal.append(json_dict)
+                    continue
+                
                 if str(row[3].value)[0:3].upper() == 'KAB':
                     kabupaten_ = kabupaten.objects.filter(
                         name=str(row[3].value).upper()).first()
                     if kabupaten_ is None:
-                        kabupaten_ = kabupaten(
-                            name=str(row[3].value).upper(),
-                            provinsi=ObjectId(data_provinsi.id)
-                        )
-                        kabupaten_.save()
+                        #kabupaten_ = kabupaten(
+                        #    name=str(row[3].value).upper(),
+                        #    provinsi=ObjectId(data_provinsi.id)
+                        #)
+                        #kabupaten_.save()
+                        json_dict = {}
+                        json_dict["no"] = str(row[0].value).strip()
+                        json_dict["provinsi_id"] = data_provinsi.id
+                        json_dict["provinsi"] = data_provinsi.name
+                        json_dict["kabupaten"] = str(row[3].value).strip()
+                        id_gagal.append(json_dict)
+                        continue
+                    kab_kot_name = kabupaten_.name
                 else:
                     kota_ = kota.objects.filter(
                         name=str(row[3].value).upper()).first()
                     if kota_ is None:
-                        kota_ = kota(
-                            name=str(row[3].value).upper(),
-                            provinsi=ObjectId(data_provinsi.id)
-                        )
-                        kota_.save()
+                        #kota_ = kota(
+                        #    name=str(row[3].value).upper(),
+                        #    provinsi=ObjectId(data_provinsi.id)
+                        #)
+                        #kota_.save()
+                        json_dict = {}
+                        json_dict["no"] = str(row[0].value).strip()
+                        json_dict["provinsi_id"] = data_provinsi.id
+                        json_dict["provinsi"] = data_provinsi.name
+                        json_dict["kota"] = str(row[3].value).strip()
+                        id_gagal.append(json_dict)
+                        continue
+                    kab_kot_name = kota_.name
                 data_kecamatan = kecamatan.objects.filter(
                     name=str(row[4].value).upper()).first()
                 if data_kecamatan is None:
-                    try:
-                        data_kecamatan = kecamatan(
-                            name=str(row[4].value).upper(),
-                            kabupaten=ObjectId(kabupaten_.id)
-                        )
-                        data_kecamatan.save()
-                    except:
-                        data_kecamatan = kecamatan(
-                            name=str(row[4].value).upper(),
-                            kota=ObjectId(kota_.id)
-                        )
-                        data_kecamatan.save()
+                    #try:
+                    #    data_kecamatan = kecamatan(
+                    #        name=str(row[4].value).upper(),
+                    #        kabupaten=ObjectId(kabupaten_.id)
+                    #    )
+                    #    data_kecamatan.save()
+                    #except:
+                    #    data_kecamatan = kecamatan(
+                    #        name=str(row[4].value).upper(),
+                    #        kota=ObjectId(kota_.id)
+                    #    )
+                    #    data_kecamatan.save()
+                    if str(row[3].value)[0:3].upper() == 'KAB':
+                        json_dict = {}
+                        json_dict["no"] = str(row[0].value).strip()
+                        json_dict["provinsi"] = data_provinsi.name
+                        json_dict["kab_kota_id"] = kabupaten_.id
+                        json_dict["kab_kota"] = kabupaten_.name
+                        json_dict["kecamatan"] = str(row[4].value).strip()
+                        id_gagal.append(json_dict)
+                        continue
+                    else:
+                        json_dict = {}
+                        json_dict["no"] = str(row[0].value).strip()
+                        json_dict["provinsi"] = data_provinsi.name
+                        json_dict["kab_kota_id"] = kota_.id
+                        json_dict["kab_kota"] = kota_.name
+                        json_dict["kecamatan"] = str(row[4].value).strip()
+                        id_gagal.append(json_dict)
+                        continue
+                
                 data_desa = desa.objects.filter(
                     name=str(row[5].value).upper()).first()
                 if data_desa is None:
-                    data_desa = desa(
-                        name=str(row[5].value).upper(),
-                        kecamatan=ObjectId(data_kecamatan.id)
-                    )
-                    data_desa.save()
+                    #data_desa = desa(
+                    #    name=str(row[5].value).upper(),
+                    #    kecamatan=ObjectId(data_kecamatan.id)
+                    #)
+                    #data_desa.save()
+                    json_dict = {}
+                    json_dict["no"] = str(row[0].value).strip()
+                    json_dict["provinsi"] = data_provinsi.name
+                    json_dict["kab_kota"] = kab_kot_name
+                    json_dict["kecamatan_id"] = data_kecamatan.id
+                    json_dict["kecamatan"] = data_kecamatan.name
+                    json_dict["desa"] = str(row[5].value).strip()
+                    id_gagal.append(json_dict)
+                    continue
                 if str(row[1].value).upper() == 'PERMOHONAN AKSES INTERNET':
                     jns = 'AI'
                 else:
@@ -1027,7 +1076,7 @@ def uploadsiteoffair(request):
         excel_data = list()
         # iterating over the rows and
         # getting value from each cell in row
-
+        
         for row in worksheet.iter_rows():
             lanjut = True
             if str(row[1].value) == 'None':
