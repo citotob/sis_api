@@ -646,6 +646,117 @@ def addbatch(request):
     else:
         return Response.badRequest(message='Hanya POST')
 
+def addsitebyid(request):
+    # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
+    # ret, user = authenticate_credentials(token)
+    # if False == ret or None == user:
+    #    return JsonResponse({"state": "fail"})
+    if request.method == "POST":  # Add
+        try:
+            body_data = json.loads(request.body)
+
+            batch_id = body_data.get('batch')
+            nama = body_data.get('nama')
+            provinsi = body_data.get('provinsi')
+            kab_kota = body_data.get('kab_kota')
+            kecamatan = body_data.get('kecamatan')
+            desa = body_data.get('desa')
+            longitude = body_data.get('longitude')
+            latitude = body_data.get('latitude')
+            kode_pos = body_data.get('kode_pos')
+            nomor_site = body_data.get('unik_id')
+
+            req_fields = ['latitude', 'longitude', 'kecamatan']
+            data_site_lok = site.objects.all().only(*req_fields)
+            radius = 1.00  # in kilometer
+
+            for dat in data_site_lok:
+                if dat.kecamatan.id != ObjectId(kecamatan):
+                    continue
+                a = haversine(float(dat.longitude), float(
+                    dat.latitude), float(longitude), float(latitude))
+                # print(a)
+                if a <= radius:
+                    #return Response.ok(
+                    #    values=[],
+                    #    message='Data sudah ada'
+                    #)
+                    return Response().base(
+                        success=False,
+                        message='Data sudah ada',
+                        status=409
+                    )
+
+            try:
+                data_kabupaten = kabupaten.objects.get(id=kab_kota)
+                data_kab_kota = 'kab'
+            except kabupaten.DoesNotExist:
+                data_kabupaten = kota.objects.get(id=kab_kota)
+                data_kab_kota = 'kota'
+
+            #try:
+            #    data_nomor_site = site.objects.order_by('-unik_id').first()
+            #    nomor_site = data_nomor_site.unik_id + 1
+            #    # nomor_site = str(nomor_site).zfill(5)
+            #except Exception as e:
+            #    print(e)
+            #    # nomor_site = '1'.zfill(5)
+            #    nomor_site = 1
+
+            rekomentek = getRecommendTechnologi(longitude, latitude)
+            data_site = site(
+                unik_id=nomor_site,
+                latitude=latitude,
+                longitude=longitude,
+                longlat=[float(longitude), float(latitude)],
+                rekomendasi_teknologi=rekomentek,
+                nama=nama,
+                desa_kelurahan=ObjectId(desa),
+                kecamatan=ObjectId(kecamatan),
+                provinsi=ObjectId(provinsi),
+                kode_pos=kode_pos,
+                # created_at = datetime.utcnow() + timedelta(hours=7),
+                # updated_at = datetime.utcnow() + timedelta(hours=7)
+            )
+            if data_kab_kota == 'kab':
+                data_site.kabupaten = data_kabupaten.id
+            else:
+                data_site.kota = data_kabupaten.id
+            data_site.save()
+
+            data_site_matchmaking = site_matchmaking(
+                siteid=data_site.id,
+                batchid=ObjectId(batch_id)
+            )
+            data_site_matchmaking.save()
+
+            data_site.site_matchmaking.append(data_site_matchmaking.id)
+            data_site.save()
+            try:
+                data_batch = batch.objects.get(id=ObjectId(batch_id))
+                data_batch.sites.append(ObjectId(data_site_matchmaking.id))
+                data_batch.save()
+            except batch.DoesNotExist:
+                #return Response.badRequest(message='Batch tidak ada')
+                return Response().base(
+                    success=False,
+                    message='Batch tidak ada',
+                    status=404
+                )
+
+            results = site.objects.get(id=ObjectId(data_site.id))
+
+            result = results.serialize()
+
+            return Response.ok(
+                values=result,
+                message='Berhasil'
+            )
+        except Exception as e:
+            return Response.badRequest(message=str(e))
+
+    else:
+        return Response.badRequest(message='Hanya POST')
 
 def addsite(request):
     # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
