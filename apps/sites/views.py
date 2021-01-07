@@ -46,6 +46,7 @@ import openpyxl
 
 from notification.utils.CustomNotification import CustomNotification
 
+
 def getLaporan(request):
 
     if request.method == "POST":
@@ -229,11 +230,10 @@ def haversine(lon1, lat1, lon2, lat2):
     return c * r
 
 
-
 def uploadsite(request):
     if request.method == 'POST':
         lokasi_gagal = ''
-        
+
         file = request.FILES['doc']
         if not file:
             return Response.badRequest(message='Doc tidak boleh kosong')
@@ -412,21 +412,23 @@ def uploadsite(request):
                         lanjut = False
                         break
                 if lanjut:
-                    #try:
+                    # try:
                     #    data_nomor_site = site.objects.order_by('-unik_id').first()
                     #    nomor_site = data_nomor_site.unik_id + 1
                     #    # nomor_site = str(nomor_site).zfill(5)
-                    #except Exception as e:
+                    # except Exception as e:
                     #    print(e)
                     #    # nomor_site = '1'.zfill(5)
                     #    nomor_site = 1
 
-                    rekomentek = getRecommendTechnologi(str(row[7].value), str(row[6].value))
+                    rekomentek = getRecommendTechnologi(
+                        str(row[7].value), str(row[6].value))
                     data_site = site(
                         unik_id=str(row[10].value),
                         latitude=str(row[6].value),
                         longitude=str(row[7].value),
-                        longlat=[float(str(row[7].value)), float(str(row[6].value))],
+                        longlat=[float(str(row[7].value)),
+                                 float(str(row[6].value))],
                         rekomendasi_teknologi=rekomentek,
                         nama=str(row[8].value),
                         desa_kelurahan=ObjectId(data_desa.id),
@@ -452,7 +454,8 @@ def uploadsite(request):
                     data_batch.sites.append(ObjectId(data_site_matchmaking.id))
                     data_batch.save()
 
-                    longlat_ = {'longitude': str(row[7].value), 'latitude': str(row[6].value)}
+                    longlat_ = {'longitude': str(
+                        row[7].value), 'latitude': str(row[6].value)}
                     new_data_site_lok.append(longlat_)
                 else:
                     lokasi_gagal += '{' + \
@@ -596,10 +599,44 @@ def addsite(request):
 
             batch_id = body_data.get('batch')
             nama = body_data.get('nama')
-            provinsi = body_data.get('provinsi')
-            kab_kota = body_data.get('kab_kota')
-            kecamatan = body_data.get('kecamatan')
-            desa = body_data.get('desa')
+
+            provinsiName = body_data.get('provinsi')
+
+            # try:
+            province = provinsi.objects.get(name=provinsiName)
+
+            kab_kotaName = body_data.get('kab_kota')
+
+            try:
+                kab_kota = kabupaten.objects.get(
+                    name=kab_kotaName, provinsi=province['id'])
+            except kabupaten.DoesNotExist:
+                kab_kota = kota.objects.get(
+                    name=kab_kotaName, provinsi=province['id'])
+
+            kecamatanName = body_data.get('kecamatan')
+
+            try:
+                kecamatans = kecamatan.objects.get(
+                    name=kecamatanName, kabupaten=kab_kota['id'])
+            except kecamatan.DoesNotExist:
+                kecamatans = kecamatan.objects.get(
+                    name=kecamatanName, kota=kab_kota['id'])
+
+            desaName = body_data.get('desa')
+
+            desas = desa.objects.get(
+                name=desaName, kecamatan=kecamatans['id'])
+
+            # except province.DoesNotExist:
+            #     return Response.badRequest(message='Province Not Found')
+            # except kota.DoesNotExist:
+            #     return Response.badRequest(message='Kab_kota Not Found')
+            # except kecamatan.DoesNotExist:
+            #     return Response.badRequest(message='kecamatan Not Found')
+            # except desa.DoesNotExist:
+            #     return Response.badRequest(message='desa Not Found')
+
             longitude = body_data.get('longitude')
             latitude = body_data.get('latitude')
             kode_pos = body_data.get('kode_pos')
@@ -610,16 +647,16 @@ def addsite(request):
             radius = 1.00  # in kilometer
 
             for dat in data_site_lok:
-                if dat.kecamatan.id != ObjectId(kecamatan):
+                if dat.kecamatan.id != kecamatans['id']:
                     continue
                 a = haversine(float(dat.longitude), float(
                     dat.latitude), float(longitude), float(latitude))
                 # print(a)
                 if a <= radius:
-                    #return Response.ok(
+                    # return Response.ok(
                     #    values=[],
                     #    message='Data sudah ada'
-                    #)
+                    # )
                     return Response().base(
                         success=False,
                         message='Data sudah ada',
@@ -627,17 +664,17 @@ def addsite(request):
                     )
 
             try:
-                data_kabupaten = kabupaten.objects.get(id=kab_kota)
+                data_kabupaten = kabupaten.objects.get(id=kab_kota['id'])
                 data_kab_kota = 'kab'
             except kabupaten.DoesNotExist:
-                data_kabupaten = kota.objects.get(id=kab_kota)
+                data_kabupaten = kota.objects.get(id=kab_kota['id'])
                 data_kab_kota = 'kota'
 
-            #try:
+            # try:
             #    data_nomor_site = site.objects.order_by('-unik_id').first()
             #    nomor_site = data_nomor_site.unik_id + 1
             #    # nomor_site = str(nomor_site).zfill(5)
-            #except Exception as e:
+            # except Exception as e:
             #    print(e)
             #    # nomor_site = '1'.zfill(5)
             #    nomor_site = 1
@@ -650,9 +687,9 @@ def addsite(request):
                 longlat=[float(longitude), float(latitude)],
                 rekomendasi_teknologi=rekomentek,
                 nama=nama,
-                desa_kelurahan=ObjectId(desa),
-                kecamatan=ObjectId(kecamatan),
-                provinsi=ObjectId(provinsi),
+                desa_kelurahan=desas['id'],
+                kecamatan=kecamatans['id'],
+                provinsi=province['id'],
                 kode_pos=kode_pos,
                 # created_at = datetime.utcnow() + timedelta(hours=7),
                 # updated_at = datetime.utcnow() + timedelta(hours=7)
@@ -676,7 +713,7 @@ def addsite(request):
                 data_batch.sites.append(ObjectId(data_site_matchmaking.id))
                 data_batch.save()
             except batch.DoesNotExist:
-                #return Response.badRequest(message='Batch tidak ada')
+                # return Response.badRequest(message='Batch tidak ada')
                 return Response().base(
                     success=False,
                     message='Batch tidak ada',
@@ -691,11 +728,135 @@ def addsite(request):
                 values=result,
                 message='Berhasil'
             )
+        except province.DoesNotExist:
+            return Response.badRequest(message='Province Not Found')
+        except kota.DoesNotExist:
+            return Response.badRequest(message='Kab_kota Not Found')
+        except kecamatan.DoesNotExist:
+            return Response.badRequest(message='kecamatan Not Found')
+        except desa.DoesNotExist:
+            return Response.badRequest(message='desa Not Found')
         except Exception as e:
+            print(e)
             return Response.badRequest(message=str(e))
 
     else:
         return Response.badRequest(message='Hanya POST')
+
+# def addsite(request):
+#     # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
+#     # ret, user = authenticate_credentials(token)
+#     # if False == ret or None == user:
+#     #    return JsonResponse({"state": "fail"})
+#     if request.method == "POST":  # Add
+#         try:
+#             body_data = json.loads(request.body)
+
+#             batch_id = body_data.get('batch')
+#             nama = body_data.get('nama')
+
+#             provinsi = body_data.get('provinsi')
+
+#             kab_kota = body_data.get('kab_kota')
+#             kecamatan = body_data.get('kecamatan')
+#             desa = body_data.get('desa')
+
+#             longitude = body_data.get('longitude')
+#             latitude = body_data.get('latitude')
+#             kode_pos = body_data.get('kode_pos')
+#             nomor_site = body_data.get('unik_id')
+
+#             req_fields = ['latitude', 'longitude', 'kecamatan']
+#             data_site_lok = site.objects.all().only(*req_fields)
+#             radius = 1.00  # in kilometer
+
+#             for dat in data_site_lok:
+#                 if dat.kecamatan.id != ObjectId(kecamatan):
+#                     continue
+#                 a = haversine(float(dat.longitude), float(
+#                     dat.latitude), float(longitude), float(latitude))
+#                 # print(a)
+#                 if a <= radius:
+#                     #return Response.ok(
+#                     #    values=[],
+#                     #    message='Data sudah ada'
+#                     #)
+#                     return Response().base(
+#                         success=False,
+#                         message='Data sudah ada',
+#                         status=409
+#                     )
+
+#             try:
+#                 data_kabupaten = kabupaten.objects.get(id=kab_kota)
+#                 data_kab_kota = 'kab'
+#             except kabupaten.DoesNotExist:
+#                 data_kabupaten = kota.objects.get(id=kab_kota)
+#                 data_kab_kota = 'kota'
+
+#             #try:
+#             #    data_nomor_site = site.objects.order_by('-unik_id').first()
+#             #    nomor_site = data_nomor_site.unik_id + 1
+#             #    # nomor_site = str(nomor_site).zfill(5)
+#             #except Exception as e:
+#             #    print(e)
+#             #    # nomor_site = '1'.zfill(5)
+#             #    nomor_site = 1
+
+#             rekomentek = getRecommendTechnologi(longitude, latitude)
+#             data_site = site(
+#                 unik_id=nomor_site,
+#                 latitude=latitude,
+#                 longitude=longitude,
+#                 longlat=[float(longitude), float(latitude)],
+#                 rekomendasi_teknologi=rekomentek,
+#                 nama=nama,
+#                 desa_kelurahan=ObjectId(desa),
+#                 kecamatan=ObjectId(kecamatan),
+#                 provinsi=ObjectId(provinsi),
+#                 kode_pos=kode_pos,
+#                 # created_at = datetime.utcnow() + timedelta(hours=7),
+#                 # updated_at = datetime.utcnow() + timedelta(hours=7)
+#             )
+#             if data_kab_kota == 'kab':
+#                 data_site.kabupaten = data_kabupaten.id
+#             else:
+#                 data_site.kota = data_kabupaten.id
+#             data_site.save()
+
+#             data_site_matchmaking = site_matchmaking(
+#                 siteid=data_site.id,
+#                 batchid=ObjectId(batch_id)
+#             )
+#             data_site_matchmaking.save()
+
+#             data_site.site_matchmaking.append(data_site_matchmaking.id)
+#             data_site.save()
+#             try:
+#                 data_batch = batch.objects.get(id=ObjectId(batch_id))
+#                 data_batch.sites.append(ObjectId(data_site_matchmaking.id))
+#                 data_batch.save()
+#             except batch.DoesNotExist:
+#                 #return Response.badRequest(message='Batch tidak ada')
+#                 return Response().base(
+#                     success=False,
+#                     message='Batch tidak ada',
+#                     status=404
+#                 )
+
+#             results = site.objects.get(id=ObjectId(data_site.id))
+
+#             result = results.serialize()
+
+#             return Response.ok(
+#                 values=result,
+#                 message='Berhasil'
+#             )
+#         except Exception as e:
+#             return Response.badRequest(message=str(e))
+
+#     else:
+#         return Response.badRequest(message='Hanya POST')
 
 
 def editbatch(request):
@@ -720,7 +881,7 @@ def editbatch(request):
         tanggal_selesai_undangan = body_data.get('tanggal_selesai_undangan')
         status_ = body_data.get('status')
 
-        #if status_ == 'Selesai':
+        # if status_ == 'Selesai':
         #    return Response.ok(
         #        values=[],
         #        message='Status sudah selesai'
@@ -729,7 +890,7 @@ def editbatch(request):
         try:
             data_batch = batch.objects.get(id=ObjectId(batch_id))
         except batch.DoesNotExist:
-            #return Response.ok(message='Batch tidak ada')
+            # return Response.ok(message='Batch tidak ada')
             return Response().base(
                 success=False,
                 message='Batch tidak ada',
@@ -834,10 +995,10 @@ def getbatch(request):
             message=f'{len(serializer.data)} Data'
         )
     except batch.DoesNotExist:
-        #return Response.ok(
+        # return Response.ok(
         #    values=[],
         #    message='Data tidak ada'
-        #)
+        # )
         return Response().base(
             success=False,
             message='Data tidak ada',
@@ -855,10 +1016,10 @@ def getallbatch(request):
                 message=f'{len(serializer.data)} Data'
             )
         else:
-            #return Response.ok(
+            # return Response.ok(
             #    values=[],
             #    message='Data tidak ada'
-            #)
+            # )
             return Response().base(
                 success=False,
                 message='Data tidak ada',
@@ -915,7 +1076,8 @@ def getDashboard(request):
     try:
         vendorCount = vendor.objects.all().count()
         activeUserCount = UserInfo.objects(status='Aktif').count()
-        requestedUserCount = UserInfo.objects(status='Belum Terverifikasi').count()
+        requestedUserCount = UserInfo.objects(
+            status='Belum Terverifikasi').count()
         batchCount = batch.objects.all().count()
         siteCount = site_matchmaking.objects(batchid__exists=True).count()
         rfiCount = vendor_application.objects.all().count()
@@ -924,7 +1086,8 @@ def getDashboard(request):
         vendorList = VendorScoreSerializer(vendorListQuery, many=True)
 
         #aiCount = Odp.objects.filter(teknologi__in=['VSAT','FIBER OPTIK','RADIO LINK']).count()
-        aiCount = Odp.objects.filter(teknologi__in=['VSAT','FO','RL']).count()
+        aiCount = Odp.objects.filter(
+            teknologi__in=['VSAT', 'FO', 'RL']).count()
         aiTech = Odp.objects.only('teknologi').distinct('teknologi')
         aiOperational = {
             "count": aiCount,
@@ -932,18 +1095,18 @@ def getDashboard(request):
             "VSAT": 0,
             "RL": 0
         }
-        #aiOperational = {
+        # aiOperational = {
         #    "count": aiCount,
         #    "FIBER OPTIK": 0,
         #    "VSAT": 0,
         #    "RADIO LINK": 0
-        #}
+        # }
         for x in list(aiTech):
-            xx=x
-            #if x=='FIBER OPTIK':
+            xx = x
+            # if x=='FIBER OPTIK':
             #    xx='FO'
             #    aiOperational.pop('FIBER OPTIK', None)
-            #if x=='RADIO LINK':
+            # if x=='RADIO LINK':
             #    xx='RL'
             #    aiOperational.pop('RADIO LINK', None)
             aiOperational.update({
@@ -1010,9 +1173,10 @@ def getDashboard(request):
             message=str(e)
         )
 
+
 def uploadsiteoffair(request):
     if request.method == 'POST':
-        
+
         lokasi_gagal = ''
 
         excel_file = request.FILES["excel_file"]
@@ -1034,11 +1198,11 @@ def uploadsiteoffair(request):
                 break
             if str(row[0].value) == 'unik_id':
                 continue
-            data_site = site_offair.objects.filter(latitude=str(row[17].value).replace(',','.'),
-                        longitude=str(row[18].value).replace(',','.'))
+            data_site = site_offair.objects.filter(latitude=str(row[17].value).replace(',', '.'),
+                                                   longitude=str(row[18].value).replace(',', '.'))
             if data_site:
                 continue
-            
+
             data_provinsi = provinsi.objects.filter(
                 name__iexact=str(row[10].value).upper())
             if data_provinsi is None:
@@ -1048,33 +1212,33 @@ def uploadsiteoffair(request):
             prov_list = []
             for prov in data_provinsi:
                 prov_list.append(prov.id)
-            
+
             if str(row[11].value)[0:3].upper() == 'KAB':
                 kabupaten_ = kabupaten.objects.filter(
-                    name__iexact=str(row[11].value).upper(),provinsi__in=prov_list)
+                    name__iexact=str(row[11].value).upper(), provinsi__in=prov_list)
                 if kabupaten_ is None:
                     lokasi_gagal += '{ ' + \
-                    str(row[0].value)+' }, '
+                        str(row[0].value)+' }, '
                     continue
                 kab_list = []
                 for kab in kabupaten_:
                     kab_list.append(kab.id)
             else:
                 data_kota = kota.objects.filter(
-                    name__iexact=str(row[11].value).upper(),provinsi__in=prov_list)
+                    name__iexact=str(row[11].value).upper(), provinsi__in=prov_list)
                 if data_kota is None:
                     lokasi_gagal += '{ ' + \
-                    str(row[0].value)+' }, '
+                        str(row[0].value)+' }, '
                     continue
                 kota_list = []
                 for _kota in data_kota:
                     kota_list.append(_kota.id)
             if str(row[11].value)[0:3].upper() == 'KAB':
                 data_kecamatan = kecamatan.objects.filter(
-                    name__iexact=str(row[12].value).upper(),kabupaten__in=kab_list)
+                    name__iexact=str(row[12].value).upper(), kabupaten__in=kab_list)
             else:
                 data_kecamatan = kecamatan.objects.filter(
-                    name__iexact=str(row[12].value).upper(),kota__in=kota_list)
+                    name__iexact=str(row[12].value).upper(), kota__in=kota_list)
             if data_kecamatan is None:
                 lokasi_gagal += '{ ' + \
                     str(row[0].value)+' }, '
@@ -1084,7 +1248,7 @@ def uploadsiteoffair(request):
                 kec_list.append(kec.id)
 
             data_desa = desa.objects.filter(
-                name__iexact=str(row[13].value).upper(),kecamatan__in=kec_list)
+                name__iexact=str(row[13].value).upper(), kecamatan__in=kec_list)
             if data_desa is None:
                 lokasi_gagal += '{ ' + \
                     str(row[0].value)+' }, '
@@ -1093,26 +1257,27 @@ def uploadsiteoffair(request):
             try:
                 data_siteoffair = site_offair(
                     unik_id=str(row[0].value),
-                    latitude=str(row[17].value).replace(',','.'),
-                    longitude=str(row[18].value).replace(',','.'),
-                    longlat=[float(str(row[18].value).replace(',','.')), float(str(row[17].value).replace(',','.'))],
-                    #teknologi=tekno,
+                    latitude=str(row[17].value).replace(',', '.'),
+                    longitude=str(row[18].value).replace(',', '.'),
+                    longlat=[float(str(row[18].value).replace(',', '.')), float(
+                        str(row[17].value).replace(',', '.'))],
+                    # teknologi=tekno,
                     nama=str(row[14].value),
                     desa_kelurahan=ObjectId(data_desa[0].id),
                     kecamatan=ObjectId(data_kecamatan[0].id),
                     provinsi=ObjectId(data_provinsi[0].id),
-                    #status=data_vendor.id,
+                    # status=data_vendor.id,
                 )
 
                 status_ = {'status': 'buka', 'tanggal_pembuatan': datetime.utcnow(
-                    ) + timedelta(hours=7)}
+                ) + timedelta(hours=7)}
                 data_siteoffair.status.append(status_)
 
                 if str(row[11].value)[0:3].upper() == 'KAB':
                     data_siteoffair.kabupaten = kabupaten_[0].id
                 else:
                     data_siteoffair.kota = data_kota[0].id
-                
+
                 data_siteoffair.save()
             except:
                 lokasi_gagal += '{ ' + \
@@ -1124,6 +1289,7 @@ def uploadsiteoffair(request):
             message=lokasi_gagal
         )
 
+
 def getsiteoffair(request):
     try:
         #req_fields = ['latitude', 'longitude']
@@ -1133,13 +1299,13 @@ def getsiteoffair(request):
 
             if start < 0:
                 start = 0
-        
+
             #data = site_offair.objects.all()[start:end]
             data = site_offair_norel.objects.all()[start:end]
         except:
             #data = site_offair.objects.all()
             data = site_offair_norel.objects.all()
-        
+
         #serializer = siteoffairSerializer(data, many=True)
         serializer = siteoffairSerializer_norel(data, many=True)
         if len(serializer.data) > 0:
@@ -1148,28 +1314,29 @@ def getsiteoffair(request):
                 message=f'{len(serializer.data)} Data'
             )
         else:
-            #return Response.ok(
+            # return Response.ok(
             #    values=[],
             #    message='Data tidak ada'
-            #)
+            # )
             return Response().base(
                 success=False,
                 message='Data tidak ada',
                 status=404
             )
     except Exception as e:
-        #print(e)
+        # print(e)
         return Response.badRequest(
             values=[],
             message=str(e)
         )
 
+
 def getoffairid(request):
     try:
-        req_fields = ['unik_id','nama']
-        
+        req_fields = ['unik_id', 'nama']
+
         data = site_offair.objects.all().only(*req_fields)
-        
+
         result = []
         for dt in data:
             json_dict = {}
@@ -1182,51 +1349,53 @@ def getoffairid(request):
                 message=f'{len(result)} Data'
             )
         else:
-            #return Response.ok(
+            # return Response.ok(
             #    values=[],
             #    message='Data tidak ada'
-            #)
+            # )
             return Response().base(
                 success=False,
                 message='Data tidak ada',
                 status=404
             )
     except Exception as e:
-        #print(e)
+        # print(e)
         return Response.badRequest(
             values=[],
             message=str(e)
         )
+
 
 def getoffairbyid(request):
     try:
         body_data = json.loads(request.body)
         unikid = body_data.get('unik_id')
-        
+
         try:
             data = site_offair.objects.get(unik_id=unikid)
         except site_offair.DoesNotExist:
-            #return Response.ok(
+            # return Response.ok(
             #    values=[],
             #    message='data tidak ada'
-            #)
+            # )
             return Response().base(
                 success=False,
                 message='Data tidak ada',
                 status=404
             )
 
-        serializer = siteoffairSerializer(data)#, many=True
+        serializer = siteoffairSerializer(data)  # , many=True
         return Response.ok(
             values=json.loads(json.dumps(serializer.data, default=str)),
             message=f'{len(serializer.data)} Data'
         )
     except Exception as e:
-        #print(e)
+        # print(e)
         return Response.badRequest(
             values=[],
             message=str(e)
         )
+
 
 def getoffairprovinsi(request):
     try:
@@ -1237,11 +1406,11 @@ def getoffairprovinsi(request):
 
             if start < 0:
                 start = 0
-        
+
             data = site_offair.objects.filter(provinsi=provinsi)[start:end]
         except:
             data = site_offair.objects.filter(provinsi=provinsi)
-        
+
         serializer = siteoffairSerializer(data, many=True)
         if len(serializer.data) > 0:
             return Response.ok(
@@ -1249,17 +1418,17 @@ def getoffairprovinsi(request):
                 message=f'{len(serializer.data)} Data'
             )
         else:
-            #return Response.ok(
+            # return Response.ok(
             #    values=[],
             #    message='Data tidak ada'
-            #)
+            # )
             return Response().base(
                 success=False,
                 message='Data tidak ada',
                 status=404
             )
     except Exception as e:
-        #print(e)
+        # print(e)
         return Response.badRequest(
             values=[],
             message=str(e)
@@ -1267,12 +1436,12 @@ def getoffairprovinsi(request):
 
 
 def calculatevendorscore(request):
-    #try:
-    #data_batch = batch.objects.filter(status__status='Selesai',
+    # try:
+    # data_batch = batch.objects.filter(status__status='Selesai',
     #            tanggal_selesai_undangan=datetime.utcnow() + timedelta(hours=7))
     #data_batch = batch.objects.all()
     data_smm = site_matchmaking.objects.all()
-    for dt_smm in data_smm: 
+    for dt_smm in data_smm:
         smm_tek = dt_smm.siteid.rekomendasi_teknologi.teknologi
         list_days_work = []
         list_harga = []
@@ -1280,42 +1449,48 @@ def calculatevendorscore(request):
         min_days_admin = 0
         for dt_rfi in dt_smm.rfi_score:
             tgl_start = dt_rfi.vendor_app.tanggal_mulai_sla
-            tgl_end = dt_rfi.integration + timedelta(dt_rfi.days_on_integration)
-            days_work=int((tgl_end.date() - tgl_start.date()).days)
+            tgl_end = dt_rfi.integration + \
+                timedelta(dt_rfi.days_on_integration)
+            days_work = int((tgl_end.date() - tgl_start.date()).days)
             list_days_work.append(days_work)
             list_harga.append(dt_rfi.biaya)
-        
-        if len(list_days_work)>0:
-            list_days_work = sorted(list_days_work)        
+
+        if len(list_days_work) > 0:
+            list_days_work = sorted(list_days_work)
             max_days_admin = list_days_work[-1]
             min_days_admin = list_days_work[0]
-        if len(list_harga)>0:
-            list_harga = sorted(list_harga)        
+        if len(list_harga) > 0:
+            list_harga = sorted(list_harga)
             max_harga = list_harga[-1]
             min_harga = list_harga[0]
 
         for dt_rfi in dt_smm.rfi_score:
-            #if dt_rfi.total_calc:
+            # if dt_rfi.total_calc:
             #    #print('continue')
             #    continue
             vendor_tek = dt_rfi.rekomendasi_teknologi
             tek_score = 0
-            if smm_tek==vendor_tek:
+            if smm_tek == vendor_tek:
                 tek_score = 1
             tgl_start = dt_rfi.vendor_app.tanggal_mulai_sla
-            tgl_end = dt_rfi.integration + timedelta(dt_rfi.days_on_integration)
-            days_work=int((tgl_end.date() - tgl_start.date()).days)
-            if max_days_admin-min_days_admin==0:
-                days_work=1
+            tgl_end = dt_rfi.integration + \
+                timedelta(dt_rfi.days_on_integration)
+            days_work = int((tgl_end.date() - tgl_start.date()).days)
+            if max_days_admin-min_days_admin == 0:
+                days_work = 1
             else:
-                days_work = 1-((days_work-min_days_admin)/(max_days_admin-min_days_admin))
-            if max_harga-min_harga==0:
-                nilai_harga=1
+                days_work = 1-((days_work-min_days_admin) /
+                               (max_days_admin-min_days_admin))
+            if max_harga-min_harga == 0:
+                nilai_harga = 1
             else:
-                nilai_harga = 1-((dt_rfi.biaya-min_harga)/(max_harga-min_harga))
-            
-            vpscore_kecepatan = (dt_rfi.vendor_app.vp_score_id.kecepatan-1)/(5-1)
-            vpscore_ketepatan = (dt_rfi.vendor_app.vp_score_id.ketepatan-1)/(5-1)
+                nilai_harga = 1-((dt_rfi.biaya-min_harga) /
+                                 (max_harga-min_harga))
+
+            vpscore_kecepatan = (
+                dt_rfi.vendor_app.vp_score_id.kecepatan-1)/(5-1)
+            vpscore_ketepatan = (
+                dt_rfi.vendor_app.vp_score_id.ketepatan-1)/(5-1)
             vpscore_kualitas = (dt_rfi.vendor_app.vp_score_id.kualitas-1)/(5-1)
             av_vp = (vpscore_kecepatan+vpscore_ketepatan+vpscore_kualitas)/3
 
@@ -1328,17 +1503,18 @@ def calculatevendorscore(request):
                 )
                 data_total_calc.save()
 
-                dt_rfi.total_calc=data_total_calc.id
+                dt_rfi.total_calc = data_total_calc.id
             else:
-                data_total_calc = total_calc.objects.get(id=dt_rfi.total_calc.id)
-                
+                data_total_calc = total_calc.objects.get(
+                    id=dt_rfi.total_calc.id)
+
                 if not data_total_calc:
                     dt_rfi.total_calc = None
                 else:
-                    data_total_calc.rfi=days_work
-                    data_total_calc.teknologi=tek_score
-                    data_total_calc.vp=av_vp
-                    data_total_calc.harga=nilai_harga
+                    data_total_calc.rfi = days_work
+                    data_total_calc.teknologi = tek_score
+                    data_total_calc.vp = av_vp
+                    data_total_calc.harga = nilai_harga
                 data_total_calc.save()
 
             dt_rfi.save()
@@ -1359,12 +1535,13 @@ def calculatevendorscore(request):
             message='Data tidak ada'
         )
     """
-    #except Exception as e:
+    # except Exception as e:
     #    #print(e)
     #    return Response.badRequest(
     #        values=[],
     #        message=str(e)
-    #    )        
+    #    )
+
 
 def clonesiteoffair(request):
     try:
@@ -1375,9 +1552,11 @@ def clonesiteoffair(request):
             data_prov = provinsi.objects.get(
                 id=dt.provinsi.id)
             try:
-                data_kab = kabupaten.objects.get(id=dt.kabupaten.id, provinsi=data_prov.id)
+                data_kab = kabupaten.objects.get(
+                    id=dt.kabupaten.id, provinsi=data_prov.id)
             except kabupaten.DoesNotExist:
-                data_kota = kota.objects.get(id=dt.kota.id, provinsi=data_prov.id)
+                data_kota = kota.objects.get(
+                    id=dt.kota.id, provinsi=data_prov.id)
             if data_kab:
                 data_kec = kecamatan.objects.get(
                     id=dt.kecamatan.id, kabupaten=data_kab.id)
@@ -1385,40 +1564,41 @@ def clonesiteoffair(request):
                 data_kec = kecamatan.objects.get(
                     id=dt.kecamatan.id, kota=data_kota.id)
             data_desa = desa.objects.get(
-                    id=dt.desa_kelurahan.id, kecamatan=data_kec.id)
+                id=dt.desa_kelurahan.id, kecamatan=data_kec.id)
 
             data_siteoffair = site_offair_norel(
-                    unik_id=dt.unik_id,
-                    latitude=dt.latitude,
-                    longitude=dt.longitude,
-                    longlat=[float(dt.longitude), float(dt.latitude)],
-                    nama=dt.nama,
-                    desa_kelurahan=data_desa.name,
-                    kecamatan=data_kec.name,
-                    provinsi=data_prov.name,
-                )
+                unik_id=dt.unik_id,
+                latitude=dt.latitude,
+                longitude=dt.longitude,
+                longlat=[float(dt.longitude), float(dt.latitude)],
+                nama=dt.nama,
+                desa_kelurahan=data_desa.name,
+                kecamatan=data_kec.name,
+                provinsi=data_prov.name,
+            )
 
             status_ = {'status': 'buka', 'tanggal_pembuatan': datetime.utcnow(
-                ) + timedelta(hours=7)}
+            ) + timedelta(hours=7)}
             data_siteoffair.status.append(status_)
 
             if data_kab:
                 data_siteoffair.kabupaten = data_kab.name
             else:
                 data_siteoffair.kota = data_kota.name
-            
+
             data_siteoffair.save()
-        
+
         return Response.ok(
             values=[],
             message='Berhasil'
         )
     except Exception as e:
-        #print(e)
+        # print(e)
         return Response.badRequest(
             values=[],
             message=str(e)
         )
+
 
 def sendinvitation(request):
     try:
@@ -1427,7 +1607,7 @@ def sendinvitation(request):
         batchid = body_data.get('batchid')
         vendors = []
         try:
-            data_batch=batch.objects.get(id=ObjectId(batchid))
+            data_batch = batch.objects.get(id=ObjectId(batchid))
             for pu in data_batch.penyedia_undang:
                 vendors.append(pu.id)
         except batch.DoesNotExist:
@@ -1436,28 +1616,29 @@ def sendinvitation(request):
                 message='Batch Does Not Exist',
                 status=404
             )
-        
+
         from_ = body_data.get('from')
         to_ = body_data.get('to').split(',')
-        
+
         for vn in to_:
             if not ObjectId(vn) in vendors:
                 data_batch.penyedia_undang.append(ObjectId(vn))
                 data_batch.save()
             req_fields = ['id']
-            vendor_users = UserInfo.objects.filter(company=ObjectId(vn), status='Aktif').only(*req_fields)
+            vendor_users = UserInfo.objects.filter(
+                company=ObjectId(vn), status='Aktif').only(*req_fields)
             if vendor_users:
-                list_vendor_users=[]
+                list_vendor_users = []
                 for usr in vendor_users:
                     list_vendor_users.append(usr.id)
                 notif = CustomNotification()
-                title_='Undangan batch berhasil dikirim'
+                title_ = 'Undangan batch berhasil dikirim'
                 if data_batch.type == 'VIP':
-                    title_='Invitation personal'
+                    title_ = 'Invitation personal'
 
-                notif.create(to=list_vendor_users, from_=ObjectId(from_), type='batch sent', 
-                    title=title_, message='batch '+data_batch.judul+' telah terkirim', push_message='Ada pesan baru')
-        
+                notif.create(to=list_vendor_users, from_=ObjectId(from_), type='batch sent',
+                             title=title_, message='batch '+data_batch.judul+' telah terkirim', push_message='Ada pesan baru')
+
         return Response.ok(
             values=[],
             message='Berhasil'
