@@ -728,7 +728,7 @@ def addsite(request):
                 values=result,
                 message='Berhasil'
             )
-        except province.DoesNotExist:
+        except provinsi.DoesNotExist:
             return Response.badRequest(message='Province Not Found')
         except kota.DoesNotExist:
             return Response.badRequest(message='Kab_kota Not Found')
