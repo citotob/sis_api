@@ -14,16 +14,16 @@ channel_layer = get_channel_layer()
 class NotifConsumer(WebsocketConsumer):
 
     def connect(self):
-        ch_group_list = channel_layer.groups.copy()
-        print(ch_group_list)
+        #ch_group_list = channel_layer.groups.copy()
+        #print(ch_group_list)
         id = self.scope['url_route']['kwargs']['id']
         print('====connect ws==== '+id)
         if not id:
             self.close()
-        for x, y in ch_group_list.items():
-            if self.channel_name in y.keys():
-                async_to_sync(self.channel_layer.group_discard)(
-                    x, self.channel_name)
+        #for x, y in ch_group_list.items():
+        #    if self.channel_name in y.keys():
+        #        async_to_sync(self.channel_layer.group_discard)(
+        #            x, self.channel_name)
         async_to_sync(self.channel_layer.group_add)(
             id, self.channel_name)
         self.accept()
