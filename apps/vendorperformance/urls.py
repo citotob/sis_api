@@ -23,7 +23,7 @@ update = views.VendorPerformanceAPI.as_view({
 
 urlpatterns = [
     path('all/', getAll),
-    path(r'vendor/', getByVendor),
+    path('vendor/', getByVendor),
     path('create/', create),
     path('update/', update),
 ]
