@@ -27,7 +27,6 @@ class CustomNotification():
 
         if serializer.is_valid():
             serializer.save()
-            notif = NotifConsumer()
 
             channel_layer = get_channel_layer()
             for x in to:
