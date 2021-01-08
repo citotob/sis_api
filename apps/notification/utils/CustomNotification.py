@@ -32,7 +32,7 @@ class CustomNotification():
             for x in to:
                 channel_layer = get_channel_layer()
                 async_to_sync(channel_layer.group_send)(
-                    x,
+                    str(x),
                     {"type": 'send_message_to_frontend', 'message': message}
                 )
 
