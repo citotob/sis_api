@@ -26,6 +26,7 @@ urlpatterns = [
     path('vendor/', getByVendor),
     path('create/', create),
     path('update/', update),
+    
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
