@@ -36,6 +36,8 @@ from mongoengine.queryset.visitor import Q
 
 from odps.models import Odp
 
+from notification.utils.CustomNotification import CustomNotification
+
 
 def getallvendor(request):
     # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
@@ -364,7 +366,7 @@ def penawaran(request):
         admin_users = UserInfo.objects.filter(role='5f73fdfc28751d590d835266', status='Aktif').only(*req_fields)
         if admin_users:
             try:
-                data_batch=Batch.objects.get(id=ObjectId(batchid))
+                data_batch=batch.objects.get(id=ObjectId(batchid))
                 list_admin_users=[]
                 for usr in admin_users:
                     list_admin_users.append(usr.id)
