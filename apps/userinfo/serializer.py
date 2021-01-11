@@ -12,6 +12,6 @@ class VendorScoreSerializer(DocumentSerializer):
         depth = 2
 
     def to_representation(self, instance):
-        vp = VPScore.objects(vendor=instance.id).order_by('-created_at')
+        vp = VPScore.objects(vendor=instance.id,kecepatan__gte=0).order_by('-created_at')
         instance.nilai = VPSerializer(vp, many=True).data
         return super().to_representation(instance)
