@@ -1166,8 +1166,13 @@ def editbatch(request):
         # except Exception as e:
         #     print(e)
 
+        d = {'username': user.username,
+            'company': request.POST.get('company').upper(),
+            'media_url': settings.URL_MEDIA,
+            'url_login': settings.URL_LOGIN}
+
         send_mail(f'Batch {data_batch.judul} {status_.lower()}', '', template,
-                  {}, settings.EMAIL_ADMIN, emails)
+                  d, settings.EMAIL_ADMIN, emails)
 
         result = batch.objects.get(id=ObjectId(data_batch.id)).serialize()
         # result = data_batch.serialize()
