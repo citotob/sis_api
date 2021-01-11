@@ -43,6 +43,8 @@ from publicservice.utils import send_mail
 import requests
 
 from notification.utils.CustomNotification import CustomNotification
+from vendorperformance.models import VPScore
+
 
 def test(request):
     try:
@@ -84,17 +86,17 @@ def login(request):
             # end captcha verification
             """
             token = data.get('token', 'none')
-            #print(data)
+            # print(data)
             try:
                 user = UserInfo.objects.get(
                     username=data["username"], status="Aktif")
             except UserInfo.DoesNotExist:
                 user = None
             if not user:
-                #return Response.badRequest(
+                # return Response.badRequest(
                 #    values='null',
                 #    message='User not found'
-                #)
+                # )
                 return Response().base(
                     success=False,
                     message='User not found',
@@ -160,9 +162,9 @@ def getUserByRole(request):
     try:
         dataRole = UserRole.objects.get(name=role)
     except UserRole.DoesNotExist:
-        #return Response.badRequest(
+        # return Response.badRequest(
         #    message='Role not Found',
-        #)
+        # )
         return Response().base(
             success=False,
             message='Role not Found',
@@ -172,9 +174,9 @@ def getUserByRole(request):
     try:
         data = UserInfo.objects.filter(role=dataRole.id)
     except UserInfo.DoesNotExist:
-        #return Response.badRequest(
+        # return Response.badRequest(
         #    message='User not Found',
-        #)
+        # )
         return Response().base(
             success=False,
             message='User not Found',
@@ -193,11 +195,11 @@ def getUserByRole(request):
 
 
 def getUser(request):
-    param=None
-    page=-1
+    param = None
+    page = -1
     try:
         body_data = json.loads(request.body)
-    
+
         param = body_data.get('status', None)
         page = int(body_data.get('page', 0)) - 1
     except:
@@ -308,14 +310,14 @@ def verifyUser(request):
         try:
             req = request.body.decode("utf-8")
             data = json.loads(req)
-            userfrom = data.get("userfrom",None)
+            userfrom = data.get("userfrom", None)
             try:
                 user = UserInfo.objects.get(id=data["id"])
             except UserInfo.DoesNotExist:
-                #return Response.ok(
+                # return Response.ok(
                 #    values=[],
                 #    message='User not found'
-                #)
+                # )
                 return Response().base(
                     success=False,
                     message='User not Found',
@@ -326,23 +328,24 @@ def verifyUser(request):
             user.save()
             print(user.id)
             subject = 'Verifikasi Akun Berhasil'
-            text_content = 'Terimakasih telah mendaftar\n'+user.username+'\n'+ \
-                    'Tim kami akan melakukan verifikasi terhadap data anda terlebih dahulu. Setelah verifikasi berhasil,\n'+ \
-                    'anda akan menerima email konfirmasi untuk menginformasikan status pendaftaran akun anda.'
+            text_content = 'Terimakasih telah mendaftar\n'+user.username+'\n' + \
+                'Tim kami akan melakukan verifikasi terhadap data anda terlebih dahulu. Setelah verifikasi berhasil,\n' + \
+                'anda akan menerima email konfirmasi untuk menginformasikan status pendaftaran akun anda.'
             template = 'email/webverifpengguna.html'
-            d = {'username': user.username, 
-                    'media_url': settings.URL_MEDIA,
-                    'url_login': settings.URL_LOGIN}
+            d = {'username': user.username,
+                 'media_url': settings.URL_MEDIA,
+                 'url_login': settings.URL_LOGIN}
             email_sender = settings.EMAIL_ADMIN
             email_receipient = user.email
-            send_mail(subject,text_content,template,d,email_sender,[email_receipient])
+            send_mail(subject, text_content, template, d,
+                      email_sender, [email_receipient])
 
             if not userfrom:
                 userfrom = '5f7403aae58dd8f91811ac76'
-            
+
             notif = CustomNotification()
-            notif.create(to=[user.id], from_=ObjectId(userfrom), type='user verified', 
-                title='Verifikasi email berhasil', message='Verifikasi email berhasil', push_message='Ada pesan baru')
+            notif.create(to=[user.id], from_=ObjectId(userfrom), type='user verified',
+                         title='Verifikasi email berhasil', message='Verifikasi email berhasil', push_message='Ada pesan baru')
 
             return Response.ok(
                 values=user.serialize(),
@@ -350,7 +353,7 @@ def verifyUser(request):
             )
         except Exception as e:
             print(e)
-            #return HttpResponse(e)
+            # return HttpResponse(e)
             return Response.badRequest(
                 values='null',
                 message=str(e)
@@ -365,15 +368,15 @@ def declineUser(request):
         try:
             req = request.body.decode("utf-8")
             data = json.loads(req)
-            userfrom = data.get("userfrom",None)
-            
+            userfrom = data.get("userfrom", None)
+
             try:
                 user = UserInfo.objects.get(id=data["id"])
             except UserInfo.DoesNotExist:
-                #return Response.ok(
+                # return Response.ok(
                 #    values=[],
                 #    message='User not found'
-                #)
+                # )
                 return Response().base(
                     success=False,
                     message='User not Found',
@@ -413,34 +416,35 @@ def declineUser(request):
             )
         except Exception as e:
             print(e)
-            #return HttpResponse(e)
+            # return HttpResponse(e)
             return Response.badRequest(
-                    values='null',
-                    message=str(e)
-                )
+                values='null',
+                message=str(e)
+            )
     else:
         return HttpResponse('Post Only')
+
 
 def removeuser(request):
     if request.method == 'POST':
         try:
             req = request.body.decode("utf-8")
             data = json.loads(req)
-            userfrom = data.get("userfrom",None)
+            userfrom = data.get("userfrom", None)
             try:
                 user = UserInfo.objects.get(id=data["id"])
             except UserInfo.DoesNotExist:
-                #return Response.ok(
+                # return Response.ok(
                 #    values=[],
                 #    message='User not found'
-                #)
+                # )
                 return Response().base(
                     success=False,
                     message='User not Found',
                     status=404
                 )
             user.delete()
-            
+
             return Response.ok(
                 values=user.serialize(),
                 message='Remove user Success'
@@ -462,7 +466,7 @@ def register(request):
                 location=f'{settings.MEDIA_ROOT}/user/documents/',
                 base_url=f'{settings.MEDIA_URL}/user/documents/'
             )
-            
+
             try:
                 data_vendor = vendor.objects.get(
                     name__iexact=request.POST.get('company'))
@@ -477,20 +481,32 @@ def register(request):
                 )
                 data_vendor.save()
 
+                score = VPScore(
+                    user=ObjectId('5f7403aae58dd8f91811ac76'),
+                    kecepatan=0,
+                    kualitas=0,
+                    ketepatan=0,
+                    vendor=data_vendor.id,
+                    doc=''
+                )
+
+                score.save()
+
                 try:
-                    data_role = UserRole.objects.get(id=ObjectId(request.POST.get('role')))
+                    data_role = UserRole.objects.get(
+                        id=ObjectId(request.POST.get('role')))
                 except UserRole.DoesNotExist:
-                    #return Response.ok(
+                    # return Response.ok(
                     #    values=[],
                     #    message='Role tidak ada'
-                    #)
+                    # )
                     return Response().base(
                         success=False,
                         message='Role tidak ada',
                         status=404
                     )
                 #data_VPScore = VPScore(vendor=data_vendor.id)
-                #data_VPScore.save()
+                # data_VPScore.save()
 
             user = UserInfo(
                 name=request.POST.get('name'),
@@ -571,17 +587,18 @@ def register(request):
             """
             try:
                 subject = 'Registrasi Akun'
-                text_content = 'Terimakasih telah mendaftar\n'+user.username+'\n'+request.POST.get('company').upper()+'\n'+ \
-                        'Tim kami akan melakukan verifikasi terhadap data anda terlebih dahulu. Setelah verifikasi berhasil,\n'+ \
-                        'anda akan menerima email konfirmasi untuk menginformasikan status pendaftaran akun anda.'
+                text_content = 'Terimakasih telah mendaftar\n'+user.username+'\n'+request.POST.get('company').upper()+'\n' + \
+                    'Tim kami akan melakukan verifikasi terhadap data anda terlebih dahulu. Setelah verifikasi berhasil,\n' + \
+                    'anda akan menerima email konfirmasi untuk menginformasikan status pendaftaran akun anda.'
                 template = 'email/webpendaftaranberhasil.html'
-                d = {'username': user.username, 
-                        'company': request.POST.get('company').upper(),
-                        'media_url': settings.URL_MEDIA,
-                        'url_login': settings.URL_LOGIN}
+                d = {'username': user.username,
+                     'company': request.POST.get('company').upper(),
+                     'media_url': settings.URL_MEDIA,
+                     'url_login': settings.URL_LOGIN}
                 email_sender = settings.EMAIL_ADMIN
                 email_receipient = user.email
-                send_mail(subject,text_content,template,d,email_sender,[email_receipient])
+                send_mail(subject, text_content, template, d,
+                          email_sender, [email_receipient])
             except:
                 return Response().base(
                     success=False,
@@ -589,14 +606,15 @@ def register(request):
                     status=400
                 )
             req_fields = ['id']
-            admin_users = UserInfo.objects.filter(role='5f73fdfc28751d590d835266', status='Aktif').only(*req_fields)
+            admin_users = UserInfo.objects.filter(
+                role='5f73fdfc28751d590d835266', status='Aktif').only(*req_fields)
             if admin_users:
-                list_admin_users=[]
+                list_admin_users = []
                 for usr in admin_users:
                     list_admin_users.append(usr.id)
                 notif = CustomNotification()
-                notif.create(to=list_admin_users, from_=user.id, type='new user', 
-                    title='Pendaftaran berhasil', message='berhasil mendaftar', push_message='Ada pesan baru')
+                notif.create(to=list_admin_users, from_=user.id, type='new user',
+                             title='Pendaftaran berhasil', message='berhasil mendaftar', push_message='Ada pesan baru')
 
             return Response.ok(
                 values=result,
@@ -619,10 +637,10 @@ def createRole(request):
             data = json.loads(x)
             try:
                 data_role = UserRole.objects.get(name__iexact=data['name'])
-                #return Response.ok(
+                # return Response.ok(
                 #    values=[],
                 #    message='Data sudah ada'
-                #)
+                # )
                 return Response().base(
                     success=False,
                     message='Data sudah ada',
@@ -642,7 +660,7 @@ def createRole(request):
                 message='Role Created Successfully'
             )
         except Exception as e:
-            #Response.badRequest(message=str(e))
+            # Response.badRequest(message=str(e))
             return Response.badRequest(
                 values=[],
                 message=str(e)
@@ -662,10 +680,10 @@ def getRole(request):
             message=f'{len(result)} Data Found'
         )
     else:
-        #return Response.ok(
+        # return Response.ok(
         #    values=result,
         #    message='No Data',
-        #)
+        # )
         return Response().base(
             success=False,
             message='No Data',
@@ -719,9 +737,9 @@ def getStaffSurvey(request):
     try:
         datarole = UserRole.objects.get(name=role)
     except UserRole.DoesNotExist:
-        #return Response.badRequest(
+        # return Response.badRequest(
         #    message='UserRole not Found',
-        #)
+        # )
         return Response().base(
             success=False,
             message='UserRole not Found',
@@ -731,9 +749,9 @@ def getStaffSurvey(request):
         datauser = UserInfo.objects.filter(role=ObjectId(
             datarole.id), company=ObjectId(company))
     except UserInfo.DoesNotExist:
-        #return Response.badRequest(
+        # return Response.badRequest(
         #    message='User not Found',
-        #)
+        # )
         return Response().base(
             success=False,
             message='User not Found',
@@ -765,10 +783,10 @@ def changepassword(request):
             except UserInfo.DoesNotExist:
                 user = None
             if not user:
-                #return Response.badRequest(
+                # return Response.badRequest(
                 #    values='null',
                 #    message='User not found'
-                #)
+                # )
                 return Response().base(
                     success=False,
                     message='User not Found',
@@ -815,30 +833,31 @@ def sendmail(request):
     else:
         return HttpResponse('Post Only')
 
+
 def sendnotif(request):
     if request.method == 'POST':
         dateNow = datetime.datetime.utcnow() + datetime.timedelta(hours=7)
         try:
             req = request.body.decode("utf-8")
             data = json.loads(req)
-            userfrom = data.get("userfrom",None)
-            userto = data.get("userto",None)
-            title = data.get("title",None)
-            message = data.get("message",None)
-            
+            userfrom = data.get("userfrom", None)
+            userto = data.get("userto", None)
+            title = data.get("title", None)
+            message = data.get("message", None)
+
             try:
                 token = UserToken.objects.get(user=ObjectId(userto))
                 Notification(
                     users=[token.key],
-                    #users=['ef0D86AAQRG8Tu9ZXdEv2D:APA91bFmQDKHVjaTlRpUuHXEbXOVjywVyJuEoSrzjKLPqIrON4fviP9uJapeyZGQGFJ3WBODB_7xzFSeuNLpDZC0E_TMBH6jo8oJ5_QCF_qHCjBwxa7uQtacQGPgLgiI4DxoAKhJ1FcM'],
+                    # users=['ef0D86AAQRG8Tu9ZXdEv2D:APA91bFmQDKHVjaTlRpUuHXEbXOVjywVyJuEoSrzjKLPqIrON4fviP9uJapeyZGQGFJ3WBODB_7xzFSeuNLpDZC0E_TMBH6jo8oJ5_QCF_qHCjBwxa7uQtacQGPgLgiI4DxoAKhJ1FcM'],
                     title=title,
                     message=message,
                 ).send_message()
             except UserToken.DoesNotExist:
-                #return Response.badRequest(
+                # return Response.badRequest(
                 #    values=[],
                 #    message='User tidak ada'
-                #)
+                # )
                 return Response().base(
                     success=False,
                     message='User tidak ada',
@@ -847,10 +866,10 @@ def sendnotif(request):
             try:
                 user = UserInfo.objects.get(id=userto)
             except UserInfo.DoesNotExist:
-                #return Response.badRequest(
+                # return Response.badRequest(
                 #    values=[],
                 #    message='User tujuan tidak ada'
-                #)
+                # )
                 return Response().base(
                     success=False,
                     message='User tujuan tidak ada',
@@ -865,7 +884,7 @@ def sendnotif(request):
                 status='new'
             )
             notif.save()
-            
+
             try:
                 subject = title
                 text_content = message
@@ -885,6 +904,7 @@ def sendnotif(request):
             return HttpResponse(e)
     else:
         return HttpResponse('Post Only')
+
 
 def authenticate_credentials(key):
     # from rest_framework.authtoken.models import Token
@@ -914,16 +934,18 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
             instance.set_password(password)  # Password encryption method
         instance.save()
 
+
 def getnotif(request):
     try:
         param = json.loads(request.body.decode("utf-8"))
         username = param.get('user', None)
-        if username==None:
+        if username == None:
             return Response.badRequest(
                 values=[],
                 message='User tidak bisa kosong'
             )
-        notifs = Message.objects.filter(userto=username).order_by('-updated')[:5]
+        notifs = Message.objects.filter(
+            userto=username).order_by('-updated')[:5]
         json_list = []
         for nf in notifs:
             json_dict = {}
@@ -939,14 +961,16 @@ def getnotif(request):
     except Exception as e:
         print(e)
         return HttpResponse(e)
-    
+
+
 def updatesurveyor(request):
     try:
-        datauser = UserInfo.objects.filter(role=ObjectId('5f13b370386bf295b4169f00'))
+        datauser = UserInfo.objects.filter(
+            role=ObjectId('5f13b370386bf295b4169f00'))
     except UserInfo.DoesNotExist:
-        #return Response.badRequest(
+        # return Response.badRequest(
         #    message='User not Found',
-        #)
+        # )
         return Response().base(
             success=False,
             message='User not Found',
@@ -961,8 +985,10 @@ def updatesurveyor(request):
         message=f'Update Data',
     )
 
+
 def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
+
 
 def forgotpassword(request):
     if request.method == 'POST':
@@ -972,16 +998,16 @@ def forgotpassword(request):
             try:
                 user = UserInfo.objects.get(email=data["email"])
             except UserInfo.DoesNotExist:
-                #return Response.ok(
+                # return Response.ok(
                 #    values=[],
                 #    message='User not found'
-                #)
+                # )
                 return Response().base(
                     success=False,
                     message='User not Found',
                     status=404
                 )
-            
+
             token = id_generator(10, str(user.id))
 
             user.token_reset = token
@@ -992,14 +1018,14 @@ def forgotpassword(request):
             subject = 'Forgot password'
             text_content = 'Atur Ulang Kata Sandi\Jika Anda tidak melakukan rekues reset Kata Sandi akun, silahkan abaikan email ini'
             #text_content = ''
-            htmly     = get_template('email/webforgotpassword.html')
-            
-            d = {'username': user.username, 
-                        'company': user.company.name,
-                    'message_top': 'Atur Ulang Kata Sandi',
-                    'message_bottom': 'Jika Anda tidak melakukan rekues reset Kata Sandi akun, silahkan abaikan email ini.\n'
-                        +settings.URL_LOGIN, 'media_url': settings.URL_MEDIA,
-                        'reset_url': settings.URL_RESETPASSWORD+'/'+user.token_reset}
+            htmly = get_template('email/webforgotpassword.html')
+
+            d = {'username': user.username,
+                 'company': user.company.name,
+                 'message_top': 'Atur Ulang Kata Sandi',
+                 'message_bottom': 'Jika Anda tidak melakukan rekues reset Kata Sandi akun, silahkan abaikan email ini.\n'
+                 + settings.URL_LOGIN, 'media_url': settings.URL_MEDIA,
+                 'reset_url': settings.URL_RESETPASSWORD+'/'+user.token_reset}
             html_content = htmly.render(d)
             sender = settings.EMAIL_ADMIN
             receipient = user.email
@@ -1014,13 +1040,14 @@ def forgotpassword(request):
             )
         except Exception as e:
             print(e)
-            #return HttpResponse(e)
+            # return HttpResponse(e)
             return Response.badRequest(
-                    values='null',
-                    message=str(e)
-                )
+                values='null',
+                message=str(e)
+            )
     else:
         return HttpResponse('Post Only')
+
 
 def resetpassword(request):
     if request.method == 'POST':
@@ -1030,34 +1057,34 @@ def resetpassword(request):
             try:
                 user = UserInfo.objects.get(token_reset=data["token"])
             except UserInfo.DoesNotExist:
-                #return Response.ok(
+                # return Response.ok(
                 #    values=[],
                 #    message='User not found'
-                #)
+                # )
                 return Response().base(
                     success=False,
                     message='User not Found',
                     status=404
                 )
-            
+
             user.password = make_password(
                 data['newpassword'], settings.SECRET_KEY, 'pbkdf2_sha256')
             user.update_date = datetime.datetime.utcnow() + datetime.timedelta(hours=7)
             user.token_reset = None
             user.expire_token = None
             user.save()
-            
+
             subject = 'Reset password'
             text_content = 'Reset Password Telah Berhasil'
             #text_content = ''
-            htmly     = get_template('email/webresetpassword.html')
-            
-            d = {'username': user.username, 
-                        'company': user.company.name,
-                    'message_top': 'Atur Ulang Kata Sandi',
-                    'message_bottom': 'Reset Password Telah Berhasil', 
-                    'media_url': settings.URL_MEDIA,
-                        'login_url': settings.URL_LOGIN}
+            htmly = get_template('email/webresetpassword.html')
+
+            d = {'username': user.username,
+                 'company': user.company.name,
+                 'message_top': 'Atur Ulang Kata Sandi',
+                 'message_bottom': 'Reset Password Telah Berhasil',
+                 'media_url': settings.URL_MEDIA,
+                 'login_url': settings.URL_LOGIN}
             html_content = htmly.render(d)
             sender = settings.EMAIL_ADMIN
             receipient = user.email
@@ -1073,11 +1100,11 @@ def resetpassword(request):
             )
         except Exception as e:
             print(e)
-            #return HttpResponse(e)
+            # return HttpResponse(e)
             return Response.badRequest(
-                    values='null',
-                    message=str(e)
-                )
+                values='null',
+                message=str(e)
+            )
     else:
         return HttpResponse('Post Only')
 
@@ -1096,16 +1123,16 @@ def changeimage(request):
             try:
                 user = UserInfo.objects.get(id=data["userid"])
             except UserInfo.DoesNotExist:
-                #return Response.ok(
+                # return Response.ok(
                 #    values=[],
                 #    message='User not found'
-                #)
+                # )
                 return Response().base(
                     success=False,
                     message='User not Found',
                     status=404
                 )
-            
+
             filename = fs.save(file.name, file)
             file_path = fs.url(filename)
             doc_image = ImageUser(
@@ -1119,7 +1146,7 @@ def changeimage(request):
             user.image = ObjectId(doc_image.id)
 
             user.save()
-            
+
             result = UserInfo.objects.get(id=user.id).serialize()
             """
             try:
@@ -1150,10 +1177,10 @@ def changeimage(request):
             )
         except Exception as e:
             print(e)
-            #return HttpResponse(e)
+            # return HttpResponse(e)
             return Response.badRequest(
-                    values='null',
-                    message=str(e)
-                )
+                values='null',
+                message=str(e)
+            )
     else:
         return HttpResponse('Post Only')
