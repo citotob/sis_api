@@ -1,4 +1,5 @@
 
+import os
 from django.shortcuts import render
 from django.http import JsonResponse
 from sites.models import *
@@ -40,11 +41,17 @@ from userinfo.utils.notification import Notification
 import calendar
 from math import radians, cos, sin, asin, sqrt
 
-from django.db.models import Avg, Max, Min, Sum
+from email.mime.image import MIMEImage
+from django.template.loader import get_template
+from django.template import Context
 
+from django.db.models import Avg, Max, Min, Sum
+from operator import itemgetter
 import openpyxl
 
 from notification.utils.CustomNotification import CustomNotification
+from publicservice.utils import send_mail
+from pathlib import Path
 
 
 def getLaporan(request):
@@ -343,25 +350,25 @@ def uploadsite(request):
                 data_provinsi = provinsi.objects.filter(
                     name=str(row[2].value).upper()).first()
                 if data_provinsi is None:
-                    #data_provinsi = provinsi(
+                    # data_provinsi = provinsi(
                     #    name=str(row[2].value).upper()
-                    #)
-                    #data_provinsi.save()
+                    # )
+                    # data_provinsi.save()
                     json_dict = {}
                     json_dict["no"] = str(row[0].value).strip()
                     json_dict["provinsi"] = str(row[2].value).strip()
                     id_gagal.append(json_dict)
                     continue
-                
+
                 if str(row[3].value)[0:3].upper() == 'KAB':
                     kabupaten_ = kabupaten.objects.filter(
                         name=str(row[3].value).upper()).first()
                     if kabupaten_ is None:
-                        #kabupaten_ = kabupaten(
+                        # kabupaten_ = kabupaten(
                         #    name=str(row[3].value).upper(),
                         #    provinsi=ObjectId(data_provinsi.id)
-                        #)
-                        #kabupaten_.save()
+                        # )
+                        # kabupaten_.save()
                         json_dict = {}
                         json_dict["no"] = str(row[0].value).strip()
                         json_dict["provinsi_id"] = data_provinsi.id
@@ -374,11 +381,11 @@ def uploadsite(request):
                     kota_ = kota.objects.filter(
                         name=str(row[3].value).upper()).first()
                     if kota_ is None:
-                        #kota_ = kota(
+                        # kota_ = kota(
                         #    name=str(row[3].value).upper(),
                         #    provinsi=ObjectId(data_provinsi.id)
-                        #)
-                        #kota_.save()
+                        # )
+                        # kota_.save()
                         json_dict = {}
                         json_dict["no"] = str(row[0].value).strip()
                         json_dict["provinsi_id"] = data_provinsi.id
@@ -390,13 +397,13 @@ def uploadsite(request):
                 data_kecamatan = kecamatan.objects.filter(
                     name=str(row[4].value).upper()).first()
                 if data_kecamatan is None:
-                    #try:
+                    # try:
                     #    data_kecamatan = kecamatan(
                     #        name=str(row[4].value).upper(),
                     #        kabupaten=ObjectId(kabupaten_.id)
                     #    )
                     #    data_kecamatan.save()
-                    #except:
+                    # except:
                     #    data_kecamatan = kecamatan(
                     #        name=str(row[4].value).upper(),
                     #        kota=ObjectId(kota_.id)
@@ -420,15 +427,15 @@ def uploadsite(request):
                         json_dict["kecamatan"] = str(row[4].value).strip()
                         id_gagal.append(json_dict)
                         continue
-                
+
                 data_desa = desa.objects.filter(
                     name=str(row[5].value).upper()).first()
                 if data_desa is None:
-                    #data_desa = desa(
+                    # data_desa = desa(
                     #    name=str(row[5].value).upper(),
                     #    kecamatan=ObjectId(data_kecamatan.id)
-                    #)
-                    #data_desa.save()
+                    # )
+                    # data_desa.save()
                     json_dict = {}
                     json_dict["no"] = str(row[0].value).strip()
                     json_dict["provinsi"] = data_provinsi.name
@@ -510,7 +517,7 @@ def uploadsite(request):
                     lokasi_gagal += '{' + \
                         str(row[6].value)+', '+str(row[7].value)+'}, '
             except:
-                #lokasi_gagal += '{' + \
+                # lokasi_gagal += '{' + \
                 #    str(row[6].value)+', '+str(row[7].value)+'}, '
                 json_dict = {}
                 json_dict["no"] = str(row[0].value).strip()
@@ -518,10 +525,10 @@ def uploadsite(request):
                 json_dict["longitude"] = str(row[7].value)
                 id_gagal.append(json_dict)
                 continue
-        #return Response.ok(
+        # return Response.ok(
         #    values=[],
         #    message=lokasi_gagal
-        #)
+        # )
         return Response.ok(
             values=json.loads(json.dumps(id_gagal, default=str)),
             message="OK"
@@ -646,6 +653,7 @@ def addbatch(request):
     else:
         return Response.badRequest(message='Hanya POST')
 
+
 def addsitebyid(request):
     # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
     # ret, user = authenticate_credentials(token)
@@ -677,10 +685,10 @@ def addsitebyid(request):
                     dat.latitude), float(longitude), float(latitude))
                 # print(a)
                 if a <= radius:
-                    #return Response.ok(
+                    # return Response.ok(
                     #    values=[],
                     #    message='Data sudah ada'
-                    #)
+                    # )
                     return Response().base(
                         success=False,
                         message='Data sudah ada',
@@ -694,11 +702,11 @@ def addsitebyid(request):
                 data_kabupaten = kota.objects.get(id=kab_kota)
                 data_kab_kota = 'kota'
 
-            #try:
+            # try:
             #    data_nomor_site = site.objects.order_by('-unik_id').first()
             #    nomor_site = data_nomor_site.unik_id + 1
             #    # nomor_site = str(nomor_site).zfill(5)
-            #except Exception as e:
+            # except Exception as e:
             #    print(e)
             #    # nomor_site = '1'.zfill(5)
             #    nomor_site = 1
@@ -737,7 +745,7 @@ def addsitebyid(request):
                 data_batch.sites.append(ObjectId(data_site_matchmaking.id))
                 data_batch.save()
             except batch.DoesNotExist:
-                #return Response.badRequest(message='Batch tidak ada')
+                # return Response.badRequest(message='Batch tidak ada')
                 return Response().base(
                     success=False,
                     message='Batch tidak ada',
@@ -757,6 +765,7 @@ def addsitebyid(request):
 
     else:
         return Response.badRequest(message='Hanya POST')
+
 
 def addsite(request):
     # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
@@ -1035,6 +1044,7 @@ def editbatch(request):
     # if False == ret or None == user:
     #    return JsonResponse({"state": "fail"})
     if request.method == "POST":  # Add
+
         # try:
         file = request.FILES['doc']
         if not file:
@@ -1047,6 +1057,7 @@ def editbatch(request):
         body_data = request.POST.dict()
 
         batch_id = body_data.get('batch')
+        id = body_data.get('id')
         tanggal_mulai_undangan = body_data.get('tanggal_mulai_undangan')
         tanggal_selesai_undangan = body_data.get('tanggal_selesai_undangan')
         status_ = body_data.get('status')
@@ -1059,6 +1070,10 @@ def editbatch(request):
 
         try:
             data_batch = batch.objects.get(id=ObjectId(batch_id))
+            listVendor = list(
+                map(itemgetter('id'), data_batch.penyedia_undang))
+            listUser = UserInfo.objects(
+                company__in=listVendor).only('id').only('email')
         except batch.DoesNotExist:
             # return Response.ok(message='Batch tidak ada')
             return Response().base(
@@ -1067,14 +1082,25 @@ def editbatch(request):
                 status=404
             )
 
+        users = list(map(itemgetter('id'), listUser))
+        emails = list(map(itemgetter('email'), listUser))
+
+        print(users, emails)
+
         data_batch.tanggal_mulai_undangan = tanggal_mulai_undangan
         data_batch.tanggal_selesai_undangan = tanggal_selesai_undangan
+        type_ = ''
+        message = ''
+        title = ''
+
         if status_ == 'Dibuka':
             status__ = {'status': status_, 'tanggal_pembuatan': datetime.utcnow(
             ) + timedelta(hours=7)}
-
             data_batch.status.clear()
             data_batch.status.append(status__)
+            type_ = 'edit batch opened'
+            message = f'Undangan tawaran telah {status_.lower()}'
+            title = f'Tawaran telah {status_.lower()}'
         else:
             status_buka = {'status': 'Dibuka', 'tanggal_pembuatan': datetime.utcnow(
             ) + timedelta(hours=7)}
@@ -1084,6 +1110,10 @@ def editbatch(request):
             status_tunda = {'status': status_, 'tanggal_pembuatan': datetime.utcnow(
             ) + timedelta(hours=7)}
             data_batch.status.append(status_tunda)
+            type_ = 'edit batch hold' if status_.lower() == 'diproses' else 'edit batch closed'
+            message = f'Undangan tawaran telah {status_.lower() if status_.lower() == "diproses" else "ditutup"}'
+            title = f'Tawaran {"sedang ditunda" if status_.lower() == "diproses" else "telah ditutup"}'
+
         data_batch.save()
 
         filename = fs.save(file.name, file)
@@ -1099,6 +1129,45 @@ def editbatch(request):
         data_batch.rfi_doc = ObjectId(doc.id)
         data_batch.updated_at = datetime.utcnow() + timedelta(hours=7)
         data_batch.save()
+
+        notif = CustomNotification()
+        notif.create(ObjectId(id), users, type_,
+                     title, message, 'Ada Pesan Baru')
+        print(message)
+
+        template = ''
+        if status_.lower() == 'dibuka':
+            template = 'email/webtampilandibuka.html'
+        elif status_.lower() == 'ditunda':
+            template = 'email/webtampilantawaranproses.html'
+        elif status_.lower() == 'selesai':
+            template = 'email/webtampilantawaranselesai.html'
+
+        # try:
+        #     subject = f'Batch {data_batch.judul} {status_.lower()}'
+        #     htmly = get_template(template)
+        #     # html_content = htmly.render(d)
+        #     msg = EmailMultiAlternatives(
+        #         subject=subject, body='', from_email=settings.EMAIL_ADMIN, to=emails)
+
+        #     msg.attach_alternative(htmly, "text/html")
+        #     msg.content_subtype = 'html'
+        #     msg.mixed_subtype = 'related'
+
+        #     for x in [img_path_icon, img_path_logo]:
+        #         with open(x, mode='rb') as f:
+        #             name = Path(x).name
+        #             image = MIMEImage(
+        #                 f.read(), _subtype=name.split('.')[1])
+        #             image.add_header('Content-ID', f"<{str(name)}>")
+        #             msg.attach(image)
+        #     print('aaaa')
+        #     msg.send()
+        # except Exception as e:
+        #     print(e)
+
+        send_mail(f'Batch {data_batch.judul} {status_.lower()}', '', template,
+                  {}, settings.EMAIL_ADMIN, emails)
 
         result = batch.objects.get(id=ObjectId(data_batch.id)).serialize()
         # result = data_batch.serialize()
@@ -1361,7 +1430,7 @@ def uploadsiteoffair(request):
         excel_data = list()
         # iterating over the rows and
         # getting value from each cell in row
-        
+
         for row in worksheet.iter_rows():
             lanjut = True
             if str(row[1].value) == 'None':
