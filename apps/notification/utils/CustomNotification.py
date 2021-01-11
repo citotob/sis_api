@@ -3,6 +3,9 @@ from notification.serializer import NotificationCreateSerializer
 from rest_framework.exceptions import ValidationError
 from notification.consumer import NotifConsumer
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+
 
 class CustomNotification():
 
@@ -16,11 +19,24 @@ class CustomNotification():
         }
         serializer = NotificationCreateSerializer(data=data)
 
+        def send_message_to_frontend(self, event):
+            message = event['message']
+            self.send(text_data=json.dumps({
+                'message': message
+            }))
+
         if serializer.is_valid():
             serializer.save()
-            notif = NotifConsumer()
+
+            channel_layer = get_channel_layer()
             for x in to:
-                notif.send_message(str(x), push_message)
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    str(x),
+                    {"type": 'send_message_to_frontend', 'message': message}
+                )
+
+   
             return serializer.data
 
         raise ValidationError(serializer.errors)

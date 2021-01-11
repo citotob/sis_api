@@ -569,19 +569,25 @@ def register(request):
             )
             notif.save()
             """
-            subject = 'Registrasi Akun'
-            text_content = 'Terimakasih telah mendaftar\n'+user.username+'\n'+request.POST.get('company').upper()+'\n'+ \
-                    'Tim kami akan melakukan verifikasi terhadap data anda terlebih dahulu. Setelah verifikasi berhasil,\n'+ \
-                    'anda akan menerima email konfirmasi untuk menginformasikan status pendaftaran akun anda.'
-            template = 'email/webpendaftaranberhasil.html'
-            d = {'username': user.username, 
-                    'company': request.POST.get('company').upper(),
-                    'media_url': settings.URL_MEDIA,
-                    'url_login': settings.URL_LOGIN}
-            email_sender = settings.EMAIL_ADMIN
-            email_receipient = user.email
-            send_mail(subject,text_content,template,d,email_sender,[email_receipient])
-
+            try:
+                subject = 'Registrasi Akun'
+                text_content = 'Terimakasih telah mendaftar\n'+user.username+'\n'+request.POST.get('company').upper()+'\n'+ \
+                        'Tim kami akan melakukan verifikasi terhadap data anda terlebih dahulu. Setelah verifikasi berhasil,\n'+ \
+                        'anda akan menerima email konfirmasi untuk menginformasikan status pendaftaran akun anda.'
+                template = 'email/webpendaftaranberhasil.html'
+                d = {'username': user.username, 
+                        'company': request.POST.get('company').upper(),
+                        'media_url': settings.URL_MEDIA,
+                        'url_login': settings.URL_LOGIN}
+                email_sender = settings.EMAIL_ADMIN
+                email_receipient = user.email
+                send_mail(subject,text_content,template,d,email_sender,[email_receipient])
+            except:
+                return Response().base(
+                    success=False,
+                    message='Format email salah',
+                    status=400
+                )
             req_fields = ['id']
             admin_users = UserInfo.objects.filter(role='5f73fdfc28751d590d835266', status='Aktif').only(*req_fields)
             if admin_users:
