@@ -34,6 +34,8 @@ from math import radians, cos, sin, asin, sqrt
 from sites.serializer import *
 from mongoengine.queryset.visitor import Q
 
+from notification.utils.CustomNotification import CustomNotification
+
 from odps.models import Odp
 
 
@@ -83,10 +85,10 @@ def respon(request):
             try:
                 data_user = UserInfo.objects.get(id=ObjectId(userid))
             except UserInfo.DoesNotExist:
-                #return Response.ok(
+                # return Response.ok(
                 #    values=[],
                 #    message='User tidak ada'
-                #)
+                # )
                 return Response().base(
                     success=False,
                     message='User tidak ada',
@@ -96,10 +98,10 @@ def respon(request):
             data_vp_score = VPScore.objects.filter(
                 vendor=data_user.company.id).order_by('-created_at').first()
             if not data_vp_score:
-                #return Response.ok(
+                # return Response.ok(
                 #    values=[],
                 #    message='vp_score tidak ada'
-                #)
+                # )
                 return Response().base(
                     success=False,
                     message='vp_score tidak ada',
@@ -147,13 +149,14 @@ def respon(request):
     else:
         return Response.badRequest(message='Hanya POST')
 
+
 def penawaran_(request):
     # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
     # ret, user = authenticate_credentials(token)
     # if False == ret or None == user:
     #    return JsonResponse({"state": "fail"})
     if request.method == "POST":  # Add
-        #try:
+        # try:
         file = request.FILES['doc']
         if not file:
             return Response.badRequest(message='Doc tidak boleh kosong')
@@ -191,17 +194,17 @@ def penawaran_(request):
             data_vendor_application = vendor_application.objects.get(
                 batchid=batchid, vendorid=vendorid)
         except vendor_application.DoesNotExist:
-            #return Response.ok(
+            # return Response.ok(
             #    values=[],
             #    message='vendor_application tidak ada'
-            #)
+            # )
             return Response().base(
                 success=False,
                 message='vendor_application tidak ada',
                 status=404
             )
         #data_vendor_application.rfi_score_id = data_rfi_score.id
-        #data_vendor_application.save()
+        # data_vendor_application.save()
 
         data_rfi_score = rfi_score(
             vendor_app=data_vendor_application.id,
@@ -215,7 +218,7 @@ def penawaran_(request):
             days_installation=(tanggal_selesai_installation.date(
             ) - tanggal_mulai_installation.date()).days,
             days_on_air=(tanggal_selesai_onair.date() -
-                            tanggal_mulai_onair.date()).days,
+                         tanggal_mulai_onair.date()).days,
             days_on_integration=(
                 tanggal_selesai_ir.date() - tanggal_mulai_ir.date()).days,
             biaya=biaya,
@@ -238,17 +241,17 @@ def penawaran_(request):
             data_smm = site_matchmaking.objects.get(
                 batchid=batchid, siteid=siteid)
         except site_matchmaking.DoesNotExist:
-            #return Response.ok(
+            # return Response.ok(
             #    values=[],
             #    message='Site_matchmaking tidak ada'
-            #)
+            # )
             return Response().base(
                 success=False,
                 message='Site_matchmaking tidak ada',
                 status=404
             )
 
-        #data_smm.applicants.append(data_vendor_application.id)
+        # data_smm.applicants.append(data_vendor_application.id)
         data_smm.rfi_score.append(data_rfi_score.id)
         data_smm.save()
 
@@ -260,11 +263,12 @@ def penawaran_(request):
             values=json.loads(json.dumps(serializer.data, default=str)),
             message='Berhasil'
         )
-        #except Exception as e:
+        # except Exception as e:
         #    return Response.badRequest(message=str(e))
 
     else:
         return Response.badRequest(message='Hanya POST')
+
 
 def penawaran(request):
     # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
@@ -272,7 +276,7 @@ def penawaran(request):
     # if False == ret or None == user:
     #    return JsonResponse({"state": "fail"})
     if request.method == "POST":  # Add
-        #try:
+        # try:
         body_data = json.loads(request.body)
 
         # vendor = body_data.get('company')
@@ -306,17 +310,17 @@ def penawaran(request):
             data_vendor_application = vendor_application.objects.get(
                 batchid=batchid, vendorid=vendorid)
         except vendor_application.DoesNotExist:
-            #return Response.ok(
+            # return Response.ok(
             #    values=[],
             #    message='vendor_application tidak ada'
-            #)
+            # )
             return Response().base(
                 success=False,
                 message='vendor_application tidak ada',
                 status=404
             )
         #data_vendor_application.rfi_score_id = data_rfi_score.id
-        #data_vendor_application.save()
+        # data_vendor_application.save()
 
         data_rfi_score = rfi_score(
             vendor_app=data_vendor_application.id,
@@ -330,7 +334,7 @@ def penawaran(request):
             days_installation=(tanggal_selesai_installation.date(
             ) - tanggal_mulai_installation.date()).days,
             days_on_air=(tanggal_selesai_onair.date() -
-                            tanggal_mulai_onair.date()).days,
+                         tanggal_mulai_onair.date()).days,
             days_on_integration=(
                 tanggal_selesai_ir.date() - tanggal_mulai_ir.date()).days,
             biaya=biaya,
@@ -342,17 +346,17 @@ def penawaran(request):
             data_smm = site_matchmaking.objects.get(
                 batchid=batchid, siteid=siteid)
         except site_matchmaking.DoesNotExist:
-            #return Response.ok(
+            # return Response.ok(
             #    values=[],
             #    message='Site_matchmaking tidak ada'
-            #)
+            # )
             return Response().base(
                 success=False,
                 message='Site_matchmaking tidak ada',
                 status=404
             )
 
-        #data_smm.applicants.append(data_vendor_application.id)
+        # data_smm.applicants.append(data_vendor_application.id)
         data_smm.rfi_score.append(data_rfi_score.id)
         data_smm.save()
 
@@ -361,24 +365,25 @@ def penawaran(request):
         #result = serializer.data
 
         req_fields = ['id']
-        admin_users = UserInfo.objects.filter(role='5f73fdfc28751d590d835266', status='Aktif').only(*req_fields)
+        admin_users = UserInfo.objects.filter(
+            role='5f73fdfc28751d590d835266', status='Aktif').only(*req_fields)
         if admin_users:
             try:
-                data_batch=Batch.objects.get(id=ObjectId(batchid))
-                list_admin_users=[]
+                data_batch = Batch.objects.get(id=ObjectId(batchid))
+                list_admin_users = []
                 for usr in admin_users:
                     list_admin_users.append(usr.id)
                 notif = CustomNotification()
-                notif.create(to=list_admin_users, from_=ObjectId(userfrom), type='batch offer submitted', 
-                    title='User telah mengajukan penawaran', message='penawaran batch '+data_batch.judul+' telah diajukan', push_message='Ada pesan baru')
+                notif.create(to=list_admin_users, from_=ObjectId(userfrom), type='batch offer submitted',
+                             title='User telah mengajukan penawaran', message='penawaran batch '+data_batch.judul+' telah diajukan', push_message='Ada pesan baru')
             except batch.DoesNotExist:
-                pass                
+                pass
 
         return Response.ok(
             values=json.loads(json.dumps(serializer.data, default=str)),
             message='Berhasil'
         )
-        #except Exception as e:
+        # except Exception as e:
         #    return Response.badRequest(message=str(e))
 
     else:
@@ -394,9 +399,10 @@ def getbatch(request):
         body_data = json.loads(request.body)
         vendor_id = body_data.get('penyedia')
 
-        #data = batch.objects.filter(penyedia_undang=vendor_id, status__status='Dibuka',
+        # data = batch.objects.filter(penyedia_undang=vendor_id, status__status='Dibuka',
         #                            tanggal_selesai_undangan__gte=datetime.utcnow() + timedelta(hours=7))
-        data = batch.objects.filter(penyedia_undang=vendor_id, status__status='Dibuka')
+        data = batch.objects.filter(
+            penyedia_undang=vendor_id, status__status='Dibuka')
 
         serializer = BatchSerializer(data, many=True)
         return Response.ok(
@@ -458,10 +464,10 @@ def getsite(request):
             message=f'{len(site_list)} Data'
         )
     else:
-        #return Response.ok(
+        # return Response.ok(
         #    values=[],
         #    message='Data tidak ada'
-        #)
+        # )
         return Response().base(
             success=False,
             message='Data tidak ada',
@@ -485,10 +491,10 @@ def getVendorApp(request):
                 message=f'{len(serializer.data)} Data'
             )
         else:
-            #return Response.ok(
+            # return Response.ok(
             #    values=[],
             #    message='Data tidak ada'
-            #)
+            # )
             return Response().base(
                 success=False,
                 message='Data tidak ada',
@@ -506,7 +512,7 @@ def getDashboardData(request):
                 raise Exception('Need Json Body')
             body_data = json.loads(request.body)
             vendorId = body_data.get('vendor', None)
-            
+
             if not vendorId:
                 raise Exception('Need Body `vendor`')
 
@@ -523,16 +529,19 @@ def getDashboardData(request):
             listBatch = vendor_application.objects(vendorid=vendorData.id)
             batchCount = batch.objects(
                 id__in=[x.id for x in listBatch.scalar('batchid')]).count()
-            #siteCount = site_matchmaking.objects(
+            # siteCount = site_matchmaking.objects(
             #    batchid__exists=True, batchid__in=listBatch.scalar('id')).count()
             siteCount = site_matchmaking.objects(
                 batchid__exists=True, batchid__in=listBatch.scalar('batchid')).count()
             rfiCount = listBatch.count()
-            
+
             totallayananai = Odp.objects(vendorid=vendorData.id).count()
-            totallayananaifo = Odp.objects(vendorid=vendorData.id,teknologi__in=['FIBER OPTIK','FO']).count()
-            totallayananairl = Odp.objects(vendorid=vendorData.id,teknologi__in=['RADIO LINK','RL']).count()
-            totallayananaivsat = Odp.objects(vendorid=vendorData.id,teknologi='VSAT').count()
+            totallayananaifo = Odp.objects(vendorid=vendorData.id, teknologi__in=[
+                                           'FIBER OPTIK', 'FO']).count()
+            totallayananairl = Odp.objects(vendorid=vendorData.id, teknologi__in=[
+                                           'RADIO LINK', 'RL']).count()
+            totallayananaivsat = Odp.objects(
+                vendorid=vendorData.id, teknologi='VSAT').count()
 
             siteNonBatchCount = 0
 
