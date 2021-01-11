@@ -1874,12 +1874,12 @@ def sendinvitation(request):
                 for usr in vendor_users:
                     list_vendor_users.append(usr.id)
                 notif = CustomNotification()
-                title_ = 'Undangan batch berhasil dikirim'
+                title_ = 'Undangan batch berhasil diterima'
                 if data_batch.type == 'VIP':
                     title_ = 'Invitation personal'
 
                 notif.create(to=list_vendor_users, from_=ObjectId(from_), type='batch sent',
-                             title=title_, message='batch '+data_batch.judul+' telah terkirim', push_message='Ada pesan baru')
+                             title=title_, message='batch '+data_batch.judul+' telah diterima', push_message='Ada pesan baru')
 
         return Response.ok(
             values=[],
