@@ -1733,18 +1733,26 @@ def calculatevendorscore(request):
                 nilai_harga = 1-((dt_rfi.biaya-min_harga) /
                                  (max_harga-min_harga))
             
+            """
             vpscore_kecepatan = (
                 dt_rfi.vendor_app.vp_score_id.kecepatan-1)/(5-1)
             vpscore_ketepatan = (
                 dt_rfi.vendor_app.vp_score_id.ketepatan-1)/(5-1)
             vpscore_kualitas = (dt_rfi.vendor_app.vp_score_id.kualitas-1)/(5-1)
             """
-            data_vpscore=VPScore.objects.filter(vendor=dt_rfi.vendor_app.vendorid.id)
+            data_vpscore=VPScore.objects.filter(vendor=dt_rfi.vendor_app.vendorid.id,kecepatan__gt=0)
             total_row = len(data_vpscore)
             vpscore_kecepatan = 0
+            vpscore_ketepatan=0
+            vpscore_kualitas=0
             for dt in data_vpscore:
-                total_kecptan = 
-            """
+                vpscore_kecepatan+=dt.kecepatan
+                vpscore_ketepatan+=dt.ketepatan
+                vpscore_kualitas+=dt.kualitas
+            
+            vpscore_kecepatan=vpscore_kecepatan/total_row
+            vpscore_ketepatan=vpscore_ketepatan/total_row
+            vpscore_kualitas=vpscore_kualitas/total_row
             av_vp = (vpscore_kecepatan+vpscore_ketepatan+vpscore_kualitas)/3
 
             if not dt_rfi.total_calc:
