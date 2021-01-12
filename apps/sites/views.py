@@ -1686,7 +1686,7 @@ def calculatevendorscore(request):
     data_smm = site_matchmaking.objects.all()
     rw=0
     for dt_smm in data_smm:
-        print(rw)
+        #print(rw)
         smm_tek = dt_smm.siteid.rekomendasi_teknologi.teknologi
         list_days_work = []
         list_harga = []
