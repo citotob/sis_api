@@ -1139,7 +1139,8 @@ def editbatch(request):
         if status_.lower() == 'dibuka':
             template = 'email/webtampilandibuka.html'
         elif status_.lower() == 'ditunda':
-            template = 'email/webtampilantawaranproses.html'
+            #template = 'email/webtampilantawaranproses.html'
+            template = 'email/webtampilantawaranditunda.html'
         elif status_.lower() == 'selesai':
             template = 'email/webtampilantawaranselesai.html'
 
