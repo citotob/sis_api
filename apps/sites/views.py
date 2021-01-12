@@ -1166,8 +1166,11 @@ def editbatch(request):
         # except Exception as e:
         #     print(e)
 
+        d = {'media_url': settings.URL_MEDIA,
+            'url_login': settings.URL_LOGIN}
+
         send_mail(f'Batch {data_batch.judul} {status_.lower()}', '', template,
-                  {}, settings.EMAIL_ADMIN, emails)
+                  d, settings.EMAIL_ADMIN, emails)
 
         result = batch.objects.get(id=ObjectId(data_batch.id)).serialize()
         # result = data_batch.serialize()
@@ -1680,7 +1683,9 @@ def calculatevendorscore(request):
     #            tanggal_selesai_undangan=datetime.utcnow() + timedelta(hours=7))
     #data_batch = batch.objects.all()
     data_smm = site_matchmaking.objects.all()
+    rw=0
     for dt_smm in data_smm:
+        print(rw)
         smm_tek = dt_smm.siteid.rekomendasi_teknologi.teknologi
         list_days_work = []
         list_harga = []
@@ -1757,6 +1762,7 @@ def calculatevendorscore(request):
                 data_total_calc.save()
 
             dt_rfi.save()
+        rw+=1
     return Response.ok(
         values=[],
         message='Hitung total scoring berhasil'
@@ -1871,12 +1877,12 @@ def sendinvitation(request):
                 for usr in vendor_users:
                     list_vendor_users.append(usr.id)
                 notif = CustomNotification()
-                title_ = 'Undangan batch berhasil dikirim'
+                title_ = 'Undangan batch berhasil diterima'
                 if data_batch.type == 'VIP':
                     title_ = 'Invitation personal'
 
                 notif.create(to=list_vendor_users, from_=ObjectId(from_), type='batch sent',
-                             title=title_, message='batch '+data_batch.judul+' telah terkirim', push_message='Ada pesan baru')
+                             title=title_, message='batch '+data_batch.judul+' telah diterima', push_message='Ada pesan baru')
 
         return Response.ok(
             values=[],
