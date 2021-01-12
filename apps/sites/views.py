@@ -9,6 +9,7 @@ from userinfo.models import *
 from odps.models import desa, kecamatan, kota, kabupaten, provinsi
 from userinfo.views import authenticate_credentials
 from apps.vendorperformance.serializer import VPSerializer
+from vendorperformance.models import *
 from apps.userinfo.serializer import VendorScoreSerializer
 from django.dispatch import receiver
 from django.db.models.signals import post_save
@@ -1111,8 +1112,8 @@ def editbatch(request):
             ) + timedelta(hours=7)}
             data_batch.status.append(status_tunda)
             type_ = 'edit batch hold' if status_.lower() == 'diproses' else 'edit batch closed'
-            message = f'Undangan tawaran telah {status_.lower() if status_.lower() == "diproses" else "ditutup"}'
-            title = f'Tawaran {"sedang ditunda" if status_.lower() == "diproses" else "telah ditutup"}'
+            message = f'Undangan tawaran telah {status_.lower() if status_.lower() == "ditunda" else "ditutup"}'
+            title = f'Tawaran {"sedang ditunda" if status_.lower() == "ditunda" else "telah ditutup"}'
 
         data_batch.save()
 
@@ -1731,12 +1732,19 @@ def calculatevendorscore(request):
             else:
                 nilai_harga = 1-((dt_rfi.biaya-min_harga) /
                                  (max_harga-min_harga))
-
+            
             vpscore_kecepatan = (
                 dt_rfi.vendor_app.vp_score_id.kecepatan-1)/(5-1)
             vpscore_ketepatan = (
                 dt_rfi.vendor_app.vp_score_id.ketepatan-1)/(5-1)
             vpscore_kualitas = (dt_rfi.vendor_app.vp_score_id.kualitas-1)/(5-1)
+            """
+            data_vpscore=VPScore.objects.filter(vendor=dt_rfi.vendor_app.vendorid.id)
+            total_row = len(data_vpscore)
+            vpscore_kecepatan = 0
+            for dt in data_vpscore:
+                total_kecptan = 
+            """
             av_vp = (vpscore_kecepatan+vpscore_ketepatan+vpscore_kualitas)/3
 
             if not dt_rfi.total_calc:
