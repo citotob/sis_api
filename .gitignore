@@ -132,3 +132,4 @@ dmypy.json
 *.png
 *.DS_Store
 *.txt
+templates/email/.DS_Store

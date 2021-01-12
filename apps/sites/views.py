@@ -9,6 +9,7 @@ from userinfo.models import *
 from odps.models import desa, kecamatan, kota, kabupaten, provinsi
 from userinfo.views import authenticate_credentials
 from apps.vendorperformance.serializer import VPSerializer
+from vendorperformance.models import *
 from apps.userinfo.serializer import VendorScoreSerializer
 from django.dispatch import receiver
 from django.db.models.signals import post_save
@@ -1139,7 +1140,8 @@ def editbatch(request):
         if status_.lower() == 'dibuka':
             template = 'email/webtampilandibuka.html'
         elif status_.lower() == 'ditunda':
-            template = 'email/webtampilantawaranproses.html'
+            #template = 'email/webtampilantawaranproses.html'
+            template = 'email/webtampilantawaranditunda.html'
         elif status_.lower() == 'selesai':
             template = 'email/webtampilantawaranselesai.html'
 
@@ -1167,7 +1169,7 @@ def editbatch(request):
         #     print(e)
 
         d = {'media_url': settings.URL_MEDIA,
-            'url_login': settings.URL_LOGIN}
+             'url_login': settings.URL_LOGIN}
 
         send_mail(f'Batch {data_batch.judul} {status_.lower()}', '', template,
                   d, settings.EMAIL_ADMIN, emails)
@@ -1683,9 +1685,9 @@ def calculatevendorscore(request):
     #            tanggal_selesai_undangan=datetime.utcnow() + timedelta(hours=7))
     #data_batch = batch.objects.all()
     data_smm = site_matchmaking.objects.all()
-    rw=0
+    rw = 0
     for dt_smm in data_smm:
-        print(rw)
+        # print(rw)
         smm_tek = dt_smm.siteid.rekomendasi_teknologi.teknologi
         list_days_work = []
         list_harga = []
@@ -1731,11 +1733,27 @@ def calculatevendorscore(request):
                 nilai_harga = 1-((dt_rfi.biaya-min_harga) /
                                  (max_harga-min_harga))
 
+            """
             vpscore_kecepatan = (
                 dt_rfi.vendor_app.vp_score_id.kecepatan-1)/(5-1)
             vpscore_ketepatan = (
                 dt_rfi.vendor_app.vp_score_id.ketepatan-1)/(5-1)
             vpscore_kualitas = (dt_rfi.vendor_app.vp_score_id.kualitas-1)/(5-1)
+            """
+            data_vpscore = VPScore.objects.filter(
+                vendor=dt_rfi.vendor_app.vendorid.id, kecepatan__gt=0)
+            total_row = len(data_vpscore)
+            vpscore_kecepatan = 0
+            vpscore_ketepatan = 0
+            vpscore_kualitas = 0
+            for dt in data_vpscore:
+                vpscore_kecepatan += dt.kecepatan
+                vpscore_ketepatan += dt.ketepatan
+                vpscore_kualitas += dt.kualitas
+
+            vpscore_kecepatan = vpscore_kecepatan/total_row
+            vpscore_ketepatan = vpscore_ketepatan/total_row
+            vpscore_kualitas = vpscore_kualitas/total_row
             av_vp = (vpscore_kecepatan+vpscore_ketepatan+vpscore_kualitas)/3
 
             if not dt_rfi.total_calc:
@@ -1762,7 +1780,7 @@ def calculatevendorscore(request):
                 data_total_calc.save()
 
             dt_rfi.save()
-        rw+=1
+        rw += 1
     return Response.ok(
         values=[],
         message='Hitung total scoring berhasil'
