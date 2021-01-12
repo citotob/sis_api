@@ -1110,9 +1110,9 @@ def editbatch(request):
             status_tunda = {'status': status_, 'tanggal_pembuatan': datetime.utcnow(
             ) + timedelta(hours=7)}
             data_batch.status.append(status_tunda)
-            type_ = 'edit batch hold' if status_.lower() == 'diproses' else 'edit batch closed'
-            message = f'Undangan tawaran telah {status_.lower() if status_.lower() == "diproses" else "ditutup"}'
-            title = f'Tawaran {"sedang ditunda" if status_.lower() == "diproses" else "telah ditutup"}'
+            type_ = 'edit batch hold' if status_.lower() == 'ditunda' else 'edit batch closed'
+            message = f'Undangan tawaran telah {status_.lower() if status_.lower() == "ditunda" else "ditutup"}'
+            title = f'Tawaran {"sedang ditunda" if status_.lower() == "ditunda" else "telah ditutup"}'
 
         data_batch.save()
 
