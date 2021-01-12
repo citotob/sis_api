@@ -1683,7 +1683,9 @@ def calculatevendorscore(request):
     #            tanggal_selesai_undangan=datetime.utcnow() + timedelta(hours=7))
     #data_batch = batch.objects.all()
     data_smm = site_matchmaking.objects.all()
+    rw=0
     for dt_smm in data_smm:
+        print(rw)
         smm_tek = dt_smm.siteid.rekomendasi_teknologi.teknologi
         list_days_work = []
         list_harga = []
@@ -1760,6 +1762,7 @@ def calculatevendorscore(request):
                 data_total_calc.save()
 
             dt_rfi.save()
+        rw+=1
     return Response.ok(
         values=[],
         message='Hitung total scoring berhasil'
