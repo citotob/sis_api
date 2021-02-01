@@ -11,6 +11,7 @@ class provinsi(Document):
     tanggal_pembuatan = DateTimeField(required=True, default=datetime.now)
     tanggal_perubahan = DateTimeField(required=True, default=datetime.now)
     prefix = StringField()
+    code = StringField()
     meta = {
         'strict': False,
     }

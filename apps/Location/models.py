@@ -11,7 +11,7 @@ class Provinsi(Document):
     tanggal_pembuatan = fields.DateTimeField()
     tanggal_perubahan = fields.DateTimeField()
     __v = fields.IntField(db_field='__v')
-
+    code = fields.StringField()
     meta = {'collection': 'provinsi'}
 
 
