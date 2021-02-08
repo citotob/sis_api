@@ -6,11 +6,6 @@ This is a modern Python style guide born from numerous open source projects and 
 
 A style guide must constantly adapt to newer norms, and its basis is community. If you find this useful, please share. If you have updates to contribute, please submit a PR so that the community can adopt them.
 
-Other Style Guides
-
-  - [JavaScript](https://github.com/airbnb/javascript)
-  - [Ruby](https://github.com/airbnb/ruby)
-
 ## Table of Contents
 
   1. [Types](#types)
