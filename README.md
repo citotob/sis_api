@@ -25,7 +25,7 @@ A style guide must constantly adapt to newer norms, and its basis is community. 
   1. [Commas](#commas)
   1. [Naming Conventions](#naming-conventions)
   1. [Testing](#testing)
-  1. [Running the app](#running-the-app)
+  1. [Running the app](#running-the-app-and-requirements)
   1. [Resources](#resources)
   1. [Contributors](#contributors)
 
@@ -1524,7 +1524,7 @@ A style guide must constantly adapt to newer norms, and its basis is community. 
 
 **[⬆ back to top](#table-of-contents)**
 
-## Running the app
+## Running the app and requirements
 
   <a name="types--primitives"></a><a name="18.1"></a>
   - [18.1](#types--primitives) **Primitives**: When you access a primitive type you work directly on its value.
