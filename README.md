@@ -25,6 +25,7 @@ A style guide must constantly adapt to newer norms, and its basis is community. 
   1. [Commas](#commas)
   1. [Naming Conventions](#naming-conventions)
   1. [Testing](#testing)
+  1. [Running the app](#running-the-app)
   1. [Resources](#resources)
   1. [Contributors](#contributors)
 
@@ -1519,6 +1520,43 @@ A style guide must constantly adapt to newer norms, and its basis is community. 
     # good
     assert result == False
     assert len(result_list) > 0
+    ```
+
+**[⬆ back to top](#table-of-contents)**
+
+## Running the app
+
+  <a name="types--primitives"></a><a name="1.1"></a>
+  - [1.1](#types--primitives) **Primitives**: When you access a primitive type you work directly on its value.
+
+    - `string`
+    - `number`
+    - `boolean`
+    - `None`
+
+    ```python
+    foo = 1
+    bar = foo
+
+    bar = 9
+
+    print(foo, bar) # => 1, 9
+    ```
+
+  <a name="types--complex"></a><a name="1.2"></a>
+  - [1.2](#types--complex)  **Complex**: When you access a complex type you work on a reference to its value.
+
+    - `dict`
+    - `list`
+    - `function`
+
+    ```python
+    foo = [1, 2]
+    bar = foo
+
+    bar[0] = 9
+
+    print(foo[0], bar[0]) # => 9, 9
     ```
 
 **[⬆ back to top](#table-of-contents)**
