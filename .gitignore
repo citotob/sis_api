@@ -127,6 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-
-*.gen.pdf
-*.gen.png
+*.pdf
+*.jpg
+*.png
+*.DS_Store
+*.txt
+templates/email/.DS_Store
+.DS_Store

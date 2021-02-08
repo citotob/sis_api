@@ -1,6 +1,6 @@
 from django.urls import path
 from userinfo import views
-from rest_framework.authtoken import views as tokenview
+#from rest_framework.authtoken import views as tokenview
 
 from django.conf import settings
 from django.conf.urls.static import static
@@ -12,7 +12,7 @@ urlpatterns = [
     path('getbyrole/', views.getUserByRole),
     path('verify/', views.verifyUser),
     path('decline/', views.declineUser),
-    path('removeuser/', views.removeuser),
+    path('remove/', views.removeuser),
     path('regist/', views.register),  # register
     # path('register/', views.register),  # register
     path('addrole/', views.createRole),
@@ -27,5 +27,10 @@ urlpatterns = [
     path('sendnotif/', views.sendnotif),
 
     path('updatesurveyor/', views.updatesurveyor),
+
+    path('forgotpassword/', views.forgotpassword),
+    path('resetpassword/', views.resetpassword),
+
+    path('changeimage/', views.changeimage),
 
 ]

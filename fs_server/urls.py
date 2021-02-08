@@ -25,10 +25,17 @@ from userinfo import views
 
 urlpatterns = [
     # url('fcm/', include('fcm.urls')),
-    path('admin/', admin.site.urls),
+    #path('admin/', admin.site.urls),
+    #path('', include('userinfo.urls')),
     path('user/', include('userinfo.urls')),
-    path('survey/', include('survey.urls')),
+    path('site/', include('sites.urls')),
+    path('vendor/', include('vendor.urls')),
     path('location/', include('Location.urls')),
+    path('vendorperformance/', include('vendorperformance.urls')),
+    path('odp/', include('odps.urls')),
+    path('check/', include('check.urls')),
+    path('util/', include('publicservice.urls')),
+    path('', include('notification.urls')),
 ]
 
 # Add media and static files

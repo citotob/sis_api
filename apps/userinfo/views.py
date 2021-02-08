@@ -1,11 +1,11 @@
 
 from django.shortcuts import render
 from django.http import JsonResponse
-from userinfo.models import UserInfo, UserRole, UserToken, DocumentUser, Surveyor, JenisSurvey, Message
+from userinfo.models import UserInfo, UserRole, UserToken, DocumentUser, vendor, Message, ImageUser
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.conf import settings
-from rest_framework.authtoken.models import Token
+#from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
 import json
 from django.core.files.storage import default_storage
@@ -33,6 +33,18 @@ from userinfo.utils.notification import Notification
 #from userinfo.serializer import *
 from django.core import serializers
 
+import string
+import random
+
+from vendorperformance.models import VPScore
+
+from publicservice.utils import send_mail
+
+import requests
+
+from notification.utils.CustomNotification import CustomNotification
+from vendorperformance.models import VPScore
+
 
 def test(request):
     try:
@@ -52,18 +64,43 @@ def login(request):
     if request.method == 'POST':
         try:
             req = request.body.decode("utf-8")
-            data = request.POST.dict()
+            data = json.loads(req)
+            """
+            secret_key = settings.RECAPTCHA_SECRET_KEY
+
+            # captcha verification
+            d = {
+                'response': data.get('g-recaptcha-response'),
+                'secret': secret_key
+            }
+            resp = requests.post('https://www.google.com/recaptcha/api/siteverify', data=d)
+            result_json = resp.json()
+
+            #print(result_json)
+
+            if not result_json.get('success'):
+                return Response.badRequest(
+                    values=[],
+                    message='recaptcha salah'
+                )
+            # end captcha verification
+            """
             token = data.get('token', 'none')
-            print(data)
+            # print(data)
             try:
                 user = UserInfo.objects.get(
-                    username=data["username"], status="verified")
+                    username=data["username"], status="Aktif")
             except UserInfo.DoesNotExist:
                 user = None
             if not user:
-                return Response.badRequest(
-                    values='null',
-                    message='User not found'
+                # return Response.badRequest(
+                #    values='null',
+                #    message='User not found'
+                # )
+                return Response().base(
+                    success=False,
+                    message='User not found',
+                    status=404
                 )
             check = check_password(data['password'], user.password)
             if check:
@@ -125,15 +162,25 @@ def getUserByRole(request):
     try:
         dataRole = UserRole.objects.get(name=role)
     except UserRole.DoesNotExist:
-        return Response.badRequest(
+        # return Response.badRequest(
+        #    message='Role not Found',
+        # )
+        return Response().base(
+            success=False,
             message='Role not Found',
+            status=404
         )
 
     try:
         data = UserInfo.objects.filter(role=dataRole.id)
     except UserInfo.DoesNotExist:
-        return Response.badRequest(
+        # return Response.badRequest(
+        #    message='User not Found',
+        # )
+        return Response().base(
+            success=False,
             message='User not Found',
+            status=404
         )
 
     result = []
@@ -148,18 +195,24 @@ def getUserByRole(request):
 
 
 def getUser(request):
-    # try:
-    param = request.GET.get('status', None)
-    page = int(request.GET.get('page', 0)) - 1
+    param = None
+    page = -1
+    try:
+        body_data = json.loads(request.body)
+
+        param = body_data.get('status', None)
+        page = int(body_data.get('page', 0)) - 1
+    except:
+        pass
     skip = []
     if page >= 0:
         skip = [{'$skip': 20 * page},
                 {'$limit': 20}]
 
     switcher = {
-        "requested": "requested",
-        "verified": "verified",
-        "declined": "declined",
+        "Belum Terverifikasi": "Belum Terverifikasi",
+        "Aktif": "Aktif",
+        "Ditolak": "Ditolak",
     }
     status = switcher.get(param, None)
 
@@ -178,26 +231,26 @@ def getUser(request):
             }
         }, {
             '$lookup': {
-                'from': 'surveyor',
-                'localField': 'organization',
+                'from': 'vendor',
+                'localField': 'company',
                 'foreignField': '_id',
-                'as': 'organization'
+                'as': 'company'
             }
         }, {
             '$unwind': {
-                'path': '$organization',
+                'path': '$company',
                 'preserveNullAndEmptyArrays': True
             }
         }, {
             '$lookup': {
                 'from': 'jenis_survey',
-                'localField': 'organization.jenissurvey',
+                'localField': 'company.jenissurvey',
                 'foreignField': '_id',
-                'as': 'organization.jenissurvey'
+                'as': 'company.jenissurvey'
             }
         }, {
             '$unwind': {
-                'path': '$organization.jenissurvey',
+                'path': '$company.jenissurvey',
                 'preserveNullAndEmptyArrays': True
             }
         }, {
@@ -257,82 +310,54 @@ def verifyUser(request):
         try:
             req = request.body.decode("utf-8")
             data = json.loads(req)
-            userfrom = data.get("userfrom",None)
-            user = UserInfo.objects.get(id=data["id"])
-            if not user:
-                return Response.badRequest(
-                    values='null',
-                    message='User not found'
+            userfrom = data.get("userfrom", None)
+            try:
+                user = UserInfo.objects.get(id=data["id"])
+            except UserInfo.DoesNotExist:
+                # return Response.ok(
+                #    values=[],
+                #    message='User not found'
+                # )
+                return Response().base(
+                    success=False,
+                    message='User not Found',
+                    status=404
                 )
-            user.status = 'verified'
+            user.status = 'Aktif'
             user.update_date = dateNow
             user.save()
-            """
+            print(user.id)
+            subject = 'Verifikasi Akun Berhasil'
+            text_content = 'Terimakasih telah mendaftar\n'+user.username+'\n' + \
+                'Tim kami akan melakukan verifikasi terhadap data anda terlebih dahulu. Setelah verifikasi berhasil,\n' + \
+                'anda akan menerima email konfirmasi untuk menginformasikan status pendaftaran akun anda.'
+            template = 'email/webverifpengguna.html'
+            d = {'username': user.username,
+                 'media_url': settings.URL_MEDIA,
+                 'url_login': settings.URL_LOGIN}
+            email_sender = settings.EMAIL_ADMIN
+            email_receipient = user.email
+            send_mail(subject, text_content, template, d,
+                      email_sender, [email_receipient])
+
             if not userfrom:
-                usersadmin = UserInfo.objects.filter(role__in=['5f13b1fa478ef95f4f0a83a7','5f13b353386bf295b4169efe']).first()
-                #userto_ = []
-                #for usr in usersadmin:
-                #    userto_.append(usr.username)
-                userfrom = usersadmin.id
-            notif = Message(
-                title='Verifikasi Akun SMASLAB Berhasil',
-                message='Akun anda telah berhasil di verifikasi\n'+user.username+'\n'+user.organization.name+'\n'
-                    'Silahkan untuk dapat melakukan log in melalui aplikasi ataupun website SMASLAB.',
-                userfrom=userfrom,
-                userto=[user.username],
-                redirect='/',
-                status='new'
-            )
-            notif.save()
-            """
-            try:
-                subject = 'Verifikasi Akun SMASLAB Berhasil'
-                text_content = 'Akun anda telah berhasil diverifikasi\n'+user.username+'\n'+user.organization.name+'\n'\
-                        'Silahkan untuk dapat melakukan log in melalui aplikasi ataupun website SMASLAB.\nhttps://survejdev.datasintesa.id/login'
-                #text_content = ''
-                htmly     = get_template('email/verif-akun.html')
-                
-                d = {'username': user.username, 
-                            'organization': user.organization.name,
-                        'message_top': 'Akun anda telah berhasil diverifikasi',
-                        'message_bottom': 'Silahkan untuk dapat melakukan log in melalui aplikasi ataupun website SMASLAB.\n'
-                            +settings.URL_LOGIN, 'media_url': settings.URL_MEDIA}
-                html_content = htmly.render(d)
-                sender = settings.EMAIL_ADMIN
-                receipient = user.email
-                msg = EmailMultiAlternatives(
-                    subject, text_content, sender, [receipient])
-                msg.attach_alternative(html_content, "text/html")
-                respone = msg.send()
-            except:
-                pass
-            #except Exception as e:
-            #    print(e)
-            #    return HttpResponse(e)
-            """
-            try:
-                subject = 'Verifikasi Akun SMASLAB Berhasil'
-                text_content = 'Akun anda telah berhasil di verifikasi\n'+user.username+'\n'+user.organization.name+'\n'\
-                        'Silahkan untuk dapat melakukan log in melalui aplikasi ataupun website SMASLAB.'
-                sender = "Admin dev@dev.datasintesa.id"
-                receipient = user.email
-                msg = EmailMultiAlternatives(
-                    subject, text_content, sender, [receipient])
-                respone = msg.send()
-            except:
-                pass
-            """
+                userfrom = '5f7403aae58dd8f91811ac76'
+
+            notif = CustomNotification()
+            notif.create(to=[user.id], from_=ObjectId(userfrom), type='user verified',
+                         title='Verifikasi email berhasil', message='Verifikasi email berhasil', push_message='Ada pesan baru')
+
             return Response.ok(
                 values=user.serialize(),
                 message='Verify Success'
             )
         except Exception as e:
             print(e)
-            #return HttpResponse(e)
+            # return HttpResponse(e)
             return Response.badRequest(
-                    values='null',
-                    message=str(e)
-                )
+                values='null',
+                message=str(e)
+            )
     else:
         return HttpResponse('Post Only')
 
@@ -343,58 +368,34 @@ def declineUser(request):
         try:
             req = request.body.decode("utf-8")
             data = json.loads(req)
-            userfrom = data.get("userfrom",None)
-            user = UserInfo.objects.get(id=data["id"])
-            if not user:
-                return Response.badRequest(
-                    values='null',
-                    message='User not found'
+            userfrom = data.get("userfrom", None)
+
+            try:
+                user = UserInfo.objects.get(id=data["id"])
+            except UserInfo.DoesNotExist:
+                # return Response.ok(
+                #    values=[],
+                #    message='User not found'
+                # )
+                return Response().base(
+                    success=False,
+                    message='User not Found',
+                    status=404
                 )
-            user.status = 'declined'
+            user.status = 'Ditolak'
             user.comment = data["comment"]
             user.update_date = dateNow
             user.save()
             """
-            if not userfrom:
-                usersadmin = UserInfo.objects.filter(role__in=['5f13b1fa478ef95f4f0a83a7','5f13b353386bf295b4169efe']).first()
-                userfrom = usersadmin.id
-            notif = Message(
-                title='Verifikasi Akun SMASLAB Gagal',
-                message='Akun anda belum berhasil diverifikasi\n'+user.username+'\n'+user.organization.name+'\n'+
-                    user.comment+'\n'+
-                    'Silahkan untuk dapat melakukan registrasi kembali pada halaman \n'+
-                    'http://202.182.55.252:6400/register',
-                userfrom=userfrom,
-                userto=[user.username],
-                redirect='/',
-                status='new'
-            )
-            notif.save()
-            """
-            """
             try:
                 subject = 'Verifikasi Akun SMASLAB Gagal'
-                text_content = 'Akun anda belum berhasil di verifikasi\n'+user.username+'\n'+user.organization.name+'\n'+\
-                    user.comment+'\n'\
-                    'Silahkan untuk dapat melakukan registrasi kembali pada halaman \n'\
-                    'http://202.182.55.252:6400/register'
-                sender = "SMASLAB Admin<dev@dev.datasintesa.id>"
-                receipient = user.email
-                msg = EmailMultiAlternatives(
-                    subject, text_content, sender, [receipient])
-                respone = msg.send()
-            except:
-                pass
-            """
-            try:
-                subject = 'Verifikasi Akun SMASLAB Gagal'
-                text_content = 'Akun anda belum berhasil diverifikasi\n'+user.username+'\n'+user.organization.name+'\n'+\
+                text_content = 'Akun anda belum berhasil diverifikasi\n'+user.username+'\n'+user.company.name+'\n'+\
                     user.comment+'\n'\
                     'Silahkan untuk dapat melakukan registrasi kembali pada halaman \n'\
                     +settings.URL_LOGIN
                 htmly     = get_template('email/decline-akun.html')
                 d = {'username': user.username, 
-                            'organization': user.organization.name,
+                            'company': user.company.name,
                         'message_top': 'Akun anda belum berhasil diverifikasi',
                         'message_bottom': 'Silahkan untuk dapat melakukan registrasi kembali pada halaman '+settings.URL_REGISTER,
                         'comment': user.comment,
@@ -408,61 +409,42 @@ def declineUser(request):
                 respone = msg.send()
             except:
                 pass
-            #except Exception as e:
-            #    print(e)
-            #    return HttpResponse(e)
+            """
             return Response.ok(
                 values=user.serialize(),
                 message='Decline Success'
             )
         except Exception as e:
             print(e)
-            #return HttpResponse(e)
+            # return HttpResponse(e)
             return Response.badRequest(
-                    values='null',
-                    message=str(e)
-                )
+                values='null',
+                message=str(e)
+            )
     else:
         return HttpResponse('Post Only')
+
 
 def removeuser(request):
     if request.method == 'POST':
         try:
             req = request.body.decode("utf-8")
             data = json.loads(req)
-            userfrom = data.get("userfrom",None)
-            user = UserInfo.objects.get(id=data["id"])
-            if not user:
-                return Response.badRequest(
-                    values='null',
-                    message='User not found'
+            userfrom = data.get("userfrom", None)
+            try:
+                user = UserInfo.objects.get(id=data["id"])
+            except UserInfo.DoesNotExist:
+                # return Response.ok(
+                #    values=[],
+                #    message='User not found'
+                # )
+                return Response().base(
+                    success=False,
+                    message='User not Found',
+                    status=404
                 )
             user.delete()
-            """
-            try:
-                subject = 'Verifikasi Akun SMASLAB Gagal'
-                text_content = 'Akun anda belum berhasil diverifikasi\n'+user.username+'\n'+user.organization.name+'\n'+\
-                    user.comment+'\n'\
-                    'Silahkan untuk dapat melakukan registrasi kembali pada halaman \n'\
-                    'http://202.182.55.252:6400/register'
-                htmly     = get_template('email/verif-akun.html')
-                d = {'username': user.username, 
-                            'organization': user.organization.name,
-                        'message_top': 'Akun anda belum berhasil diverifikasi',
-                        'message_bottom': 'Silahkan untuk dapat melakukan registrasi kembali pada halaman http://202.182.55.252:5400/register'}
-                html_content = htmly.render(d)
-                sender = "SMASLAB Admin<dev@dev.datasintesa.id>"
-                receipient = user.email
-                msg = EmailMultiAlternatives(
-                    subject, text_content, sender, [receipient])
-                msg.attach_alternative(html_content, "text/html")
-                respone = msg.send()
-            except:
-                pass
-            """
-            #except Exception as e:
-            #    print(e)
-            #    return HttpResponse(e)
+
             return Response.ok(
                 values=user.serialize(),
                 message='Remove user Success'
@@ -484,24 +466,48 @@ def register(request):
                 location=f'{settings.MEDIA_ROOT}/user/documents/',
                 base_url=f'{settings.MEDIA_URL}/user/documents/'
             )
-            print(fs.url('asd'))
+
             try:
-                data_surveyor = Surveyor.objects.get(
-                    name__iexact=request.POST.get('organization'))
-            except Surveyor.DoesNotExist:
-                try:
-                    data_jenis = JenisSurvey.objects.get(
-                        jenis=request.POST.get('jenis').upper())
-                except JenisSurvey.DoesNotExist:
-                    return Response.badRequest(
-                        values='null',
-                        message='jenissurvey not found'
-                    )
-                data_surveyor = Surveyor(
-                    name=request.POST.get('organization').upper(),
-                    jenissurvey=ObjectId(data_jenis.id),
+                data_vendor = vendor.objects.get(
+                    name__iexact=request.POST.get('company'))
+            except vendor.DoesNotExist:
+                data_vendor = vendor(
+                    name=request.POST.get('company'),
+                    latitude='0',
+                    longitude='0',
+                    longlat=[0, 0],
+                    created_at=datetime.datetime.utcnow() + datetime.timedelta(hours=7),
+                    updated_at=datetime.datetime.utcnow() + datetime.timedelta(hours=7)
                 )
-                data_surveyor.save()
+                data_vendor.save()
+
+                score = VPScore(
+                    user=ObjectId('5f7403aae58dd8f91811ac76'),
+                    kecepatan=0,
+                    kualitas=0,
+                    ketepatan=0,
+                    vendor=data_vendor.id,
+                    doc=''
+                )
+
+                score.save()
+
+                try:
+                    data_role = UserRole.objects.get(
+                        id=ObjectId(request.POST.get('role')))
+                except UserRole.DoesNotExist:
+                    # return Response.ok(
+                    #    values=[],
+                    #    message='Role tidak ada'
+                    # )
+                    return Response().base(
+                        success=False,
+                        message='Role tidak ada',
+                        status=404
+                    )
+                #data_VPScore = VPScore(vendor=data_vendor.id)
+                # data_VPScore.save()
+
             user = UserInfo(
                 name=request.POST.get('name'),
                 username=request.POST.get('username').lower(),
@@ -509,7 +515,7 @@ def register(request):
                     request.POST.get('password'), settings.SECRET_KEY, 'pbkdf2_sha256'),
                 email=request.POST.get('email').lower(),
                 phone=request.POST.get('phone'),
-                organization=ObjectId(data_surveyor.id),
+                company=ObjectId(data_vendor.id),
                 role=ObjectId(request.POST.get('role')),
                 create_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7),
                 update_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7)
@@ -529,7 +535,36 @@ def register(request):
             user.doc = ObjectId(doc.id)
             user.save()
 
+            try:
+                file_image = request.FILES['image']
+
+                fs = FileSystemStorage(
+                    location=f'{settings.MEDIA_ROOT}/user/image/',
+                    base_url=f'{settings.MEDIA_URL}/user/image/'
+                )
+
+                filename = fs.save(file_image.name, file_image)
+                file_path = fs.url(filename)
+                doc_image = ImageUser(
+                    name=file_image.name,
+                    path=file_path,
+                    create_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7),
+                    update_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7)
+                )
+                doc_image.save()
+            except:
+                doc_image = ImageUser(
+                    name='user.jpg',
+                    path='/media/user/image/user.jpg',
+                    create_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7),
+                    update_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7)
+                )
+                doc_image.save()
+            user.image = ObjectId(doc_image.id)
+            user.save()
+
             result = UserInfo.objects.get(id=user.id).serialize()
+            """
             usersadmin = UserInfo.objects.filter(role__in=['5f13b1fa478ef95f4f0a83a7','5f13b353386bf295b4169efe'])
             #usersadmin = list(usersadmin['id'])
             userto_ = []
@@ -549,47 +584,70 @@ def register(request):
                 updated=datetime.datetime.utcnow() + datetime.timedelta(hours=7)
             )
             notif.save()
+            """
             try:
-                subject = 'Registrasi Akun SMASLAB'
-                text_content = 'Terimakasih telah mendaftar\n'+user.username+'\n'+request.POST.get('organization').upper()+'\n'+ \
-                    'Tim kami akan melakukan verifikasi terhadap data anda terlebih dahulu. Setelah verifikasi berhasil,\n'+ \
+                subject = 'Registrasi Akun'
+                text_content = 'Terimakasih telah mendaftar\n'+user.username+'\n'+request.POST.get('company').upper()+'\n' + \
+                    'Tim kami akan melakukan verifikasi terhadap data anda terlebih dahulu. Setelah verifikasi berhasil,\n' + \
                     'anda akan menerima email konfirmasi untuk menginformasikan status pendaftaran akun anda.'
-                htmly     = get_template('email/register.html')
-                d = {'username': user.username, 
-                            'organization': request.POST.get('organization').upper(),
-                            'media_url': settings.URL_MEDIA}
-                html_content = htmly.render(d)
-                sender = settings.EMAIL_ADMIN
-                receipient = user.email
-                msg = EmailMultiAlternatives(
-                    subject, text_content, sender, [receipient])
-                msg.attach_alternative(html_content, "text/html")
-                respone = msg.send()
+                template = 'email/webpendaftaranberhasil.html'
+                d = {'username': user.username,
+                     'company': request.POST.get('company').upper(),
+                     'media_url': settings.URL_MEDIA,
+                     'url_login': settings.URL_LOGIN}
+                email_sender = settings.EMAIL_ADMIN
+                email_receipient = user.email
+                send_mail(subject, text_content, template, d,
+                          email_sender, [email_receipient])
             except:
-                pass
-            #except Exception as e:
-            #    return Response.badRequest(message=str(e))
-            
+                return Response().base(
+                    success=False,
+                    message='Format email salah',
+                    status=400
+                )
+            req_fields = ['id']
+            admin_users = UserInfo.objects.filter(
+                role='5f73fdfc28751d590d835266', status='Aktif').only(*req_fields)
+            if admin_users:
+                list_admin_users = []
+                for usr in admin_users:
+                    list_admin_users.append(usr.id)
+                notif = CustomNotification()
+                notif.create(to=list_admin_users, from_=user.id, type='new user',
+                             title='Pendaftaran berhasil', message='berhasil mendaftar', push_message='Ada pesan baru')
+
             return Response.ok(
                 values=result,
                 message='User Created'
             )
         except Exception as e:
-            return Response.badRequest(message=str(e))
+            if "'code': 11000" in str(e):
+                if "username" in str(e):
+                    return Response.badRequest(message="username sudah ada")
+                else:
+                    return Response.badRequest(message="email sudah ada")
+            else:
+                return Response.badRequest(message=str(e))
 
 
 def createRole(request):
     if request.method == 'POST':
         try:
             x = request.body.decode('utf-8')
-            print(x)
             data = json.loads(x)
-            data_role = UserRole.objects.get(name__iexact=data['name'])
-            if data_role:
-                return Response.ok(
-                    values=[],
-                    message='Data sudah ada'
+            try:
+                data_role = UserRole.objects.get(name__iexact=data['name'])
+                # return Response.ok(
+                #    values=[],
+                #    message='Data sudah ada'
+                # )
+                return Response().base(
+                    success=False,
+                    message='Data sudah ada',
+                    status=409
                 )
+            except UserRole.DoesNotExist:
+                pass
             role = UserRole(
                 name=data['name'],
                 create_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7),
@@ -597,13 +655,12 @@ def createRole(request):
             )
             role.save()
             result = role.serialize()
-            print(result)
             return Response.ok(
                 values=result,
                 message='Role Created Successfully'
             )
         except Exception as e:
-            #Response.badRequest(message=str(e))
+            # Response.badRequest(message=str(e))
             return Response.badRequest(
                 values=[],
                 message=str(e)
@@ -623,9 +680,14 @@ def getRole(request):
             message=f'{len(result)} Data Found'
         )
     else:
-        return Response.ok(
-            values=result,
+        # return Response.ok(
+        #    values=result,
+        #    message='No Data',
+        # )
+        return Response().base(
+            success=False,
             message='No Data',
+            status=404
         )
     return HttpResponse('Success')
 
@@ -636,7 +698,7 @@ def getstaffsurvey(request):
 
     if param:
         try:
-            data = UserInfo.objects.filter(organization=param)
+            data = UserInfo.objects.filter(company=param)
             for user in data:
                 result.append(user.serialize())
             return Response.ok(
@@ -656,7 +718,7 @@ def getstaffsurvey(request):
 def getStaffSurvey(request):
 
     role = request.GET.get('role', None)
-    organization = request.GET.get('organization', None)
+    company = request.GET.get('company', None)
 
     switcher = {
         'admin': 'Admin',
@@ -675,15 +737,25 @@ def getStaffSurvey(request):
     try:
         datarole = UserRole.objects.get(name=role)
     except UserRole.DoesNotExist:
-        return Response.badRequest(
+        # return Response.badRequest(
+        #    message='UserRole not Found',
+        # )
+        return Response().base(
+            success=False,
             message='UserRole not Found',
+            status=404
         )
     try:
         datauser = UserInfo.objects.filter(role=ObjectId(
-            datarole.id), organization=ObjectId(organization))
+            datarole.id), company=ObjectId(company))
     except UserInfo.DoesNotExist:
-        return Response.badRequest(
+        # return Response.badRequest(
+        #    message='User not Found',
+        # )
+        return Response().base(
+            success=False,
             message='User not Found',
+            status=404
         )
 
     result = []
@@ -700,7 +772,7 @@ def changepassword(request):
     if request.method == 'POST':
         try:
             req = request.body.decode("utf-8")
-            data = request.POST.dict()
+            data = json.loads(req)
             if data['password'] == data['newpassword']:
                 return Response.badRequest(
                     values=[],
@@ -711,9 +783,14 @@ def changepassword(request):
             except UserInfo.DoesNotExist:
                 user = None
             if not user:
-                return Response.badRequest(
-                    values='null',
-                    message='User not found'
+                # return Response.badRequest(
+                #    values='null',
+                #    message='User not found'
+                # )
+                return Response().base(
+                    success=False,
+                    message='User not Found',
+                    status=404
                 )
             check = check_password(data['password'], user.password)
             if check:
@@ -756,36 +833,47 @@ def sendmail(request):
     else:
         return HttpResponse('Post Only')
 
+
 def sendnotif(request):
     if request.method == 'POST':
         dateNow = datetime.datetime.utcnow() + datetime.timedelta(hours=7)
         try:
             req = request.body.decode("utf-8")
             data = json.loads(req)
-            userfrom = data.get("userfrom",None)
-            userto = data.get("userto",None)
-            title = data.get("title",None)
-            message = data.get("message",None)
-            
+            userfrom = data.get("userfrom", None)
+            userto = data.get("userto", None)
+            title = data.get("title", None)
+            message = data.get("message", None)
+
             try:
                 token = UserToken.objects.get(user=ObjectId(userto))
                 Notification(
                     users=[token.key],
-                    #users=['ef0D86AAQRG8Tu9ZXdEv2D:APA91bFmQDKHVjaTlRpUuHXEbXOVjywVyJuEoSrzjKLPqIrON4fviP9uJapeyZGQGFJ3WBODB_7xzFSeuNLpDZC0E_TMBH6jo8oJ5_QCF_qHCjBwxa7uQtacQGPgLgiI4DxoAKhJ1FcM'],
+                    # users=['ef0D86AAQRG8Tu9ZXdEv2D:APA91bFmQDKHVjaTlRpUuHXEbXOVjywVyJuEoSrzjKLPqIrON4fviP9uJapeyZGQGFJ3WBODB_7xzFSeuNLpDZC0E_TMBH6jo8oJ5_QCF_qHCjBwxa7uQtacQGPgLgiI4DxoAKhJ1FcM'],
                     title=title,
                     message=message,
                 ).send_message()
             except UserToken.DoesNotExist:
-                return Response.badRequest(
-                    values=[],
-                    message='User tidak ada'
+                # return Response.badRequest(
+                #    values=[],
+                #    message='User tidak ada'
+                # )
+                return Response().base(
+                    success=False,
+                    message='User tidak ada',
+                    status=404
                 )
             try:
                 user = UserInfo.objects.get(id=userto)
             except UserInfo.DoesNotExist:
-                return Response.badRequest(
-                    values=[],
-                    message='User tujuan tidak ada'
+                # return Response.badRequest(
+                #    values=[],
+                #    message='User tujuan tidak ada'
+                # )
+                return Response().base(
+                    success=False,
+                    message='User tujuan tidak ada',
+                    status=404
                 )
             notif = Message(
                 title=title,
@@ -796,7 +884,7 @@ def sendnotif(request):
                 status='new'
             )
             notif.save()
-            
+
             try:
                 subject = title
                 text_content = message
@@ -816,6 +904,7 @@ def sendnotif(request):
             return HttpResponse(e)
     else:
         return HttpResponse('Post Only')
+
 
 def authenticate_credentials(key):
     # from rest_framework.authtoken.models import Token
@@ -845,16 +934,18 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
             instance.set_password(password)  # Password encryption method
         instance.save()
 
+
 def getnotif(request):
     try:
         param = json.loads(request.body.decode("utf-8"))
         username = param.get('user', None)
-        if username==None:
+        if username == None:
             return Response.badRequest(
                 values=[],
                 message='User tidak bisa kosong'
             )
-        notifs = Message.objects.filter(userto=username).order_by('-updated')[:5]
+        notifs = Message.objects.filter(
+            userto=username).order_by('-updated')[:5]
         json_list = []
         for nf in notifs:
             json_dict = {}
@@ -870,13 +961,20 @@ def getnotif(request):
     except Exception as e:
         print(e)
         return HttpResponse(e)
-    
+
+
 def updatesurveyor(request):
     try:
-        datauser = UserInfo.objects.filter(role=ObjectId('5f13b370386bf295b4169f00'))
+        datauser = UserInfo.objects.filter(
+            role=ObjectId('5f13b370386bf295b4169f00'))
     except UserInfo.DoesNotExist:
-        return Response.badRequest(
+        # return Response.badRequest(
+        #    message='User not Found',
+        # )
+        return Response().base(
+            success=False,
             message='User not Found',
+            status=404
         )
     for dt in datauser:
         dt.name = dt.username
@@ -886,3 +984,203 @@ def updatesurveyor(request):
         values=[],
         message=f'Update Data',
     )
+
+
+def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
+
+
+def forgotpassword(request):
+    if request.method == 'POST':
+        try:
+            req = request.body.decode("utf-8")
+            data = json.loads(req)
+            try:
+                user = UserInfo.objects.get(email=data["email"])
+            except UserInfo.DoesNotExist:
+                # return Response.ok(
+                #    values=[],
+                #    message='User not found'
+                # )
+                return Response().base(
+                    success=False,
+                    message='User not Found',
+                    status=404
+                )
+
+            token = id_generator(10, str(user.id))
+
+            user.token_reset = token
+            dateNow = datetime.datetime.utcnow() + datetime.timedelta(hours=7)
+            user.expire_token = dateNow + datetime.timedelta(hours=1)
+            user.update_date = dateNow
+            user.save()
+            subject = 'Forgot password'
+            text_content = 'Atur Ulang Kata Sandi\Jika Anda tidak melakukan rekues reset Kata Sandi akun, silahkan abaikan email ini'
+            #text_content = ''
+            htmly = get_template('email/webforgotpassword.html')
+
+            d = {'username': user.username,
+                 'company': user.company.name,
+                 'message_top': 'Atur Ulang Kata Sandi',
+                 'message_bottom': 'Jika Anda tidak melakukan rekues reset Kata Sandi akun, silahkan abaikan email ini.\n'
+                 + settings.URL_LOGIN, 'media_url': settings.URL_MEDIA,
+                 'reset_url': settings.URL_RESETPASSWORD+'/'+user.token_reset}
+            html_content = htmly.render(d)
+            sender = settings.EMAIL_ADMIN
+            receipient = user.email
+            msg = EmailMultiAlternatives(
+                subject, text_content, sender, [receipient])
+            msg.attach_alternative(html_content, "text/html")
+
+            respone = msg.send()
+            return Response.ok(
+                values=user.serialize(),
+                message='Forgot Success'
+            )
+        except Exception as e:
+            print(e)
+            # return HttpResponse(e)
+            return Response.badRequest(
+                values='null',
+                message=str(e)
+            )
+    else:
+        return HttpResponse('Post Only')
+
+
+def resetpassword(request):
+    if request.method == 'POST':
+        try:
+            req = request.body.decode("utf-8")
+            data = json.loads(req)
+            try:
+                user = UserInfo.objects.get(token_reset=data["token"])
+            except UserInfo.DoesNotExist:
+                # return Response.ok(
+                #    values=[],
+                #    message='User not found'
+                # )
+                return Response().base(
+                    success=False,
+                    message='User not Found',
+                    status=404
+                )
+
+            user.password = make_password(
+                data['newpassword'], settings.SECRET_KEY, 'pbkdf2_sha256')
+            user.update_date = datetime.datetime.utcnow() + datetime.timedelta(hours=7)
+            user.token_reset = None
+            user.expire_token = None
+            user.save()
+
+            subject = 'Reset password'
+            text_content = 'Reset Password Telah Berhasil'
+            #text_content = ''
+            htmly = get_template('email/webresetpassword.html')
+
+            d = {'username': user.username,
+                 'company': user.company.name,
+                 'message_top': 'Atur Ulang Kata Sandi',
+                 'message_bottom': 'Reset Password Telah Berhasil',
+                 'media_url': settings.URL_MEDIA,
+                 'login_url': settings.URL_LOGIN}
+            html_content = htmly.render(d)
+            sender = settings.EMAIL_ADMIN
+            receipient = user.email
+            msg = EmailMultiAlternatives(
+                subject, text_content, sender, [receipient])
+            msg.attach_alternative(html_content, "text/html")
+
+            respone = msg.send()
+
+            return Response.ok(
+                values=user.serialize(),
+                message='Reset Success'
+            )
+        except Exception as e:
+            print(e)
+            # return HttpResponse(e)
+            return Response.badRequest(
+                values='null',
+                message=str(e)
+            )
+    else:
+        return HttpResponse('Post Only')
+
+
+def changeimage(request):
+    if request.method == 'POST':
+        try:
+            file = request.FILES['image']
+            if not file:
+                return Response.badRequest(message='No File Upload')
+            fs = FileSystemStorage(
+                location=f'{settings.MEDIA_ROOT}/user/image/',
+                base_url=f'{settings.MEDIA_URL}/user/image/'
+            )
+            data = request.POST.dict()
+            try:
+                user = UserInfo.objects.get(id=data["userid"])
+            except UserInfo.DoesNotExist:
+                # return Response.ok(
+                #    values=[],
+                #    message='User not found'
+                # )
+                return Response().base(
+                    success=False,
+                    message='User not Found',
+                    status=404
+                )
+
+            filename = fs.save(file.name, file)
+            file_path = fs.url(filename)
+            doc_image = ImageUser(
+                name=file.name,
+                path=file_path,
+                create_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7),
+                update_date=datetime.datetime.utcnow() + datetime.timedelta(hours=7)
+            )
+            doc_image.save()
+
+            user.image = ObjectId(doc_image.id)
+
+            user.save()
+
+            result = UserInfo.objects.get(id=user.id).serialize()
+            """
+            try:
+                subject = 'Verifikasi Akun SMASLAB Berhasil'
+                text_content = 'Akun anda telah berhasil diverifikasi\n'+user.username+'\n'+user.company.name+'\n'\
+                        'Silahkan untuk dapat melakukan log in melalui aplikasi ataupun website SMASLAB.\nhttps://survejdev.datasintesa.id/login'
+                #text_content = ''
+                htmly     = get_template('email/verif-akun.html')
+                
+                d = {'username': user.username, 
+                            'company': user.company.name,
+                        'message_top': 'Akun anda telah berhasil diverifikasi',
+                        'message_bottom': 'Silahkan untuk dapat melakukan log in melalui aplikasi ataupun website SMASLAB.\n'
+                            +settings.URL_LOGIN, 'media_url': settings.URL_MEDIA}
+                html_content = htmly.render(d)
+                sender = settings.EMAIL_ADMIN
+                receipient = user.email
+                msg = EmailMultiAlternatives(
+                    subject, text_content, sender, [receipient])
+                msg.attach_alternative(html_content, "text/html")
+                respone = msg.send()
+            except:
+                pass
+            """
+            return Response.ok(
+                values=result,
+                message='Success'
+            )
+        except Exception as e:
+            print(e)
+            # return HttpResponse(e)
+            return Response.badRequest(
+                values='null',
+                message=str(e)
+            )
+    else:
+        return HttpResponse('Post Only')
