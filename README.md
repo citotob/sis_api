@@ -1548,7 +1548,7 @@ A style guide must constantly adapt to newer norms, and its basis is community. 
 
 
   <a name="running--complex"></a><a name="18.2"></a>
-  - [1.2](#running--complex)  How to running.
+  - [18.2](#running--complex)  How to running.
 
     daphne --access-log sis.log -p 13000 fs_server.asgi:application
 
