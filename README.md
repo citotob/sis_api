@@ -1526,22 +1526,26 @@ A style guide must constantly adapt to newer norms, and its basis is community. 
 
 ## Running the app and requirements
 
-  <a name="types--primitives"></a><a name="18.1"></a>
-  - [18.1](#types--primitives) **Primitives**: When you access a primitive type you work directly on its value.
+  <a name="running--primitives"></a><a name="18.1"></a>
+  - [18.1](#running--primitives) **Requerments.
 
-    - `string`
-    - `number`
-    - `boolean`
-    - `None`
+    - pip3 install django
+    - pip3 install channels
+    - pip3 install django-simpleui
+    - pip3 install djangorestframework
+    - pip3 install django-cors-headers
+    - pip3 install channels-redis
+    - pip3 install daphne
+    - pip3 install mongoengine
+    - pip3 install django-rest-framework-mongoengine
+    - pip3 install pyfcm
+    - pip3 install pandas
+    - pip3 install django-mailgun
+    - pip3 install openpyxl
+    - sudo pip3 install turfpy
+    - pip3 install pillow
+    - pip3 install scikit-learn
 
-    ```python
-    foo = 1
-    bar = foo
-
-    bar = 9
-
-    print(foo, bar) # => 1, 9
-    ```
 
   <a name="types--complex"></a><a name="1.2"></a>
   - [1.2](#types--complex)  **Complex**: When you access a complex type you work on a reference to its value.
