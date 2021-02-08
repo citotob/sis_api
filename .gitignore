@@ -133,3 +133,4 @@ dmypy.json
 *.DS_Store
 *.txt
 templates/email/.DS_Store
+.DS_Store
