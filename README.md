@@ -25,7 +25,7 @@ A style guide must constantly adapt to newer norms, and its basis is community. 
   1. [Commas](#commas)
   1. [Naming Conventions](#naming-conventions)
   1. [Testing](#testing)
-  1. [Running the app](#running-the-app-and-requirements)
+  1. [Running the app and requirements](#running-the-app-and-requirements)
   1. [Resources](#resources)
   1. [Contributors](#contributors)
 
