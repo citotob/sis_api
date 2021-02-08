@@ -1527,7 +1527,7 @@ A style guide must constantly adapt to newer norms, and its basis is community. 
 ## Running the app and requirements
 
   <a name="running--primitives"></a><a name="18.1"></a>
-  - [18.1](#running--primitives) **Requerments.
+  - [18.1](#running--primitives) Requirements :
 
     - pip3 install django
     - pip3 install channels
@@ -1547,21 +1547,10 @@ A style guide must constantly adapt to newer norms, and its basis is community. 
     - pip3 install scikit-learn
 
 
-  <a name="types--complex"></a><a name="1.2"></a>
-  - [1.2](#types--complex)  **Complex**: When you access a complex type you work on a reference to its value.
+  <a name="running--complex"></a><a name="18.2"></a>
+  - [1.2](#running--complex)  How to running.
 
-    - `dict`
-    - `list`
-    - `function`
-
-    ```python
-    foo = [1, 2]
-    bar = foo
-
-    bar[0] = 9
-
-    print(foo[0], bar[0]) # => 9, 9
-    ```
+    daphne --access-log sis.log -p 13000 fs_server.asgi:application
 
 **[⬆ back to top](#table-of-contents)**
 
