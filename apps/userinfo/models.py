@@ -93,7 +93,8 @@ class UserInfo(Document):
     password = StringField(required=True)
     name = StringField(required=True, default='-')
     company = ReferenceField(vendor)
-    email = StringField(required=True, unique=True)
+    #email = StringField(required=True, unique=True)
+    email = EmailField(required=True, unique=True)
     phone = StringField(required=True, default='-')
     status = StringField(required=True, choices=[
                          'Belum Terverifikasi', 'Aktif', 'Ditolak'], default='Belum Terverifikasi')
