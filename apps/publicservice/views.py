@@ -22,7 +22,8 @@ from sites.models import *
 class publicServiceAPI(ModelViewSet):
     def clusterpenduduk(self, request, format=None):
         try:
-            url = "https://www.bps.go.id/indikator/indikator/download_json/0000/api_pub/50/da_03/1"
+            #url = "https://www.bps.go.id/indikator/indikator/download_json/0000/api_pub/50/da_03/1"
+            url = "https://www.bps.go.id/indikator/indikator/download_json/0000/api_pub/YW40a21pdTU1cnJxOGt6dm43ZEdoZz09/da_03/1"
             headers = {'Content-type': 'application/json'}
             #d = {"month":month, "year":year}
             res = requests.get(url).json()#, data=json.dumps(d)
