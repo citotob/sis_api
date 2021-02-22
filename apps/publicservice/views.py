@@ -23,7 +23,7 @@ class publicServiceAPI(ModelViewSet):
     def clusterpenduduk(self, request, format=None):
         try:
             #url = "https://www.bps.go.id/indikator/indikator/download_json/0000/api_pub/50/da_03/1"
-            url = "https://www.bps.go.id/indikator/indikator/download_json/0000/api_pub/YW40a21pdTU1cnJxOGt6dm43ZEdoZz09/da_03/1"
+            url = "https://www.bps.go.id/indikator/indikator/download_json/0000/api_pub/WVRlTTcySlZDa3lUcFp6czNwbHl4QT09/da_03/1"
             headers = {'Content-type': 'application/json'}
             #d = {"month":month, "year":year}
             res = requests.get(url).json()#, data=json.dumps(d)
@@ -35,13 +35,10 @@ class publicServiceAPI(ModelViewSet):
                 if dt['label']!='Indonesia':
                     json_dict = {}
                     json_dict['provinsi'] = dt['label']
-                    #json_dict['jumlah_penduduk'] = float(dt['penduduk_jumlah_penduduk'].replace(' ','').replace(',','.'))
-                    #result.append(json_dict)
-                    #dt_penduduk.append(float(dt['penduduk_jumlah_penduduk'].replace(' ','').replace(',','.')))
-                    json_dict['jumlah_penduduk'] = float(dt['penduduk_penduduk_laki_laki_perempuan_'].replace(' ','').replace(',','.'))
+                    json_dict['jumlah_penduduk'] = float(dt['penduduk_jumlah_penduduk'].replace(' ','').replace(',','.'))
                     result.append(json_dict)
-                    dt_penduduk.append(float(dt['penduduk_penduduk_laki_laki_perempuan_'].replace(' ','').replace(',','.')))
-
+                    dt_penduduk.append(float(dt['penduduk_jumlah_penduduk'].replace(' ','').replace(',','.')))
+                    
             max_ = max(dt_penduduk)
             min_ = min(dt_penduduk)
             scaler = minmax_scale(dt_penduduk)
