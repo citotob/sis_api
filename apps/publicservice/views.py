@@ -35,9 +35,12 @@ class publicServiceAPI(ModelViewSet):
                 if dt['label']!='Indonesia':
                     json_dict = {}
                     json_dict['provinsi'] = dt['label']
-                    json_dict['jumlah_penduduk'] = float(dt['penduduk_jumlah_penduduk'].replace(' ','').replace(',','.'))
+                    #json_dict['jumlah_penduduk'] = float(dt['penduduk_jumlah_penduduk'].replace(' ','').replace(',','.'))
+                    #result.append(json_dict)
+                    #dt_penduduk.append(float(dt['penduduk_jumlah_penduduk'].replace(' ','').replace(',','.')))
+                    json_dict['jumlah_penduduk'] = float(dt['penduduk_penduduk_laki_laki_perempuan_'].replace(' ','').replace(',','.'))
                     result.append(json_dict)
-                    dt_penduduk.append(float(dt['penduduk_jumlah_penduduk'].replace(' ','').replace(',','.')))
+                    dt_penduduk.append(float(dt['penduduk_penduduk_laki_laki_perempuan_'].replace(' ','').replace(',','.')))
 
             max_ = max(dt_penduduk)
             min_ = min(dt_penduduk)
