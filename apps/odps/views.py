@@ -565,7 +565,7 @@ def getRecommendTech(request):
 
 def getodp(request):
     try:
-        req_fields = ['latitude', 'longitude', 'teknologi']
+        req_fields = ['latitude', 'longitude', 'teknologi', 'provinsi', 'kabupaten', 'kecamatan', 'desa_kelurahan', 'nama','vendorid']
         try:
             start = int(request.GET.get('start')) - 1
             end = int(request.GET.get('end'))
