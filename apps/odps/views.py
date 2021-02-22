@@ -556,7 +556,7 @@ def getRecommendTech(request):
                 success=False,
                 values=[],
                 message='Data tidak ada',
-                status=204
+                status=404
             )
 
     except Exception as e:
