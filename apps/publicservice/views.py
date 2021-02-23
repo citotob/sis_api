@@ -93,7 +93,7 @@ class publicServiceAPI(ModelViewSet):
     def clusteraionair(self, request, format=None):
         try:
             data_odp = Odp.objects.aggregate([
-                {'$group' : {'_id':"$provinsi", 'total':{'$sum':1}}}
+                {'$group' : {'_id':"$provinsi_name", 'total':{'$sum':1}}}
             ])
             result = []
             dt_odp = []

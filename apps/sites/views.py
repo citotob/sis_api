@@ -1296,7 +1296,7 @@ def addodp(request):
                 longitude=longitude,
                 longlat=[float(longitude), float(latitude)],
                 teknologi=teknologi,
-                vendorid=vendorid
+                vendor=vendorid
             )
 
             data_odp.save()
