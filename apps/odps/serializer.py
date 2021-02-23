@@ -8,14 +8,17 @@ from .models import Odp
 class ODPSerializer(DocumentSerializer):
     class Meta:
         model = Odp
+        fields = ['longlat','latitude', 'longitude', 'teknologi', 'provinsi_name', 'kabupaten_name', 'kecamatan_name', 
+            'desa_kelurahan_name', 'nama','vendor_name', 'created_at','updated_at']
         depth = 2
-        exclude = ('vendorid.teknologi',)
+        #exclude = ('vendorid.teknologi',)
 
 class siteonairSerializer(DocumentSerializer):
     class Meta:
         model = Odp
         #fields = ['latitude', 'longitude', 'teknologi']
-        fields = ['latitude', 'longitude', 'teknologi', 'provinsi', 'kabupaten', 'kecamatan', 'desa_kelurahan', 'nama','vendorid']
+        fields = ['latitude', 'longitude', 'teknologi', 'provinsi_name', 'kabupaten_name', 'kecamatan_name', 
+            'desa_kelurahan_name', 'nama','vendor_name']
         depth = 0
 
 class siteprovinsiSerializer(DocumentSerializer):
