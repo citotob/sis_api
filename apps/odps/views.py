@@ -254,7 +254,8 @@ def uploadodp1(request):
                 id_gagal.append(json_dict)
                 continue
             try:
-                data_odp = Odp_backup(
+                #data_odp = Odp_backup(
+                data_odp = Odp(
                     latitude=str(row[7].value).replace(',','.'),
                     longitude=str(row[6].value).replace(',','.'),
                     longlat=[float(str(row[6].value).replace(',','.')), float(str(row[7].value).replace(',','.'))],
