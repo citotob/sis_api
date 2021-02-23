@@ -116,9 +116,8 @@ def uploadodp1(request):
         odp_file = request.FILES["odp_file"]
 
         # you may put validations here to check extension or file size
-
         wb = openpyxl.load_workbook(odp_file)
-
+        
         # getting a particular sheet by name out of many sheets
         worksheet = wb["AKSES INTERNET - 27092020"]
 
@@ -146,18 +145,18 @@ def uploadodp1(request):
                 )
                 data_vendor.save()
 
-            tekno = str(row[10].value).strip()
-            if "VSAT" in str(row[10].value):
+            tekno = str(row[10].value).strip().upper()
+            if "VSAT" in str(row[10].value).upper():
                 tekno = "VSAT"
             else:
-                if "RADIO" in str(row[10].value):
+                if "RADIO" in str(row[10].value).upper():
                     tekno = "RL"
                 else:
-                    if "FIBER" in str(row[10].value):
+                    if "FIBER" in str(row[10].value).upper():
                         tekno = "FO"
 
             data_prov = provinsi.objects.filter(
-                name=str(row[2].value).strip()).first()
+                name=str(row[2].value).strip().upper()).first()
             if not data_prov:
                 """
                 json_dict = {}
@@ -172,10 +171,12 @@ def uploadodp1(request):
                 data_prov.save()
 
             data_kab = kabupaten.objects.filter(
-                name='KAB. '+str(row[3].value).strip(), provinsi=data_prov.id).first()
+                name='KAB. '+str(row[3].value).strip().upper(), provinsi=data_prov.id).first()
             if not data_kab:
+                #data_kota = kota.objects.filter(
+                #    name='KOTA '+str(row[3].value).strip(), provinsi=data_prov.id).first()
                 data_kota = kota.objects.filter(
-                    name='KOTA '+str(row[3].value).strip(), provinsi=data_prov.id).first()
+                    name=str(row[3].value).strip().upper(), provinsi=data_prov.id).first()
                 if not data_kota:
                     """
                     json_dict = {}
@@ -194,12 +195,12 @@ def uploadodp1(request):
             
             if data_kab:
                 data_kec = kecamatan.objects.filter(
-                    name=str(row[4].value).strip(),kabupaten=data_kab.id).first()
+                    name=str(row[4].value).strip().upper(),kabupaten=data_kab.id).first()
                 kab_kot_id = data_kab.id
                 kab_kot_name = data_kab.name
             else:
                 data_kec = kecamatan.objects.filter(
-                    name=str(row[4].value).strip(),kota=data_kota.id).first()
+                    name=str(row[4].value).strip().upper(),kota=data_kota.id).first()
                 kab_kot_id = data_kota.id
                 kab_kot_name = data_kota.name
             if not data_kec:
@@ -226,7 +227,7 @@ def uploadodp1(request):
                     data_kec.save()
 
             data_desa = desa.objects.filter(
-                name=str(row[5].value).strip(),kecamatan=data_kec.id).first()
+                name=str(row[5].value).strip().upper(),kecamatan=data_kec.id).first()
             if not data_desa:
                 """
                 json_dict = {}
@@ -259,18 +260,24 @@ def uploadodp1(request):
                     longlat=[float(str(row[6].value).replace(',','.')), float(str(row[7].value).replace(',','.'))],
                     teknologi=tekno,
                     nama=str(row[1].value).strip(),
-                    desa_kelurahan=data_desa.name,
-                    kecamatan=data_kec.name,
-                    provinsi=data_prov.name,
-                    vendorid=data_vendor.name,
+                    desa_kelurahan_name=data_desa.name,
+                    kecamatan_name=data_kec.name,
+                    provinsi_name=data_prov.name,
+                    vendor_name=data_vendor.name,
+                    desa_kelurahan=data_desa.id,
+                    kecamatan=data_kec.id,
+                    provinsi=data_prov.id,
+                    vendor=data_vendor.id,
                     created_at=create_date,
                     updated_at=create_date
                 )
 
                 if data_kab:
-                    data_odp.kabupaten=data_kab.name
+                    data_odp.kabupaten_name=data_kab.name
+                    data_odp.kabupaten=data_kab.id
                 else:
-                    data_odp.kota=data_kota.name
+                    data_odp.kota_name=data_kota.name
+                    data_odp.kota=data_kota.id
                 data_odp.save()
             except Exception as e:
                 json_dict = {}
