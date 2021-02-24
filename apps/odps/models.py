@@ -28,6 +28,7 @@ class provinsi(Document):
 class kabupaten(Document):
     name = StringField(required=True)
     provinsi = ReferenceField(provinsi)
+    longlat = PointField()
     tanggal_pembuatan = DateTimeField(required=True, default=datetime.now)
     tanggal_perubahan = DateTimeField(required=True, default=datetime.now)
 
@@ -39,6 +40,7 @@ class kabupaten(Document):
         return {
             'id': str(self.id),
             'name': self.name,
+            'longlat': str(self.longlat),
             # 'provinsi': str(self.provinsi.serialize()),
             'tanggal_pembuatan': str(self.tanggal_pembuatan),
             'tanggal_perubahan': str(self.tanggal_perubahan),
@@ -48,6 +50,7 @@ class kabupaten(Document):
 class kota(Document):
     name = StringField(required=True)
     provinsi = ReferenceField(provinsi)
+    longlat = PointField()
     tanggal_pembuatan = DateTimeField(required=True, default=datetime.now)
     tanggal_perubahan = DateTimeField(required=True, default=datetime.now)
 
@@ -59,6 +62,7 @@ class kota(Document):
         return {
             'id': str(self.id),
             'name': self.name,
+            'longlat': str(self.longlat),
             # 'provinsi': str(self.provinsi.serialize()),
             'tanggal_pembuatan': str(self.tanggal_pembuatan),
             'tanggal_perubahan': str(self.tanggal_perubahan),
