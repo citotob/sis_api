@@ -20,7 +20,7 @@ class KabupatenSerializer(serializers.DocumentSerializer):
         model = Kabupaten
         depth = 1
         fields = ['id', 'provinsi', 'provinsi.name',
-                  'name']
+                  'name','longlat']
 
 
 class KecamatanKabSerializer(serializers.DocumentSerializer):
