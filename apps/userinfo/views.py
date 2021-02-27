@@ -482,7 +482,7 @@ def register(request):
                 data_vendor.save()
 
                 score = VPScore(
-                    user=ObjectId('5f7403aae58dd8f91811ac76'),
+                    user=ObjectId('6039e79e87394f7b466d9df9'),
                     kecepatan=0,
                     kualitas=0,
                     ketepatan=0,
