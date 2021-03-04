@@ -131,14 +131,18 @@ def uploadodp1(request):
                 break
             if str(row[0].value).upper() == 'NO URUT':
                 continue
+
+            vndr=str(row[8].value).strip()
+            if "TELKOM" in vndr:
+                vndr = "TELKOM"
             try:
                 data_vendor = vendor.objects.get(
-                    name__iexact=str(row[8].value).strip())
+                    name__iexact=vndr)
                 #data_vendor = vendor.objects.get(
                 #    name__iexact=vndr)
             except vendor.DoesNotExist:
                 data_vendor = vendor(
-                    name=str(row[8].value),
+                    name=vndr,
                     latitude='0',
                     longitude='0',
                     longlat=[0, 0],
@@ -158,7 +162,7 @@ def uploadodp1(request):
             data_prov = provinsi.objects.filter(
                 name=str(row[2].value).strip().upper()).first()
             if not data_prov:
-                """
+                
                 json_dict = {}
                 json_dict["No Urut"] = str(row[0].value).strip()
                 json_dict["provinsi"] = str(row[2].value).strip()
@@ -169,7 +173,7 @@ def uploadodp1(request):
                     name=str(row[2].value).upper()
                 )
                 data_prov.save()
-
+                """
             data_kab = kabupaten.objects.filter(
                 name='KAB. '+str(row[3].value).strip().upper(), provinsi=data_prov.id).first()
             if not data_kab:
@@ -178,7 +182,7 @@ def uploadodp1(request):
                 data_kota = kota.objects.filter(
                     name=str(row[3].value).strip().upper(), provinsi=data_prov.id).first()
                 if not data_kota:
-                    """
+                    
                     json_dict = {}
                     json_dict["No Urut"] = str(row[0].value).strip()
                     json_dict["provinsi_id"] = data_prov.id
@@ -192,7 +196,7 @@ def uploadodp1(request):
                         provinsi=ObjectId(data_prov.id)
                     )
                     data_kab.save()
-            
+                    """
             if data_kab:
                 data_kec = kecamatan.objects.filter(
                     name=str(row[4].value).strip().upper(),kabupaten=data_kab.id).first()
@@ -204,7 +208,7 @@ def uploadodp1(request):
                 kab_kot_id = data_kota.id
                 kab_kot_name = data_kota.name
             if not data_kec:
-                """
+                
                 json_dict = {}
                 json_dict["No Urut"] = str(row[0].value).strip()
                 json_dict["kab_kota_id"] = kab_kot_id
@@ -225,11 +229,11 @@ def uploadodp1(request):
                         kota=ObjectId(kab_kot_id)
                     )
                     data_kec.save()
-
+                """
             data_desa = desa.objects.filter(
                 name=str(row[5].value).strip().upper(),kecamatan=data_kec.id).first()
             if not data_desa:
-                """
+                
                 json_dict = {}
                 json_dict["No Urut"] = str(row[0].value).strip()
                 json_dict["kecamatan_id"] = data_kec.id
@@ -243,7 +247,7 @@ def uploadodp1(request):
                     kecamatan=ObjectId(data_kec.id)
                 )
                 data_desa.save()
-
+                """
             try:
                 create_date = datetime.strptime(
                     str(row[13].value), '%Y-%m-%d 00:00:00')

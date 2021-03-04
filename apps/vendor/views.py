@@ -537,13 +537,14 @@ def getDashboardData(request):
                 batchid__exists=True, batchid__in=listBatch.scalar('batchid')).count()
             rfiCount = listBatch.count()
 
-            totallayananai = Odp.objects(vendorid=vendorData.id).count()
-            totallayananaifo = Odp.objects(vendorid=vendorData.id, teknologi__in=[
+            #totallayananai = Odp.objects(vendorid=vendorData.id).count()
+            totallayananai = Odp.objects(vendor=vendorData.id).count()
+            totallayananaifo = Odp.objects(vendor=vendorData.id, teknologi__in=[
                                            'FIBER OPTIK', 'FO']).count()
-            totallayananairl = Odp.objects(vendorid=vendorData.id, teknologi__in=[
+            totallayananairl = Odp.objects(vendor=vendorData.id, teknologi__in=[
                                            'RADIO LINK', 'RL']).count()
             totallayananaivsat = Odp.objects(
-                vendorid=vendorData.id, teknologi='VSAT').count()
+                vendor=vendorData.id, teknologi='VSAT').count()
 
             siteNonBatchCount = 0
 
