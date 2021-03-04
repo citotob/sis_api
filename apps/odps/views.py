@@ -572,13 +572,17 @@ def getRecommendTech(request):
             )
 
     except Exception as e:
-        print(e)
+        # print(e)
         return Response.badRequest(message=str(e))
 
 def getodp(request):
     try:
         req_fields = ['latitude', 'longitude', 'teknologi', 'provinsi_name', 'kabupaten_name', 'kecamatan_name', 
             'desa_kelurahan_name', 'nama','vendor_name']
+
+        latitude = request.GET.get('latitude')
+        longitude = request.GET.get('longitude')
+
         try:
             start = int(request.GET.get('start')) - 1
             end = int(request.GET.get('end'))
@@ -586,9 +590,19 @@ def getodp(request):
             if start < 0:
                 start = 0
         
-            data = Odp.objects.all().only(*req_fields)[start:end]
+            if not (longitude and latitude):
+                data = Odp.objects.all().only(*req_fields)[start:end]
+            else:
+                coordinates = [float(longitude), float(latitude)]
+                data = Odp.objects(
+                    longlat__geo_within_sphere=[coordinates, (40 / 6378.1)]).only(*req_fields)[start:end]
         except:
-            data = Odp.objects.all().only(*req_fields)
+            if not (longitude and latitude):
+                data = Odp.objects.all().only(*req_fields)
+            else:
+                coordinates = [float(longitude), float(latitude)]
+                data = Odp.objects(
+                    longlat__geo_within_sphere=[coordinates, (40 / 6378.1)]).only(*req_fields)
         
         serializer = siteonairSerializer(data, many=True)
         if len(serializer.data) > 0:

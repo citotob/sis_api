@@ -1911,3 +1911,99 @@ def sendinvitation(request):
             values=[],
             message=str(e)
         )
+
+
+def checknearsiteoffair(request):
+    try:
+        if not request.body:
+            return Response.badRequest(
+                values=[],
+                message="Need Json Body coordinates"
+            )
+        body = json.loads(request.body)
+        coordinates = body.get('coordinates', None)
+        retData = []
+
+        for coord in coordinates:
+            coordinate = [float(coord[0]), float(coord[1])]
+
+            data = Odp.objects(
+                longlat__geo_within_sphere=[coordinate, (1 / 6378.1)]).count()
+
+            retData.append(data)
+
+        return Response.ok(
+            values=json.loads(json.dumps(retData, default=str)),
+            message=f'{len(retData)} Data'
+        )
+    except Exception as e:
+        # print(e)
+        return Response.badRequest(
+            values=[],
+            message=str(e)
+        )
+
+
+def getoffaircluster(request):
+    try:
+        reqKecamatan = request.GET.get('kecamatan')
+        reqKabupaten = request.GET.get('kabupaten')
+        reqKota = request.GET.get('kota')
+
+        data_kec = kecamatan.objects.get(id=reqKecamatan) if reqKecamatan is not None else None
+        data_kota = kota.objects.get(id=reqKota) if reqKota is not None else None
+        data_kab = kabupaten.objects.get(id=reqKabupaten) if reqKabupaten is not None else None
+
+        try:
+            start = int(request.GET.get('start')) - 1
+            end = int(request.GET.get('end'))
+
+            if start < 0:
+                start = 0
+
+            if reqKecamatan and data_kec:
+                data = site_offair_norel.objects.filter(
+                    kecamatan=data_kec.name)[start:end]
+            elif reqKota and data_kota:
+                data = site_offair_norel.objects.filter(kota=data_kota.name)[start:end]
+            elif reqKabupaten and data_kab:
+                data = site_offair_norel.objects.filter(kabupaten=data_kab.name)[start:end]
+            else:
+                return Response().base(
+                    success=False,
+                    message='Data tidak ada',
+                    status=404
+                )
+        except:
+            if reqKecamatan and data_kec:
+                data = site_offair_norel.objects.filter(
+                    kecamatan=data_kec.name)
+            elif reqKota and data_kota:
+                data = site_offair_norel.objects.filter(kota=data_kota.name)
+            elif reqKabupaten and data_kab:
+                data = site_offair_norel.objects.filter(kabupaten=data_kab.name)
+            else:
+                return Response().base(
+                    success=False,
+                    message='Data tidak ada',
+                    status=404
+                )
+
+        serializer = siteoffairSerializer_norel(data, many=True)
+        if len(serializer.data) > 0:
+            return Response.ok(
+                values=json.loads(json.dumps(serializer.data, default=str)),
+                message=f'{len(serializer.data)} Data'
+            )
+        else:
+            return Response().base(
+                success=False,
+                message='Data tidak ada',
+                status=404
+            )
+    except Exception as e:
+        # print(e)
+        return Response.badRequest(
+            values=[],
+            message=str(e)
+        )
