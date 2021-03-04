@@ -18,9 +18,11 @@ urlpatterns = [
 
     path('uploadsiteoffair/', views.uploadsiteoffair),
     path('getoffair/', views.getsiteoffair),
+    path('checknearoffair/', views.checknearsiteoffair),
     path('getlistoffair/', views.getoffairid),
     path('getoffairbyid/', views.getoffairbyid),
     path('getoffairprovinsi/', views.getoffairprovinsi),
+    path('getoffaircluster/', views.getoffaircluster),
 
     path('calculatevendorscore/', views.calculatevendorscore),
 
