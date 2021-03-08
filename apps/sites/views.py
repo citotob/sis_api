@@ -1926,9 +1926,10 @@ def checknearsiteoffair(request):
 
         for coord in coordinates:
             coordinate = [float(coord[0]), float(coord[1])]
+            unik_id = coord[2]
 
-            data = Odp.objects(
-                longlat__geo_within_sphere=[coordinate, (1 / 6378.1)]).count()
+            data = unik_id if Odp.objects(
+                longlat__geo_within_sphere=[coordinate, (1 / 6378.1)]).count() > 0 else None
 
             retData.append(data)
 
