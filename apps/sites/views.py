@@ -1928,7 +1928,7 @@ def checknearsiteoffair(request):
             coordinate = [float(coord[0]), float(coord[1])]
             unik_id = coord[2]
 
-            countEx = Odp.objects(
+            countEx = site.objects(
                 longlat__geo_within_sphere=[coordinate, (1 / 6378.1)]).count()
 
             if countEx > 0:
