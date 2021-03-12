@@ -37,7 +37,7 @@ class KecamatanKotSerializer(serializers.DocumentSerializer):
         model = Kecamatan
         depth = 1
         fields = ['id', 'kota', 'kota.name',
-                  'kabupaten', 'kabupaten.name', 'name']
+                  'kabupaten', 'kabupaten.name', 'name', 'longlat']
 
 
 class DesaSerializer(serializers.DocumentSerializer):

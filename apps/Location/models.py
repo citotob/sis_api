@@ -50,6 +50,7 @@ class Kecamatan(Document):
     kota = fields.ReferenceField(Kota)
     # latitude = fields.StringField()
     # longitude = fields.StringField()
+    longlat = fields.PointField()
     tanggal_pembuatan = fields.DateTimeField()
     tanggal_perubahan = fields.DateTimeField()
     __v = fields.IntField(db_field='__v')
