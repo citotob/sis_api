@@ -9,6 +9,8 @@ urlpatterns = [
     path('respon/', views.respon),
     path('penawaran/', views.penawaran),
     path('rfi/', views.penawaran_),
+    path('checkrfi/', views.checkRfi),
+    path('checkjudul/', views.checkJudul),
     path('getbatch/', views.getbatch),
     #path('getsite/', sites_views.getsite),
     path('getvendorapp/', views.getVendorApp),
