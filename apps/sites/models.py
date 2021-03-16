@@ -304,6 +304,7 @@ class batch(Document):
     penyedia_undang = ListField(ReferenceField(vendor))
     penyedia_kerja = ListField(ReferenceField(vendor))
     status = ListField(required=True)
+    price = FloatField(required=True, default=0)
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
 
