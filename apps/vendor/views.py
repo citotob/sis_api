@@ -272,6 +272,59 @@ def penawaran_(request):
         return Response.badRequest(message='Hanya POST')
 
 
+def checkRfi(request):
+    # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
+    # ret, user = authenticate_credentials(token)
+    # if False == ret or None == user:
+    #    return JsonResponse({"state": "fail"})
+    if request.method == "POST":
+        # try:
+
+        req = request.body.decode("utf-8")
+        data = json.loads(req)
+        rfi = data.get('rfi', 'none')
+
+        try:
+            batch.objects.get(no_doc_permohonan_rfi=rfi)
+            return Response().base(
+                        success=False,
+                        message='Data sudah ada',
+                        status=409
+                    )
+        except batch.DoesNotExist:
+            return Response().ok(
+                message='Data tidak ada',
+            )
+    else:
+        return Response.badRequest(message='Hanya POST')
+
+def checkJudul(request):
+    # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
+    # ret, user = authenticate_credentials(token)
+    # if False == ret or None == user:
+    #    return JsonResponse({"state": "fail"})
+    if request.method == "POST":
+        # try:
+
+        req = request.body.decode("utf-8")
+        data = json.loads(req)
+        judul = data.get('judul', 'none')
+
+        try:
+            batch.objects.get(judul=judul)
+            return Response().base(
+                        success=False,
+                        message='Data sudah ada',
+                        status=409
+                    )
+        except batch.DoesNotExist:
+            return Response().ok(
+                message='Data tidak ada',
+            )
+    else:
+        return Response.badRequest(message='Hanya POST')
+
+
 def penawaran(request):
     # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
     # ret, user = authenticate_credentials(token)
