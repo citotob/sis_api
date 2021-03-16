@@ -379,7 +379,7 @@ class vendor_application(Document):
     vp_score_id = ReferenceField(VPScore)
     ##total_calc_id = ReferenceField(total_calc)
     rank = IntField(required=True, default=0)
-    rfi_no = StringField(required=True, default='-')
+    rfi_no = StringField(required=True, unique=True)
     rfi_doc_id = ReferenceField(rfi_doc)
     tanggal_mulai_sla = DateTimeField(required=True, default=datetime.now)
     tanggal_akhir_sla = DateTimeField(required=True, default=datetime.now)
