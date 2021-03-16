@@ -288,13 +288,13 @@ class doc_permohonan_rfi(Document):
 class batch(Document):
     #sites = ListField(required=True)
     #creator = ReferenceField(users)
-    judul = StringField(required=True)
+    judul = StringField(required=True, unique=True)
     type = StringField(required=True, choices=[
         'VIP', 'Non-VIP'], default='Non-VIP')
     # sites = ListField(ReferenceField(site_matchmaking))
     sites = ListField()
     creator = ReferenceField(UserInfo)
-    no_doc_permohonan_rfi = StringField(required=True)
+    no_doc_permohonan_rfi = StringField(required=True, unique=True)
     doc_permohonan_rfi = ReferenceField(doc_permohonan_rfi)
     tanggal_mulai_undangan = DateTimeField(required=True, default=datetime.now)
     tanggal_selesai_undangan = DateTimeField(
