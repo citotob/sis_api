@@ -18,5 +18,5 @@ class Notification(Document):
 
     meta = {
         'collection': 'notification',
-        'ordering': ['-ctrated_att']
+        'ordering': ['-created_at']
     }
