@@ -579,6 +579,7 @@ def addbatch(request):
             type = body_data.get('type')
             creator = body_data.get('creator')
             penyedia_undang = body_data.get('penyedia_undang')
+            price = body_data.get('price',0)
 
             status_ = {'status': 'Dibuka', 'tanggal_pembuatan': datetime.utcnow(
             ) + timedelta(hours=7)}
@@ -605,6 +606,7 @@ def addbatch(request):
                 tanggal_mulai_kerja=tanggal_mulai_kerja,
                 tanggal_selesai_kerja=tanggal_selesai_kerja,
                 penyedia_undang=vendor_list,
+                price=price
                 # created_at = datetime.utcnow() + timedelta(hours=7),
                 # updated_at = datetime.utcnow() + timedelta(hours=7)
             )
