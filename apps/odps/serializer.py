@@ -8,7 +8,7 @@ from .models import Odp
 class ODPSerializer(DocumentSerializer):
     class Meta:
         model = Odp
-        fields = ['longlat','latitude', 'longitude', 'teknologi', 'provinsi_name', 'kabupaten_name', 'kecamatan_name', 
+        fields = ['id','longlat','latitude', 'longitude', 'teknologi', 'provinsi_name', 'kabupaten_name', 'kecamatan_name', 
             'desa_kelurahan_name', 'nama','vendor_name', 'created_at','updated_at']
         depth = 2
         #exclude = ('vendorid.teknologi',)

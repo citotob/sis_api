@@ -921,7 +921,6 @@ def addsite(request):
         except Exception as e:
             print(e)
             return Response.badRequest(message=str(e))
-
     else:
         return Response.badRequest(message='Hanya POST')
 
