@@ -272,7 +272,7 @@ def penawaran_(request):
         return Response.badRequest(message='Hanya POST')
 
 
-def checkRfi(request):
+def checkRfiBatch(request):
     # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
     # ret, user = authenticate_credentials(token)
     # if False == ret or None == user:
@@ -292,6 +292,32 @@ def checkRfi(request):
                         status=409
                     )
         except batch.DoesNotExist:
+            return Response().ok(
+                message='Data tidak ada',
+            )
+    else:
+        return Response.badRequest(message='Hanya POST')
+
+def checkRfiVendor(request):
+    # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
+    # ret, user = authenticate_credentials(token)
+    # if False == ret or None == user:
+    #    return JsonResponse({"state": "fail"})
+    if request.method == "POST":
+        # try:
+
+        req = request.body.decode("utf-8")
+        data = json.loads(req)
+        rfi = data.get('rfi', 'none')
+
+        try:
+            vendor_application.objects.get(rfi_no=rfi)
+            return Response().base(
+                        success=False,
+                        message='Data sudah ada',
+                        status=409
+                    )
+        except vendor_application.DoesNotExist:
             return Response().ok(
                 message='Data tidak ada',
             )
