@@ -11,6 +11,7 @@ class Notification(Document):
     type = fields.StringField(db_field='type')
     title = fields.StringField(db_field='title')
     message = fields.StringField(db_field='message')
+    status = fields.StringField(required=True, choices=[ 'new', 'open'], default='new')
 
     created_at = fields.DateTimeField(
         required=True, default=datetime.now)

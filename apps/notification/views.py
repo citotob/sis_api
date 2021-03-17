@@ -11,6 +11,7 @@ from .customResponse import CustomResponse
 from .serializer import NotificationSerializer, NotificationCreateSerializer
 from .consumer import NotifConsumer
 import json
+from datetime import datetime
 # Create your views here.
 
 
@@ -50,6 +51,25 @@ class NotificationView(APIView):
             # return CustomResponse.badRequest(serializer.errors)
             notif = NotifConsumer()
             notif.send_message(to=id, message='hai')
+        except NotFound as e:
+            return CustomResponse().base(message=str(e), status=status.HTTP_404_NOT_FOUND)
+        except SuspiciousOperation as e:
+            return CustomResponse.badRequest(message=str(e))
+        except Exception as e:
+            return CustomResponse().base(success=False, message=str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def put(self, request):
+        try:
+            id = request.data.get('id')
+            try:
+                notif = Notification.objects.get(id=id)
+            except Notification.DoesNotExist:
+                raise Http404('Notif Not Found')
+
+            notif.status = 'open'
+            notif.updated_at = datetime.now
+            notif.save()
+            return CustomResponse().ok(message="Notif Success")
         except NotFound as e:
             return CustomResponse().base(message=str(e), status=status.HTTP_404_NOT_FOUND)
         except SuspiciousOperation as e:
