@@ -17,7 +17,7 @@ class siteonairSerializer(DocumentSerializer):
     class Meta:
         model = Odp
         #fields = ['latitude', 'longitude', 'teknologi']
-        fields = ['latitude', 'longitude', 'teknologi', 'provinsi_name', 'kabupaten_name', 'kecamatan_name', 
+        fields = ['id','latitude', 'longitude', 'teknologi', 'provinsi_name', 'kabupaten_name', 'kecamatan_name', 
             'desa_kelurahan_name', 'nama','vendor_name']
         depth = 0
 
