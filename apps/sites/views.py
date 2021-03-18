@@ -769,7 +769,144 @@ def addsitebyid(request):
     else:
         return Response.badRequest(message='Hanya POST')
 
+def addsite(request):
+    # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
+    # ret, user = authenticate_credentials(token)
+    # if False == ret or None == user:
+    #    return JsonResponse({"state": "fail"})
+    if request.method == "POST":  # Add
+        try:
+            body_data = json.loads(request.body)
 
+            batch_id = body_data.get('batch')
+            nama = body_data.get('nama')
+
+            provinsiName = body_data.get('provinsi')
+
+            # try:
+            province = provinsi.objects.filter(name=provinsiName).first()
+
+            kab_kotaName = body_data.get('kab_kota')
+
+            kab_kota = kabupaten.objects.filter(
+                name=kab_kotaName, provinsi=province.id).first()
+            if not kab_kota:
+                kab_kota = kota.objects.filter(
+                    name=kab_kotaName, provinsi=province.id).first()
+                data_kab_kota = 'kota'
+            else:
+                data_kab_kota = 'kab'
+            kecamatanName = body_data.get('kecamatan')
+
+            kecamatans = kecamatan.objects.filter(
+                    name=kecamatanName, kabupaten=kab_kota.id).first()
+            if not kecamatans:
+                kecamatans = kecamatan.objects.filter(
+                    name=kecamatanName, kota=kab_kota.id).first()
+
+            desaName = body_data.get('desa')
+
+            desas = desa.objects.filter(
+                name=desaName, kecamatan=kecamatans.id).first()
+            if not desas:
+                return Response().base(
+                    success=False,
+                    message='Desa tidak ada',
+                    status=404
+                )
+
+            longitude = body_data.get('longitude')
+            latitude = body_data.get('latitude')
+            kode_pos = body_data.get('kode_pos')
+            nomor_site = body_data.get('unik_id')
+
+            req_fields = ['latitude', 'longitude', 'kecamatan']
+            data_site_lok = site.objects.all().only(*req_fields)
+            radius = 1.00  # in kilometer
+
+            for dat in data_site_lok:
+                if dat.kecamatan.id != kecamatans.id:
+                    continue
+                a = haversine(float(dat.longitude), float(
+                    dat.latitude), float(longitude), float(latitude))
+                if a <= radius:
+                    return Response().base(
+                        success=False,
+                        message='Data sudah ada',
+                        status=409
+                    )
+
+            #try:
+            #    data_kabupaten = kabupaten.objects.get(id=kab_kota.id)
+            #    data_kab_kota = 'kab'
+            #except kabupaten.DoesNotExist:
+            #    data_kabupaten = kota.objects.get(id=kab_kota.id)
+            #    data_kab_kota = 'kota'
+
+            rekomentek = getRecommendTechnologi(longitude, latitude)
+            data_site = site(
+                unik_id=nomor_site,
+                latitude=latitude,
+                longitude=longitude,
+                longlat=[float(longitude), float(latitude)],
+                rekomendasi_teknologi=rekomentek,
+                nama=nama,
+                desa_kelurahan=desas['id'],
+                kecamatan=kecamatans['id'],
+                provinsi=province['id'],
+                kode_pos=kode_pos,
+                # created_at = datetime.utcnow() + timedelta(hours=7),
+                # updated_at = datetime.utcnow() + timedelta(hours=7)
+            )
+            if data_kab_kota == 'kab':
+                data_site.kabupaten = kab_kota.id
+            else:
+                data_site.kota = kab_kota.id
+            data_site.save()
+
+            data_site_matchmaking = site_matchmaking(
+                siteid=data_site.id,
+                batchid=ObjectId(batch_id)
+            )
+            data_site_matchmaking.save()
+
+            data_site.site_matchmaking.append(data_site_matchmaking.id)
+            data_site.save()
+            try:
+                data_batch = batch.objects.get(id=ObjectId(batch_id))
+                data_batch.sites.append(ObjectId(data_site_matchmaking.id))
+                data_batch.save()
+            except batch.DoesNotExist:
+                # return Response.badRequest(message='Batch tidak ada')
+                return Response().base(
+                    success=False,
+                    message='Batch tidak ada',
+                    status=404
+                )
+
+            results = site.objects.get(id=ObjectId(data_site.id))
+
+            result = results.serialize()
+
+            return Response.ok(
+                values=result,
+                message='Berhasil'
+            )
+        except provinsi.DoesNotExist:
+            return Response.badRequest(message='Province Not Found')
+        except kota.DoesNotExist:
+            return Response.badRequest(message='Kab_kota Not Found')
+        except kecamatan.DoesNotExist:
+            return Response.badRequest(message='kecamatan Not Found')
+        except desa.DoesNotExist:
+            return Response.badRequest(message='desa Not Found')
+        except Exception as e:
+            print(e)
+            return Response.badRequest(message=str(e))
+    else:
+        return Response.badRequest(message='Hanya POST')
+
+"""
 def addsite(request):
     # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
     # ret, user = authenticate_credentials(token)
@@ -923,6 +1060,7 @@ def addsite(request):
             return Response.badRequest(message=str(e))
     else:
         return Response.badRequest(message='Hanya POST')
+"""
 
 # def addsite(request):
 #     # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
