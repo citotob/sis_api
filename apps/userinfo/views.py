@@ -341,7 +341,7 @@ def verifyUser(request):
                       email_sender, [email_receipient])
 
             if not userfrom:
-                userfrom = '6039e79e87394f7b466d9df9'
+                userfrom = '605d52b197836d5c195119a3'
 
             notif = CustomNotification()
             notif.create(to=[user.id], from_=ObjectId(userfrom), type='user verified',
@@ -482,7 +482,7 @@ def register(request):
                 data_vendor.save()
 
                 score = VPScore(
-                    user=ObjectId('6039e79e87394f7b466d9df9'),
+                    user=ObjectId('605d52b197836d5c195119a3'),
                     kecepatan=0,
                     kualitas=0,
                     ketepatan=0,
