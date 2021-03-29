@@ -2148,3 +2148,93 @@ def getoffaircluster(request):
             values=[],
             message=str(e)
         )
+
+def getvendorcluster(request):
+    try:
+        reqKecamatan = request.GET.get('kecamatan')
+        reqKabupaten = request.GET.get('kabupaten')
+        reqKota = request.GET.get('kota')
+
+        match = {}
+        min = 5
+        if reqKecamatan:
+            match["kecamatan"] = ObjectId(reqKecamatan)
+        elif reqKota:
+            match["kota"] = ObjectId(reqKota)
+            min = 10
+        elif reqKabupaten:
+            match["kabupaten"] = ObjectId(reqKabupaten)
+            min = 10
+        else:
+            return Response.badRequest(
+                values=[],
+                message="Need at least 1 location param"
+            )
+
+        listOdpVendor = list(Odp.objects.aggregate([
+            {"$match": match},
+            {"$group": 
+                {
+                    "_id": "$vendor",
+                    "count": { "$sum" : 1}
+                }
+            },
+            {"$sort": 
+                {
+                    "count": -1
+                }
+            }
+        ]))
+
+        listOdpTech = list(Odp.objects.aggregate([
+            {"$match": match},
+            {"$group": 
+                {
+                    "_id": "$teknologi",
+                    "count": { "$sum" : 1}
+                }
+            },
+            {"$sort": 
+                {
+                    "count": -1
+                }
+            }
+        ]))
+
+        respData = {
+            "vendor": "-",
+            "teknologi": "-",
+            "sla_score": "-"
+        }
+
+        if len(listOdpVendor):
+            topVendor = listOdpVendor[0]
+
+            if topVendor["count"] >= min:
+                data = vendor.objects.get(id=topVendor["_id"])
+                respData["vendor"] = data.name
+                respData["sla_score"] = data.sla_avg if hasattr(data, "sla_avg") else 0
+
+        if len(listOdpTech):
+            topTech = listOdpTech[0]
+
+            if topTech["count"] >= min:
+                respData["teknologi"] = topTech["_id"]
+
+        if len(respData) > 0:
+            return Response.ok(
+                values=json.loads(json.dumps(respData, default=str)),
+                message='1 Data'
+            )
+        else:
+            return Response().base(
+                success=False,
+                message='Data tidak ada',
+                status=404
+            )
+    except Exception as e:
+        # print(e)
+        return Response.badRequest(
+            values=[],
+            message=str(e)
+        )
