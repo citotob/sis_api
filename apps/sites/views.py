@@ -2204,10 +2204,38 @@ def getvendorcluster(request):
         respData = {
             "vendor": "-",
             "teknologi": "-",
-            "sla_score": "-"
+            "sla_score": "-",
+            "message": ""
         }
 
-        if len(listOdpVendor):
+        message = ""
+
+        if len(listOdpTech) > 0:
+            topTech = listOdpTech[0]
+
+            message += "Berdasarkan analisa yang dilakukan oleh sistem, maka ditentukan teknologi " + topTech["_id"] + " "
+            message += "yang menjadi teknologi rekomendasi dikarenakan jumlah teknologi " + topTech["_id"] + " pada daerah "
+            message += "tersebut sebanyak " + str(topTech["count"])
+
+            if len(listOdpTech) > 1:
+                message += " sedangkan " 
+
+                for x in range(1, len(listOdpTech)):
+                    curTech = listOdpTech[x]
+                    if x == 1:
+                        message += "teknologi " + curTech["_id"] + " (" + str(curTech["count"]) + ")" 
+                    elif x == (len(listOdpTech) - 1):
+                        message += ", dan teknologi " + curTech["_id"] + " (" + str(curTech["count"]) + ")" 
+                    else:
+                        message += ", teknologi " + curTech["_id"] + " (" + str(curTech["count"]) + ")" 
+            else:
+                message += ", dan tidak terdapat teknologi lain di daerah ini" 
+
+            message += ". "
+
+            respData["teknologi"] = topTech["_id"]
+
+        if len(listOdpVendor) > 0:
             topVendor = listOdpVendor[0]
 
             if topVendor["count"] >= min:
@@ -2215,11 +2243,17 @@ def getvendorcluster(request):
                 respData["vendor"] = data.name
                 respData["sla_score"] = data.sla_avg if hasattr(data, "sla_avg") else 0
 
-        if len(listOdpTech):
-            topTech = listOdpTech[0]
+                message += "Penyedia " + data.name + " menjadi penyedia yang direkomendasikan dikarenakan penyedia tersebut "
+                message += "mempunyai jumlah titik on air terbanyak dari penyedia lain dengan total " + str(topVendor["count"]) + " titik"
 
-            if topTech["count"] >= min:
-                respData["teknologi"] = topTech["_id"]
+                if len(listOdpVendor) > 1:
+                    message += " sedangkan penyedia lain mempunyai " +  str(listOdpVendor[1]["count"]) + " titik"
+
+                message += "."
+
+                data2 = vendor.objects.get(id=listOdpVendor[1]["_id"])
+
+        respData["message"] = message
 
         if len(respData) > 0:
             return Response.ok(
