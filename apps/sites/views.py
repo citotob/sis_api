@@ -2248,10 +2248,10 @@ def getvendorcluster(request):
 
                 if len(listOdpVendor) > 1:
                     message += " sedangkan penyedia lain mempunyai " +  str(listOdpVendor[1]["count"]) + " titik"
+                else:
+                    message += ", dan tidak terdapat penyedia lain di daerah ini" 
 
                 message += "."
-
-                data2 = vendor.objects.get(id=listOdpVendor[1]["_id"])
 
         respData["message"] = message
 
