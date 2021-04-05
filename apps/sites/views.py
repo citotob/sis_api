@@ -2234,6 +2234,8 @@ def getvendorcluster(request):
             message += ". "
 
             respData["teknologi"] = topTech["_id"]
+        else:
+            message += "Rekomendasi Teknologi tidak ditemukan dikarenakan tidak memenuhi syarat dan ketentuan berlaku"
 
         if len(listOdpVendor) > 0:
             topVendor = listOdpVendor[0]
@@ -2252,6 +2254,8 @@ def getvendorcluster(request):
                     message += ", dan tidak terdapat penyedia lain di daerah ini" 
 
                 message += "."
+        else:
+            message += "Rekomendasi Vendor tidak ditemukan dikarenakan tidak memenuhi syarat dan ketentuan berlaku"
 
         respData["message"] = message
 
