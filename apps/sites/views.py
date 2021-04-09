@@ -2175,22 +2175,10 @@ def getvendorcluster(request):
             {"$match": match},
             {"$group": 
                 {
-                    "_id": "$vendor",
-                    "count": { "$sum" : 1}
-                }
-            },
-            {"$sort": 
-                {
-                    "count": -1
-                }
-            }
-        ]))
-
-        listOdpTech = list(Odp.objects.aggregate([
-            {"$match": match},
-            {"$group": 
-                {
-                    "_id": "$teknologi",
+                    "_id": {
+                        "vendor": "$vendor",
+                        "teknologi": "$teknologi"
+                    },
                     "count": { "$sum" : 1}
                 }
             },
@@ -2202,67 +2190,36 @@ def getvendorcluster(request):
         ]))
 
         respData = {
-            "vendor": "-",
-            "teknologi": "-",
-            "sla_score": "-",
+            "recommendations":[],
             "message": ""
         }
 
-        message = ""
-
-        if len(listOdpTech) > 0:
-            topTech = listOdpTech[0]
-
-            message += "Berdasarkan analisa yang dilakukan oleh sistem, maka ditentukan teknologi " + topTech["_id"] + " "
-            message += "yang menjadi teknologi rekomendasi dikarenakan jumlah teknologi " + topTech["_id"] + " pada daerah "
-            message += "tersebut sebanyak " + str(topTech["count"])
-
-            if len(listOdpTech) > 1:
-                message += " sedangkan " 
-
-                for x in range(1, len(listOdpTech)):
-                    curTech = listOdpTech[x]
-                    if x == 1:
-                        message += "teknologi " + curTech["_id"] + " (" + str(curTech["count"]) + ")" 
-                    elif x == (len(listOdpTech) - 1):
-                        message += ", dan teknologi " + curTech["_id"] + " (" + str(curTech["count"]) + ")" 
-                    else:
-                        message += ", teknologi " + curTech["_id"] + " (" + str(curTech["count"]) + ")" 
-            else:
-                message += ", dan tidak terdapat teknologi lain di daerah ini" 
-
-            message += ". "
-
-            respData["teknologi"] = topTech["_id"]
-        else:
-            message += "Rekomendasi Teknologi tidak ditemukan dikarenakan tidak memenuhi syarat dan ketentuan berlaku"
-
         if len(listOdpVendor) > 0:
-            topVendor = listOdpVendor[0]
+            message = "Rekomendasi yang diberikan merupakan hasil analisa sistem."
 
-            if topVendor["count"] >= min:
-                data = vendor.objects.get(id=topVendor["_id"])
-                respData["vendor"] = data.name
-                respData["sla_score"] = data.sla_avg if hasattr(data, "sla_avg") else 0
+            for curVendor in listOdpVendor:
+                if curVendor["count"] >= min:
+                    data = vendor.objects.get(id=curVendor["_id"]["vendor"])
+                    respData["recommendations"].append({
+                        "vendor": data.name,
+                        "teknologi": curVendor["_id"]["teknologi"],
+                        "sla_daily": data.sla_avg if hasattr(data, "sla_avg") else 0,
+                        "sla_monthly": data.sla_avg if hasattr(data, "sla_avg") else 0
+                    })
 
-                message += "Penyedia " + data.name + " menjadi penyedia yang direkomendasikan dikarenakan penyedia tersebut "
-                message += "mempunyai jumlah titik on air terbanyak dari penyedia lain dengan total " + str(topVendor["count"]) + " titik"
+                    message += " Penyedia " + data.name + " direkomendasikan dikarenakan mempunyai jumlah titik on air dengan total " + str(curVendor["count"]) + " titik."
 
-                if len(listOdpVendor) > 1:
-                    message += " sedangkan penyedia lain mempunyai " +  str(listOdpVendor[1]["count"]) + " titik"
-                else:
-                    message += ", dan tidak terdapat penyedia lain di daerah ini" 
-
-                message += "."
+            if len(respData["recommendations"]) == 0:
+                message = "Rekomendasi Vendor tidak ditemukan dikarenakan tidak memenuhi syarat dan ketentuan berlaku"
         else:
-            message += "Rekomendasi Vendor tidak ditemukan dikarenakan tidak memenuhi syarat dan ketentuan berlaku"
+            message = "Rekomendasi tidak ditemukan dikarenakan belum ada titik on air di daerah ini"
 
         respData["message"] = message
 
         if len(respData) > 0:
             return Response.ok(
                 values=json.loads(json.dumps(respData, default=str)),
-                message='1 Data'
+                message= str(len(respData["recommendations"])) + ' Data'
             )
         else:
             return Response().base(
