@@ -1824,15 +1824,10 @@ def calculatevendorscore(request):
             tanggal_selesai_undangan__gt=datetime.utcnow() + timedelta(hours=7))
     #data_batch = batch.objects.all()
     if len(data_batch)==0:
-        return Response().base(
-                success=False,
-                message='Data tidak ada',
-                status=204
+        return Response.ok(
+               values=[],
+               message='Data tidak ada'
             )
-        # return Response.ok(
-        #        values=[],
-        #        message='Data tidak ada'
-        #     )
     for dt_batch in data_batch:
         #data_smm = site_matchmaking.objects.all()
         data_smm = site_matchmaking.objects.filter(batchid=dt_batch.id)
