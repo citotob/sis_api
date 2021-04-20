@@ -1825,109 +1825,121 @@ def getoffairprovinsi(request):
 
 
 def calculatevendorscore(request):
-    # try:
-    # data_batch = batch.objects.filter(status__status='Selesai',
-    #            tanggal_selesai_undangan=datetime.utcnow() + timedelta(hours=7))
+    #try:
+    data_batch = batch.objects.filter(status__status__ne='Selesai',
+            tanggal_selesai_undangan__gt=datetime.utcnow() + timedelta(hours=7))
     #data_batch = batch.objects.all()
-    data_smm = site_matchmaking.objects.all()
-    rw = 0
-    for dt_smm in data_smm:
-        # print(rw)
-        smm_tek = dt_smm.siteid.rekomendasi_teknologi.teknologi
-        list_days_work = []
-        list_harga = []
-        max_days_admin = 0
-        min_days_admin = 0
-        for dt_rfi in dt_smm.rfi_score:
-            tgl_start = dt_rfi.vendor_app.tanggal_mulai_sla
-            tgl_end = dt_rfi.integration + \
-                timedelta(dt_rfi.days_on_integration)
-            days_work = int((tgl_end.date() - tgl_start.date()).days)
-            list_days_work.append(days_work)
-            list_harga.append(dt_rfi.biaya)
+    if len(data_batch)==0:
+        return Response.ok(
+               values=[],
+               message='Data tidak ada'
+            )
+    for dt_batch in data_batch:
+        #data_smm = site_matchmaking.objects.all()
+        data_smm = site_matchmaking.objects.filter(batchid=dt_batch.id)
+        # for dt in data_smm:
+        #     status = 'buka'
+        #     for stt in dt.batchid.status:
+        #         if 'Selesai' in stt['status']:
+        #             status = 'selesai'
+        #     if status=='buka':
+        
+        rw = 0
+        for dt_smm in data_smm:
+            # print(rw)
+            smm_tek = dt_smm.siteid.rekomendasi_teknologi.teknologi
+            list_days_work = []
+            list_harga = []
+            max_days_admin = 0
+            min_days_admin = 0
+            for dt_rfi in dt_smm.rfi_score:
+                tgl_start = dt_rfi.vendor_app.tanggal_mulai_sla
+                tgl_end = dt_rfi.integration + \
+                    timedelta(dt_rfi.days_on_integration)
+                days_work = int((tgl_end.date() - tgl_start.date()).days)
+                list_days_work.append(days_work)
+                list_harga.append(dt_rfi.biaya)
 
-        if len(list_days_work) > 0:
-            list_days_work = sorted(list_days_work)
-            max_days_admin = list_days_work[-1]
-            min_days_admin = list_days_work[0]
-        if len(list_harga) > 0:
-            list_harga = sorted(list_harga)
-            max_harga = list_harga[-1]
-            min_harga = list_harga[0]
+            if len(list_days_work) > 0:
+                list_days_work = sorted(list_days_work)
+                max_days_admin = list_days_work[-1]
+                min_days_admin = list_days_work[0]
+            if len(list_harga) > 0:
+                list_harga = sorted(list_harga)
+                max_harga = list_harga[-1]
+                min_harga = list_harga[0]
 
-        for dt_rfi in dt_smm.rfi_score:
-            # if dt_rfi.total_calc:
-            #    #print('continue')
-            #    continue
-            vendor_tek = dt_rfi.rekomendasi_teknologi
-            tek_score = 0
-            if smm_tek == vendor_tek:
-                tek_score = 1
-            tgl_start = dt_rfi.vendor_app.tanggal_mulai_sla
-            tgl_end = dt_rfi.integration + \
-                timedelta(dt_rfi.days_on_integration)
-            days_work = int((tgl_end.date() - tgl_start.date()).days)
-            if max_days_admin-min_days_admin == 0:
-                days_work = 1
-            else:
-                days_work = 1-((days_work-min_days_admin) /
-                               (max_days_admin-min_days_admin))
-            if max_harga-min_harga == 0:
-                nilai_harga = 1
-            else:
-                nilai_harga = 1-((dt_rfi.biaya-min_harga) /
-                                 (max_harga-min_harga))
+            for dt_rfi in dt_smm.rfi_score:
+                # if dt_rfi.total_calc:
+                #    #print('continue')
+                #    continue
+                vendor_tek = dt_rfi.rekomendasi_teknologi
+                tek_score = 0
+                if smm_tek == vendor_tek:
+                    tek_score = 1
+                tgl_start = dt_rfi.vendor_app.tanggal_mulai_sla
+                tgl_end = dt_rfi.integration + \
+                    timedelta(dt_rfi.days_on_integration)
+                days_work = int((tgl_end.date() - tgl_start.date()).days)
+                if max_days_admin-min_days_admin == 0:
+                    days_work = 1
+                else:
+                    days_work = 1-((days_work-min_days_admin) /
+                                (max_days_admin-min_days_admin))
+                if max_harga-min_harga == 0:
+                    nilai_harga = 1
+                else:
+                    nilai_harga = 1-((dt_rfi.biaya-min_harga) /
+                                    (max_harga-min_harga))
 
-            """
-            vpscore_kecepatan = (
-                dt_rfi.vendor_app.vp_score_id.kecepatan-1)/(5-1)
-            vpscore_ketepatan = (
-                dt_rfi.vendor_app.vp_score_id.ketepatan-1)/(5-1)
-            vpscore_kualitas = (dt_rfi.vendor_app.vp_score_id.kualitas-1)/(5-1)
-            """
-            data_vpscore = VPScore.objects.filter(
-                vendor=dt_rfi.vendor_app.vendorid.id, kecepatan__gt=0)
-            total_row = len(data_vpscore)
-            vpscore_kecepatan = 0
-            vpscore_ketepatan = 0
-            vpscore_kualitas = 0
-            for dt in data_vpscore:
-                vpscore_kecepatan += dt.kecepatan
-                vpscore_ketepatan += dt.ketepatan
-                vpscore_kualitas += dt.kualitas
+                """
+                vpscore_kecepatan = (
+                    dt_rfi.vendor_app.vp_score_id.kecepatan-1)/(5-1)
+                vpscore_ketepatan = (
+                    dt_rfi.vendor_app.vp_score_id.ketepatan-1)/(5-1)
+                vpscore_kualitas = (dt_rfi.vendor_app.vp_score_id.kualitas-1)/(5-1)
+                """
+                data_vpscore = VPScore.objects.filter(
+                    vendor=dt_rfi.vendor_app.vendorid.id, kecepatan__gt=0)
+                total_row = len(data_vpscore)
+                vpscore_kecepatan = 0
+                vpscore_ketepatan = 0
+                vpscore_kualitas = 0
+                for dt in data_vpscore:
+                    vpscore_kecepatan += dt.kecepatan
+                    vpscore_ketepatan += dt.ketepatan
+                    vpscore_kualitas += dt.kualitas
 
-            if len(data_vpscore) > 0:
                 vpscore_kecepatan = vpscore_kecepatan/total_row
                 vpscore_ketepatan = vpscore_ketepatan/total_row
                 vpscore_kualitas = vpscore_kualitas/total_row
+                av_vp = (vpscore_kecepatan+vpscore_ketepatan+vpscore_kualitas)/3
 
-            av_vp = (vpscore_kecepatan+vpscore_ketepatan+vpscore_kualitas)/3
+                if not dt_rfi.total_calc:
+                    data_total_calc = total_calc(
+                        rfi=days_work,
+                        teknologi=tek_score,
+                        vp=av_vp,
+                        harga=nilai_harga
+                    )
+                    data_total_calc.save()
 
-            if not dt_rfi.total_calc:
-                data_total_calc = total_calc(
-                    rfi=days_work,
-                    teknologi=tek_score,
-                    vp=av_vp,
-                    harga=nilai_harga
-                )
-                data_total_calc.save()
-
-                dt_rfi.total_calc = data_total_calc.id
-            else:
-                data_total_calc = total_calc.objects.get(
-                    id=dt_rfi.total_calc.id)
-
-                if not data_total_calc:
-                    dt_rfi.total_calc = None
+                    dt_rfi.total_calc = data_total_calc.id
                 else:
-                    data_total_calc.rfi = days_work
-                    data_total_calc.teknologi = tek_score
-                    data_total_calc.vp = av_vp
-                    data_total_calc.harga = nilai_harga
-                data_total_calc.save()
+                    data_total_calc = total_calc.objects.get(
+                        id=dt_rfi.total_calc.id)
 
-            dt_rfi.save()
-        rw += 1
+                    if not data_total_calc:
+                        dt_rfi.total_calc = None
+                    else:
+                        data_total_calc.rfi = days_work
+                        data_total_calc.teknologi = tek_score
+                        data_total_calc.vp = av_vp
+                        data_total_calc.harga = nilai_harga
+                    data_total_calc.save()
+
+                dt_rfi.save()
+            rw += 1
     return Response.ok(
         values=[],
         message='Hitung total scoring berhasil'
