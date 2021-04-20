@@ -822,12 +822,15 @@ def addsite(request):
             kode_pos = body_data.get('kode_pos')
             nomor_site = body_data.get('unik_id')
 
-            req_fields = ['latitude', 'longitude', 'kecamatan']
+            req_fields = ['latitude', 'longitude', 'kecamatan', 'site_matchmaking']
             data_site_lok = site.objects.all().only(*req_fields)
             radius = 1.00  # in kilometer
 
             for dat in data_site_lok:
+                curSmm = site_matchmaking.objects.filter(id=dat.site_matchmaking[0]).first()
                 if dat.kecamatan.id != kecamatans.id:
+                    continue
+                if str(batch_id) == str(curSmm.batchid.id):
                     continue
                 a = haversine(float(dat.longitude), float(
                     dat.latitude), float(longitude), float(latitude))
