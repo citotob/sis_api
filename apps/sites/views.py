@@ -838,9 +838,9 @@ def addsite(request):
                     dat.latitude), float(longitude), float(latitude))
                 if a <= radius:
                     return Response().base(
-                        success=False,
+                        success=True,
                         message='Data sudah ada',
-                        status=409
+                        status=200
                     )
 
             # try:
