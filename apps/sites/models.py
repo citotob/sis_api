@@ -165,8 +165,8 @@ class site(Document):
 
 class site_offair(Document):
     unik_id = StringField(required=True, default='-')
-    latitude = StringField(required=True, unique=True)
-    longitude = StringField(required=True, unique=True)
+    latitude = StringField(required=True)
+    longitude = StringField(required=True)
     longlat = PointField()
     #rekomendasi_teknologi = ReferenceField(rekomendasi_teknologi)
     nama = StringField(required=True)
@@ -182,7 +182,7 @@ class site_offair(Document):
     updated_at = DateTimeField(required=True, default=datetime.now)
     status = ListField(required=True)
 
-    #meta = { 'allow_inheritance': True }
+    meta = { 'unique_together': ['latitude', 'longitude'] }
 
     def serialize(self):
         try:

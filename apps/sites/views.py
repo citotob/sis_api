@@ -46,13 +46,14 @@ from email.mime.image import MIMEImage
 from django.template.loader import get_template
 from django.template import Context
 
-from django.db.models import Avg, Max, Min, Sum
+from django.db.models import Avg, Max, Min, Sum, Q
 from operator import itemgetter
 import openpyxl
 
 from notification.utils.CustomNotification import CustomNotification
 from publicservice.utils import send_mail
 from pathlib import Path
+# from mongoengine.queryset.visitor import Q
 
 
 def getLaporan(request):
@@ -579,7 +580,7 @@ def addbatch(request):
             type = body_data.get('type')
             creator = body_data.get('creator')
             penyedia_undang = body_data.get('penyedia_undang')
-            price = body_data.get('price',0)
+            price = body_data.get('price', 0)
 
             status_ = {'status': 'Dibuka', 'tanggal_pembuatan': datetime.utcnow(
             ) + timedelta(hours=7)}
@@ -769,6 +770,7 @@ def addsitebyid(request):
     else:
         return Response.badRequest(message='Hanya POST')
 
+
 def addsite(request):
     # token = request.META.get("HTTP_AUTHORIZATION").replace(" ", "")[6:]
     # ret, user = authenticate_credentials(token)
@@ -799,7 +801,7 @@ def addsite(request):
             kecamatanName = body_data.get('kecamatan')
 
             kecamatans = kecamatan.objects.filter(
-                    name=kecamatanName, kabupaten=kab_kota.id).first()
+                name=kecamatanName, kabupaten=kab_kota.id).first()
             if not kecamatans:
                 kecamatans = kecamatan.objects.filter(
                     name=kecamatanName, kota=kab_kota.id).first()
@@ -820,12 +822,17 @@ def addsite(request):
             kode_pos = body_data.get('kode_pos')
             nomor_site = body_data.get('unik_id')
 
-            req_fields = ['latitude', 'longitude', 'kecamatan']
+            req_fields = ['latitude', 'longitude',
+                          'kecamatan', 'site_matchmaking']
             data_site_lok = site.objects.all().only(*req_fields)
             radius = 1.00  # in kilometer
 
             for dat in data_site_lok:
+                curSmm = site_matchmaking.objects.filter(
+                    id=dat.site_matchmaking[0]).first()
                 if dat.kecamatan.id != kecamatans.id:
+                    continue
+                if str(batch_id) == str(curSmm.batchid.id):
                     continue
                 a = haversine(float(dat.longitude), float(
                     dat.latitude), float(longitude), float(latitude))
@@ -836,10 +843,10 @@ def addsite(request):
                         status=409
                     )
 
-            #try:
+            # try:
             #    data_kabupaten = kabupaten.objects.get(id=kab_kota.id)
             #    data_kab_kota = 'kab'
-            #except kabupaten.DoesNotExist:
+            # except kabupaten.DoesNotExist:
             #    data_kabupaten = kota.objects.get(id=kab_kota.id)
             #    data_kab_kota = 'kota'
 
@@ -905,6 +912,7 @@ def addsite(request):
             return Response.badRequest(message=str(e))
     else:
         return Response.badRequest(message='Hanya POST')
+
 
 """
 def addsite(request):
@@ -1819,15 +1827,15 @@ def getoffairprovinsi(request):
 
 
 def calculatevendorscore(request):
-    #try:
+    # try:
     data_batch = batch.objects.filter(status__status__ne='Selesai',
-            tanggal_selesai_undangan__gt=datetime.utcnow() + timedelta(hours=7))
+                                      tanggal_selesai_undangan__gt=datetime.utcnow() + timedelta(hours=7))
     #data_batch = batch.objects.all()
-    if len(data_batch)==0:
+    if len(data_batch) == 0:
         return Response.ok(
-               values=[],
-               message='Data tidak ada'
-            )
+            values=[],
+            message='Data tidak ada'
+        )
     for dt_batch in data_batch:
         #data_smm = site_matchmaking.objects.all()
         data_smm = site_matchmaking.objects.filter(batchid=dt_batch.id)
@@ -1837,7 +1845,7 @@ def calculatevendorscore(request):
         #         if 'Selesai' in stt['status']:
         #             status = 'selesai'
         #     if status=='buka':
-        
+
         rw = 0
         for dt_smm in data_smm:
             # print(rw)
@@ -1879,12 +1887,12 @@ def calculatevendorscore(request):
                     days_work = 1
                 else:
                     days_work = 1-((days_work-min_days_admin) /
-                                (max_days_admin-min_days_admin))
+                                   (max_days_admin-min_days_admin))
                 if max_harga-min_harga == 0:
                     nilai_harga = 1
                 else:
                     nilai_harga = 1-((dt_rfi.biaya-min_harga) /
-                                    (max_harga-min_harga))
+                                     (max_harga-min_harga))
 
                 """
                 vpscore_kecepatan = (
@@ -1907,7 +1915,8 @@ def calculatevendorscore(request):
                 vpscore_kecepatan = vpscore_kecepatan/total_row
                 vpscore_ketepatan = vpscore_ketepatan/total_row
                 vpscore_kualitas = vpscore_kualitas/total_row
-                av_vp = (vpscore_kecepatan+vpscore_ketepatan+vpscore_kualitas)/3
+                av_vp = (vpscore_kecepatan +
+                         vpscore_ketepatan+vpscore_kualitas)/3
 
                 if not dt_rfi.total_calc:
                     data_total_calc = total_calc(
@@ -2105,9 +2114,12 @@ def getoffaircluster(request):
         reqKabupaten = request.GET.get('kabupaten')
         reqKota = request.GET.get('kota')
 
-        data_kec = kecamatan.objects.get(id=reqKecamatan) if reqKecamatan is not None else None
-        data_kota = kota.objects.get(id=reqKota) if reqKota is not None else None
-        data_kab = kabupaten.objects.get(id=reqKabupaten) if reqKabupaten is not None else None
+        data_kec = kecamatan.objects.get(
+            id=reqKecamatan) if reqKecamatan is not None else None
+        data_kota = kota.objects.get(
+            id=reqKota) if reqKota is not None else None
+        data_kab = kabupaten.objects.get(
+            id=reqKabupaten) if reqKabupaten is not None else None
 
         try:
             start = int(request.GET.get('start')) - 1
@@ -2120,9 +2132,11 @@ def getoffaircluster(request):
                 data = site_offair_norel.objects.filter(
                     kecamatan=data_kec.name)[start:end]
             elif reqKota and data_kota:
-                data = site_offair_norel.objects.filter(kota=data_kota.name)[start:end]
+                data = site_offair_norel.objects.filter(
+                    kota=data_kota.name)[start:end]
             elif reqKabupaten and data_kab:
-                data = site_offair_norel.objects.filter(kabupaten=data_kab.name)[start:end]
+                data = site_offair_norel.objects.filter(
+                    kabupaten=data_kab.name)[start:end]
             else:
                 return Response().base(
                     success=False,
@@ -2136,7 +2150,8 @@ def getoffaircluster(request):
             elif reqKota and data_kota:
                 data = site_offair_norel.objects.filter(kota=data_kota.name)
             elif reqKabupaten and data_kab:
-                data = site_offair_norel.objects.filter(kabupaten=data_kab.name)
+                data = site_offair_norel.objects.filter(
+                    kabupaten=data_kab.name)
             else:
                 return Response().base(
                     success=False,
@@ -2163,6 +2178,7 @@ def getoffaircluster(request):
             message=str(e)
         )
 
+
 def getvendorcluster(request):
     try:
         reqKecamatan = request.GET.get('kecamatan')
@@ -2187,24 +2203,24 @@ def getvendorcluster(request):
 
         listOdpVendor = list(Odp.objects.aggregate([
             {"$match": match},
-            {"$group": 
+            {"$group":
                 {
                     "_id": {
                         "vendor": "$vendor",
                         "teknologi": "$teknologi"
                     },
-                    "count": { "$sum" : 1}
+                    "count": {"$sum": 1}
                 }
-            },
-            {"$sort": 
+             },
+            {"$sort":
                 {
                     "count": -1
                 }
-            }
+             }
         ]))
 
         respData = {
-            "recommendations":[],
+            "recommendations": [],
             "message": ""
         }
 
@@ -2221,19 +2237,21 @@ def getvendorcluster(request):
                         "sla_monthly": data.sla_avg if hasattr(data, "sla_avg") else 0
                     })
 
-                    message += " Penyedia " + data.name + " direkomendasikan dikarenakan mempunyai jumlah titik on air dengan total " + str(curVendor["count"]) + " titik."
+                    message += " Penyedia " + data.name + \
+                        " direkomendasikan dikarenakan mempunyai jumlah titik on air dengan total " + \
+                        str(curVendor["count"]) + " titik."
 
             if len(respData["recommendations"]) == 0:
-                message = "Rekomendasi Vendor tidak ditemukan dikarenakan tidak memenuhi syarat dan ketentuan berlaku"
+                message = "Tidak ada rekomendasi vendor, anda bisa mengundang vendor siapa saja"
         else:
-            message = "Rekomendasi tidak ditemukan dikarenakan belum ada titik on air di daerah ini"
+            message = "Tidak ada rekomendasi vendor, anda bisa mengundang vendor siapa saja"
 
         respData["message"] = message
 
         if len(respData) > 0:
             return Response.ok(
                 values=json.loads(json.dumps(respData, default=str)),
-                message= str(len(respData["recommendations"])) + ' Data'
+                message=str(len(respData["recommendations"])) + ' Data'
             )
         else:
             return Response().base(
@@ -2241,6 +2259,215 @@ def getvendorcluster(request):
                 message='Data tidak ada',
                 status=404
             )
+    except Exception as e:
+        # print(e)
+        return Response.badRequest(
+            values=[],
+            message=str(e)
+        )
+
+
+def syncsiteoffair(request):
+    try:
+        dateNow = datetime.now()
+
+        # api-endpoint
+        # listUrl = "http://localhost:3000/api/v1.0/request/offair-sis"
+        listUrl = "https://pastiapi.datatsintesa.id/api/v1.0/request/offair-sis"
+
+        # params here
+        params = {
+            "limit": 5000,
+            "offset": 0,
+            "date": dateNow - timedelta(days=1)
+        }
+
+        # sending get request and saving the response as response object
+        r = requests.get(listUrl, params=params, headers={
+                         "api-key": "S5QUo34beZvhEMifLU8D7GRRi9wSkrjp"})
+
+        # extracting data in json format
+        data = r.json()
+        count = 1
+        kecCount = 0
+        nonCount = 0
+        arr = []
+        kecArr = []
+        nonArr = []
+
+        if data["data"]:
+            for row in data["data"]:
+                count += 1
+                curReq = site_offair.objects.filter(
+                    Q(unik_id=row["unik_id"]) |
+                    (
+                        Q(longitude=row["location"]["longitude"]),
+                        Q(latitude=row["location"]["latitude"])
+                    )
+                ).first()
+
+                if curReq:
+                    arr.append(row["unik_id"])
+                else:
+                    if "kecamatan" in row and row["kecamatan"] is not None:
+                        kecamatanCur = kecamatan.objects.filter(
+                            name=row["kecamatan"]["name"]).first()
+                        if kecamatanCur:
+                            curDesa = 0
+                            curKota = 0
+                            curKab = 0
+                            curProv = 0
+                            if "desa" in row and row["desa"] is not None:
+                                desaCur = desa.objects.filter(
+                                    name=row["desa"]["name"]).first()
+                                if desaCur:
+                                    curDesa = desaCur["id"]
+                                else:
+                                    desaCur = desa.objects.filter(
+                                        kecamatan=ObjectId(kecamatanCur["id"])).first()
+                                    if desaCur:
+                                        curDesa = desaCur["id"]
+                            else:
+                                desaCur = desa.objects.filter(
+                                    kecamatan=ObjectId(kecamatanCur["id"])).first()
+                                if desaCur:
+                                    curDesa = desaCur["id"]
+
+                            if "kota" in kecamatanCur:
+                                kotaCur = kota.objects.filter(
+                                    id=kecamatanCur["kota"]["id"]).first()
+                                if kotaCur:
+                                    curKota = kotaCur["id"]
+                                    curProv = ObjectId(
+                                        kotaCur["provinsi"]["id"])
+                            elif "kabupaten" in kecamatanCur:
+                                kabupatenCur = kabupaten.objects.filter(
+                                    id=ObjectId(kecamatanCur["kabupaten"]["id"])).first()
+                                if kabupatenCur:
+                                    curKab = kabupatenCur["id"]
+                                    curProv = ObjectId(
+                                        kabupatenCur["provinsi"]["id"])
+
+                            data_site = site_offair(
+                                unik_id=row["unik_id"],
+                                latitude=row["location"]["latitude"],
+                                longitude=row["location"]["longitude"],
+                                nama=row["location"]["name"],
+                                desa_kelurahan=curDesa,
+                                kecamatan=kecamatanCur["id"],
+                                provinsi=curProv,
+                                kode_pos=row["location"]["kodepos"],
+                                status=[
+                                    {
+                                        "status": "buka",
+                                        "tanggal_pembuatan": dateNow
+                                    }
+                                ]
+                                # created_at = datetime.utcnow() + timedelta(hours=7),
+                                # updated_at = datetime.utcnow() + timedelta(hours=7)
+                            )
+
+                            if curKab != 0:
+                                data_site.kabupaten = curKab
+                            elif curKota:
+                                data_site.kota = curKota
+
+                            data_site.save()
+                        else:
+                            kecCount += 1
+                            kecArr.append(row["kecamatan"]["name"])
+                    else:
+                        nonCount += 1
+                        nonArr.append(row["unik_id"])
+
+        return Response.ok(
+            values=json.loads(json.dumps({
+                "existing": arr,
+                "kecProb": kecArr,
+                "incomplete": nonArr
+            }, default=str)),
+            message='Berhasil'
+        )
+    except Exception as e:
+        # print(e)
+        return Response.badRequest(
+            values=[],
+            message=str(e)
+        )
+
+
+def validatebatchsites(request):
+    try:
+        if not request.body:
+            return Response.badRequest(
+                values=[],
+                message="Need Json Body sites"
+            )
+        body = json.loads(request.body)
+        sites = body.get('sites', None)
+        retData = []
+
+        for curSite in sites:
+            curErr = []
+            try:
+                coordinate = [float(curSite["longitude"]),
+                              float(curSite["latitude"])]
+                countCoord = site.objects(
+                    longlat__geo_within_sphere=[coordinate, (1 / 6378.1)]).count()
+
+                if countCoord > 0:
+                    curErr.append("Sudah terdapat titik lain di sekitar ini")
+            except:
+                curErr.append("Koordinat tidak valid")
+
+            unik_id = curSite["unik_id"]
+            countUnik = site.objects(unik_id=unik_id).count()
+            countOff = site_offair.objects(unik_id=unik_id).count()
+
+            if countOff == 0:
+                curErr.append("Unik id tidak valid")
+
+            if countUnik > 0:
+                curErr.append("Titik sudah ada")
+
+            nama_lokasi = curSite["nama_lokasi"]
+            countNam = site.objects(nama=nama_lokasi).count()
+
+            if countNam > 0:
+                curErr.append("Nama Lokasi sudah ada")
+
+            curProv = curSite["provinsi"]
+            countProv = provinsi.objects(name=curProv.upper()).count()
+
+            if countProv == 0:
+                curErr.append("Provinsi tidak valid")
+
+            curKab = curSite["kab_kota"]
+            countKab = kabupaten.objects(name=curKab.upper()).count()
+
+            if countKab == 0:
+                countKab = kota.objects(name=curKab.upper()).count()
+                if countKab == 0:
+                    curErr.append("Kab/Kota tidak valid")
+
+            curKec = curSite["kecamatan"]
+            countKec = kecamatan.objects(name=curKec.upper()).count()
+
+            if countKec == 0:
+                curErr.append("Kecamatan tidak valid")
+
+            curDesa = curSite["desa"]
+            countDesa = desa.objects(name=curDesa.upper()).count()
+
+            if countDesa == 0:
+                curErr.append("Desa tidak valid")
+
+            retData.append(curErr)
+
+        return Response.ok(
+            values=json.loads(json.dumps(retData, default=str)),
+            message="Berhasil"
+        )
     except Exception as e:
         # print(e)
         return Response.badRequest(

@@ -23,11 +23,13 @@ urlpatterns = [
     path('getoffairbyid/', views.getoffairbyid),
     path('getoffairprovinsi/', views.getoffairprovinsi),
     path('getoffaircluster/', views.getoffaircluster),
+    path('validatebatchsites/', views.validatebatchsites),
 
     path('calculatevendorscore/', views.calculatevendorscore),
 
     path('cloneoffair/', views.clonesiteoffair),
     path('getrecommendvendor/', views.getvendorcluster),
+    path('syncsiteoffair/', views.syncsiteoffair),
 
 
 ]
