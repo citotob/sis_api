@@ -822,12 +822,14 @@ def addsite(request):
             kode_pos = body_data.get('kode_pos')
             nomor_site = body_data.get('unik_id')
 
-            req_fields = ['latitude', 'longitude', 'kecamatan', 'site_matchmaking']
+            req_fields = ['latitude', 'longitude',
+                          'kecamatan', 'site_matchmaking']
             data_site_lok = site.objects.all().only(*req_fields)
             radius = 1.00  # in kilometer
 
             for dat in data_site_lok:
-                curSmm = site_matchmaking.objects.filter(id=dat.site_matchmaking[0]).first()
+                curSmm = site_matchmaking.objects.filter(
+                    id=dat.site_matchmaking[0]).first()
                 if dat.kecamatan.id != kecamatans.id:
                     continue
                 if str(batch_id) == str(curSmm.batchid.id):
@@ -1825,15 +1827,15 @@ def getoffairprovinsi(request):
 
 
 def calculatevendorscore(request):
-    #try:
+    # try:
     data_batch = batch.objects.filter(status__status__ne='Selesai',
-            tanggal_selesai_undangan__gt=datetime.utcnow() + timedelta(hours=7))
+                                      tanggal_selesai_undangan__gt=datetime.utcnow() + timedelta(hours=7))
     #data_batch = batch.objects.all()
-    if len(data_batch)==0:
+    if len(data_batch) == 0:
         return Response.ok(
-               values=[],
-               message='Data tidak ada'
-            )
+            values=[],
+            message='Data tidak ada'
+        )
     for dt_batch in data_batch:
         #data_smm = site_matchmaking.objects.all()
         data_smm = site_matchmaking.objects.filter(batchid=dt_batch.id)
@@ -1843,7 +1845,7 @@ def calculatevendorscore(request):
         #         if 'Selesai' in stt['status']:
         #             status = 'selesai'
         #     if status=='buka':
-        
+
         rw = 0
         for dt_smm in data_smm:
             # print(rw)
@@ -1885,12 +1887,12 @@ def calculatevendorscore(request):
                     days_work = 1
                 else:
                     days_work = 1-((days_work-min_days_admin) /
-                                (max_days_admin-min_days_admin))
+                                   (max_days_admin-min_days_admin))
                 if max_harga-min_harga == 0:
                     nilai_harga = 1
                 else:
                     nilai_harga = 1-((dt_rfi.biaya-min_harga) /
-                                    (max_harga-min_harga))
+                                     (max_harga-min_harga))
 
                 """
                 vpscore_kecepatan = (
@@ -1913,7 +1915,8 @@ def calculatevendorscore(request):
                 vpscore_kecepatan = vpscore_kecepatan/total_row
                 vpscore_ketepatan = vpscore_ketepatan/total_row
                 vpscore_kualitas = vpscore_kualitas/total_row
-                av_vp = (vpscore_kecepatan+vpscore_ketepatan+vpscore_kualitas)/3
+                av_vp = (vpscore_kecepatan +
+                         vpscore_ketepatan+vpscore_kualitas)/3
 
                 if not dt_rfi.total_calc:
                     data_total_calc = total_calc(
@@ -2263,6 +2266,7 @@ def getvendorcluster(request):
             message=str(e)
         )
 
+
 def syncsiteoffair(request):
     try:
         dateNow = datetime.now()
@@ -2298,7 +2302,7 @@ def syncsiteoffair(request):
                     Q(unik_id=row["unik_id"]) |
                     (
                         Q(longitude=row["location"]["longitude"]),
-                        Q(latitude=row["location"]["latitude"]) 
+                        Q(latitude=row["location"]["latitude"])
                     )
                 ).first()
 
@@ -2334,7 +2338,8 @@ def syncsiteoffair(request):
                                     id=kecamatanCur["kota"]["id"]).first()
                                 if kotaCur:
                                     curKota = kotaCur["id"]
-                                    curProv = ObjectId(kotaCur["provinsi"]["id"])
+                                    curProv = ObjectId(
+                                        kotaCur["provinsi"]["id"])
                             elif "kabupaten" in kecamatanCur:
                                 kabupatenCur = kabupaten.objects.filter(
                                     id=ObjectId(kecamatanCur["kabupaten"]["id"])).first()
@@ -2382,6 +2387,86 @@ def syncsiteoffair(request):
                 "incomplete": nonArr
             }, default=str)),
             message='Berhasil'
+        )
+    except Exception as e:
+        # print(e)
+        return Response.badRequest(
+            values=[],
+            message=str(e)
+        )
+
+
+def validatebatchsites(request):
+    try:
+        if not request.body:
+            return Response.badRequest(
+                values=[],
+                message="Need Json Body sites"
+            )
+        body = json.loads(request.body)
+        sites = body.get('sites', None)
+        retData = []
+
+        for curSite in sites:
+            curErr = []
+            try:
+                coordinate = [float(curSite["longitude"]),
+                              float(curSite["latitude"])]
+                countCoord = site.objects(
+                    longlat__geo_within_sphere=[coordinate, (1 / 6378.1)]).count()
+
+                if countCoord > 0:
+                    curErr.append("Sudah terdapat titik lain di sekitar ini")
+            except:
+                curErr.append("Koordinat tidak valid")
+
+            unik_id = curSite["unik_id"]
+            countUnik = site.objects(unik_id=unik_id).count()
+            countOff = site_offair.objects(unik_id=unik_id).count()
+
+            if countOff == 0:
+                curErr.append("Unik id tidak valid")
+
+            if countUnik > 0:
+                curErr.append("Titik sudah ada")
+
+            nama_lokasi = curSite["nama_lokasi"]
+            countNam = site.objects(nama=nama_lokasi).count()
+
+            if countNam > 0:
+                curErr.append("Nama Lokasi sudah ada")
+
+            curProv = curSite["provinsi"]
+            countProv = provinsi.objects(name=curProv.upper()).count()
+
+            if countProv == 0:
+                curErr.append("Provinsi tidak valid")
+
+            curKab = curSite["kab_kota"]
+            countKab = kabupaten.objects(name=curKab.upper()).count()
+
+            if countKab == 0:
+                countKab = kota.objects(name=curKab.upper()).count()
+                if countKab == 0:
+                    curErr.append("Kab/Kota tidak valid")
+
+            curKec = curSite["kecamatan"]
+            countKec = kecamatan.objects(name=curKec.upper()).count()
+
+            if countKec == 0:
+                curErr.append("Kecamatan tidak valid")
+
+            curDesa = curSite["desa"]
+            countDesa = desa.objects(name=curDesa.upper()).count()
+
+            if countDesa == 0:
+                curErr.append("Desa tidak valid")
+
+            retData.append(curErr)
+
+        return Response.ok(
+            values=json.loads(json.dumps(retData, default=str)),
+            message="Berhasil"
         )
     except Exception as e:
         # print(e)
