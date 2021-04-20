@@ -130,8 +130,8 @@ class Odp(Document):
 
 class Odp(Document):
     #unik_id = IntField(required=True, unique=True)
-    latitude = StringField(required=True, unique=True)
-    longitude = StringField(required=True, unique=True)
+    latitude = StringField(required=True)
+    longitude = StringField(required=True)
     longlat = PointField()
     teknologi = StringField()
     nama = StringField(required=True)
@@ -150,6 +150,8 @@ class Odp(Document):
     vendor = ReferenceField(vendor)
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
+
+    meta = { 'unique_together': ['latitude', 'longitude'] }
 
 
 class Odp_backup(Document):

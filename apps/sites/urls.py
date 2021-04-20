@@ -28,6 +28,7 @@ urlpatterns = [
 
     path('cloneoffair/', views.clonesiteoffair),
     path('getrecommendvendor/', views.getvendorcluster),
+    path('syncsiteoffair/', views.syncsiteoffair),
 
 
 ]
