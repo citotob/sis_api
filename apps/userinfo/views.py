@@ -996,7 +996,7 @@ def forgotpassword(request):
             req = request.body.decode("utf-8")
             data = json.loads(req)
             try:
-                user = UserInfo.objects.get(email=data["email"])
+                user = UserInfo.objects.get(email=data["email"], status='Aktif')
             except UserInfo.DoesNotExist:
                 # return Response.ok(
                 #    values=[],
