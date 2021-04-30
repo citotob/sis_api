@@ -46,14 +46,14 @@ from email.mime.image import MIMEImage
 from django.template.loader import get_template
 from django.template import Context
 
-from django.db.models import Avg, Max, Min, Sum, Q
+from django.db.models import Avg, Max, Min, Sum
 from operator import itemgetter
 import openpyxl
 
 from notification.utils.CustomNotification import CustomNotification
 from publicservice.utils import send_mail
 from pathlib import Path
-# from mongoengine.queryset.visitor import Q
+from mongoengine.queryset.visitor import Q
 
 
 def getLaporan(request):
@@ -1877,8 +1877,10 @@ def calculatevendorscore(request):
                 #    continue
                 vendor_tek = dt_rfi.rekomendasi_teknologi
                 tek_score = 0
-                if smm_tek == vendor_tek:
+                if smm_tek == "FO":
                     tek_score = 1
+                elif smm_tek == vendor_tek:
+                    tek_score = 1/2
                 tgl_start = dt_rfi.vendor_app.tanggal_mulai_sla
                 tgl_end = dt_rfi.integration + \
                     timedelta(dt_rfi.days_on_integration)
@@ -1912,9 +1914,11 @@ def calculatevendorscore(request):
                     vpscore_ketepatan += dt.ketepatan
                     vpscore_kualitas += dt.kualitas
 
-                vpscore_kecepatan = vpscore_kecepatan/total_row
-                vpscore_ketepatan = vpscore_ketepatan/total_row
-                vpscore_kualitas = vpscore_kualitas/total_row
+                if total_row > 0:
+                    vpscore_kecepatan = vpscore_kecepatan/total_row
+                    vpscore_ketepatan = vpscore_ketepatan/total_row
+                    vpscore_kualitas = vpscore_kualitas/total_row
+
                 av_vp = (vpscore_kecepatan +
                          vpscore_ketepatan+vpscore_kualitas)/3
 
@@ -2186,15 +2190,40 @@ def getvendorcluster(request):
         reqKota = request.GET.get('kota')
 
         match = {}
-        min = 5
+        minKec = 5
+        minKab = 10
         if reqKecamatan:
-            match["kecamatan"] = ObjectId(reqKecamatan)
-        elif reqKota:
+            curKec = kecamatan.objects.filter(
+                id=ObjectId(reqKecamatan)).first()
+            if "kabupaten" in curKec:
+                reqKabupaten = curKec["kabupaten"]["id"]
+            else:
+                reqKota = curKec["kota"]["id"]
+
+            listOdpVenKec = list(Odp.objects.aggregate([
+                {"$match": {"kecamatan": ObjectId(reqKecamatan)}},
+                {"$group":
+                    {
+                        "_id": {
+                            "vendor": "$vendor",
+                            "teknologi": "$teknologi"
+                        },
+                        "count": {"$sum": 1}
+                    }
+                 },
+                {"$sort":
+                    {
+                        "count": -1
+                    }
+                 }
+            ]))
+        else:
+            listOdpVenKec = []
+
+        if reqKota:
             match["kota"] = ObjectId(reqKota)
-            min = 10
         elif reqKabupaten:
             match["kabupaten"] = ObjectId(reqKabupaten)
-            min = 10
         else:
             return Response.badRequest(
                 values=[],
@@ -2224,22 +2253,40 @@ def getvendorcluster(request):
             "message": ""
         }
 
-        if len(listOdpVendor) > 0:
+        if len(listOdpVendor) > 0 and len(listOdpVenKec) > 0:
             message = "Rekomendasi yang diberikan merupakan hasil analisa sistem."
 
-            for curVendor in listOdpVendor:
-                if curVendor["count"] >= min:
-                    data = vendor.objects.get(id=curVendor["_id"]["vendor"])
-                    respData["recommendations"].append({
-                        "vendor": data.name,
-                        "teknologi": curVendor["_id"]["teknologi"],
-                        "sla_daily": data.sla_avg if hasattr(data, "sla_avg") else 0,
-                        "sla_monthly": data.sla_avg if hasattr(data, "sla_avg") else 0
-                    })
+            if len(listOdpVenKec) > 0:
+                for curVendor in listOdpVenKec:
+                    if curVendor["count"] >= minKec:
+                        data = vendor.objects.get(
+                            id=curVendor["_id"]["vendor"])
+                        respData["recommendations"].append({
+                            "vendor": data.name,
+                            "teknologi": curVendor["_id"]["teknologi"],
+                            "sla_daily": data.sla_avg if hasattr(data, "sla_avg") else 0,
+                            "sla_monthly": data.sla_avg if hasattr(data, "sla_avg") else 0
+                        })
 
-                    message += " Penyedia " + data.name + \
-                        " direkomendasikan dikarenakan mempunyai jumlah titik on air dengan total " + \
-                        str(curVendor["count"]) + " titik."
+                        message += " Penyedia " + data.name + \
+                            " direkomendasikan dikarenakan mempunyai jumlah titik on air dengan total " + \
+                            str(curVendor["count"]) + " titik di kecamatan ini."
+
+            if len(respData["recommendations"]) == 0:
+                for curVendor in listOdpVendor:
+                    if curVendor["count"] >= minKab:
+                        data = vendor.objects.get(
+                            id=curVendor["_id"]["vendor"])
+                        respData["recommendations"].append({
+                            "vendor": data.name,
+                            "teknologi": curVendor["_id"]["teknologi"],
+                            "sla_daily": data.sla_avg if hasattr(data, "sla_avg") else 0,
+                            "sla_monthly": data.sla_avg if hasattr(data, "sla_avg") else 0
+                        })
+
+                        message += " Penyedia " + data.name + \
+                            " direkomendasikan dikarenakan mempunyai jumlah titik on air dengan total " + \
+                            str(curVendor["count"]) + " titik di kecamatan ini."
 
             if len(respData["recommendations"]) == 0:
                 message = "Tidak ada rekomendasi vendor, anda bisa mengundang vendor siapa saja"
@@ -2300,85 +2347,92 @@ def syncsiteoffair(request):
                 count += 1
                 curReq = site_offair.objects.filter(
                     Q(unik_id=row["unik_id"]) |
-                    (
-                        Q(longitude=row["location"]["longitude"]),
-                        Q(latitude=row["location"]["latitude"])
-                    )
+                    Q(longitude=row["location"]["longitude"],
+                      latitude=row["location"]["latitude"])
                 ).first()
 
                 if curReq:
                     arr.append(row["unik_id"])
                 else:
-                    if "kecamatan" in row and row["kecamatan"] is not None:
-                        kecamatanCur = kecamatan.objects.filter(
-                            name=row["kecamatan"]["name"]).first()
-                        if kecamatanCur:
-                            curDesa = 0
-                            curKota = 0
-                            curKab = 0
-                            curProv = 0
-                            if "desa" in row and row["desa"] is not None:
-                                desaCur = desa.objects.filter(
-                                    name=row["desa"]["name"]).first()
-                                if desaCur:
-                                    curDesa = desaCur["id"]
-                                else:
-                                    desaCur = desa.objects.filter(
-                                        kecamatan=ObjectId(kecamatanCur["id"])).first()
-                                    if desaCur:
-                                        curDesa = desaCur["id"]
+                    if "kabupaten" in row and row["kabupaten"] is not None:
+                        kabupatenCur = kabupaten.objects.filter(
+                            id=ObjectId(name=row["kabupaten"]["name"])).first()
+                        if "kecamatan" in row and row["kecamatan"] is not None:
+                            kecamatanCur = kecamatan.objects.filter(
+                                name=row["kecamatan"]["name"], kabupaten=ObjectId(kabupatenCur["id"])).first()
+                    elif "kota" in row and row["kota"] is not None:
+                        kotaCur = kota.objects.filter(
+                            id=ObjectId(name=row["kota"]["name"])).first()
+                        if "kecamatan" in row and row["kecamatan"] is not None:
+                            kecamatanCur = kecamatan.objects.filter(
+                                name=row["kecamatan"]["name"], kota=ObjectId(kotaCur["id"])).first()
+                    else:
+                        if "kecamatan" in row and row["kecamatan"] is not None:
+                            kecamatanCur = kecamatan.objects.filter(
+                                name=row["kecamatan"]["name"]).first()
+
+                    if kecamatanCur:
+                        curDesa = 0
+                        curKota = 0
+                        curKab = 0
+                        curProv = 0
+                        if "desa" in row and row["desa"] is not None:
+                            desaCur = desa.objects.filter(
+                                name=row["desa"]["name"]).first()
+                            if desaCur:
+                                curDesa = desaCur["id"]
                             else:
                                 desaCur = desa.objects.filter(
                                     kecamatan=ObjectId(kecamatanCur["id"])).first()
                                 if desaCur:
                                     curDesa = desaCur["id"]
-
-                            if "kota" in kecamatanCur:
-                                kotaCur = kota.objects.filter(
-                                    id=kecamatanCur["kota"]["id"]).first()
-                                if kotaCur:
-                                    curKota = kotaCur["id"]
-                                    curProv = ObjectId(
-                                        kotaCur["provinsi"]["id"])
-                            elif "kabupaten" in kecamatanCur:
-                                kabupatenCur = kabupaten.objects.filter(
-                                    id=ObjectId(kecamatanCur["kabupaten"]["id"])).first()
-                                if kabupatenCur:
-                                    curKab = kabupatenCur["id"]
-                                    curProv = ObjectId(
-                                        kabupatenCur["provinsi"]["id"])
-
-                            data_site = site_offair(
-                                unik_id=row["unik_id"],
-                                latitude=row["location"]["latitude"],
-                                longitude=row["location"]["longitude"],
-                                nama=row["location"]["name"],
-                                desa_kelurahan=curDesa,
-                                kecamatan=kecamatanCur["id"],
-                                provinsi=curProv,
-                                kode_pos=row["location"]["kodepos"],
-                                status=[
-                                    {
-                                        "status": "buka",
-                                        "tanggal_pembuatan": dateNow
-                                    }
-                                ]
-                                # created_at = datetime.utcnow() + timedelta(hours=7),
-                                # updated_at = datetime.utcnow() + timedelta(hours=7)
-                            )
-
-                            if curKab != 0:
-                                data_site.kabupaten = curKab
-                            elif curKota:
-                                data_site.kota = curKota
-
-                            data_site.save()
                         else:
-                            kecCount += 1
-                            kecArr.append(row["kecamatan"]["name"])
+                            desaCur = desa.objects.filter(
+                                kecamatan=ObjectId(kecamatanCur["id"])).first()
+                            if desaCur:
+                                curDesa = desaCur["id"]
+
+                        if "kota" in kecamatanCur:
+                            kotaCur = kota.objects.filter(
+                                id=kecamatanCur["kota"]["id"]).first()
+                            if kotaCur:
+                                curKota = kotaCur["id"]
+                                curProv = ObjectId(
+                                    kotaCur["provinsi"]["id"])
+                        elif "kabupaten" in kecamatanCur:
+                            kabupatenCur = kabupaten.objects.filter(
+                                id=ObjectId(kecamatanCur["kabupaten"]["id"])).first()
+                            if kabupatenCur:
+                                curKab = kabupatenCur["id"]
+                                curProv = ObjectId(
+                                    kabupatenCur["provinsi"]["id"])
+
+                        data_site = site_offair(
+                            unik_id=row["unik_id"],
+                            latitude=row["location"]["latitude"],
+                            longitude=row["location"]["longitude"],
+                            nama=row["location"]["name"],
+                            desa_kelurahan=curDesa,
+                            kecamatan=kecamatanCur["id"],
+                            provinsi=curProv,
+                            kode_pos=row["location"]["kodepos"],
+                            status=[
+                                {
+                                    "status": "buka",
+                                    "tanggal_pembuatan": dateNow
+                                }
+                            ]
+                        )
+
+                        if curKab != 0:
+                            data_site.kabupaten = curKab
+                        elif curKota:
+                            data_site.kota = curKota
+
+                        data_site.save()
                     else:
-                        nonCount += 1
-                        nonArr.append(row["unik_id"])
+                        kecCount += 1
+                        kecArr.append(row["kecamatan"]["name"])
 
         return Response.ok(
             values=json.loads(json.dumps({
