@@ -2253,7 +2253,7 @@ def getvendorcluster(request):
             "message": ""
         }
 
-        if len(listOdpVendor) > 0 and len(listOdpVenKec) > 0:
+        if len(listOdpVendor) > 0 or len(listOdpVenKec) > 0:
             message = "Rekomendasi yang diberikan merupakan hasil analisa sistem."
 
             if len(listOdpVenKec) > 0:
@@ -2286,7 +2286,7 @@ def getvendorcluster(request):
 
                         message += " Penyedia " + data.name + \
                             " direkomendasikan dikarenakan mempunyai jumlah titik on air dengan total " + \
-                            str(curVendor["count"]) + " titik di kecamatan ini."
+                            str(curVendor["count"]) + " titik di kabupaten ini."
 
             if len(respData["recommendations"]) == 0:
                 message = "Tidak ada rekomendasi vendor, anda bisa mengundang vendor siapa saja"
