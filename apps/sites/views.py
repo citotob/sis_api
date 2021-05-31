@@ -1729,9 +1729,14 @@ def getsiteoffair(request):
 
 def getoffairid(request):
     try:
+        tech_type = str(request.GET.get('tech_type'))
+
         req_fields = ['unik_id', 'nama']
 
-        data = site_offair.objects.all().only(*req_fields)
+        if len(tech_type) > 0:
+            data = site_offair.objects.get(tech_type=tech_type).only(*req_fields)
+        else:
+            data = site_offair.objects.all().only(*req_fields)
 
         result = []
         for dt in data:
@@ -2122,6 +2127,7 @@ def getoffaircluster(request):
         reqKecamatan = request.GET.get('kecamatan')
         reqKabupaten = request.GET.get('kabupaten')
         reqKota = request.GET.get('kota')
+        reqTech = request.GET.get('tech_type', '')
 
         data_kec = kecamatan.objects.get(
             id=reqKecamatan) if reqKecamatan is not None else None
@@ -2129,6 +2135,11 @@ def getoffaircluster(request):
             id=reqKota) if reqKota is not None else None
         data_kab = kabupaten.objects.get(
             id=reqKabupaten) if reqKabupaten is not None else None
+            
+        if len(reqTech) > 0:
+            data = site_offair_norel.objects.filter(tech_type=reqTech)
+        else:
+            data = site_offair_norel.objects.all()
 
         try:
             start = int(request.GET.get('start')) - 1
@@ -2138,13 +2149,13 @@ def getoffaircluster(request):
                 start = 0
 
             if reqKecamatan and data_kec:
-                data = site_offair_norel.objects.filter(
+                data = data.filter(
                     kecamatan=data_kec.name)[start:end]
             elif reqKota and data_kota:
-                data = site_offair_norel.objects.filter(
+                data = data.filter(
                     kota=data_kota.name)[start:end]
             elif reqKabupaten and data_kab:
-                data = site_offair_norel.objects.filter(
+                data = data.filter(
                     kabupaten=data_kab.name)[start:end]
             else:
                 return Response().base(
@@ -2154,12 +2165,12 @@ def getoffaircluster(request):
                 )
         except:
             if reqKecamatan and data_kec:
-                data = site_offair_norel.objects.filter(
+                data = data.filter(
                     kecamatan=data_kec.name)
             elif reqKota and data_kota:
-                data = site_offair_norel.objects.filter(kota=data_kota.name)
+                data = data.filter(kota=data_kota.name)
             elif reqKabupaten and data_kab:
-                data = site_offair_norel.objects.filter(
+                data = data.filter(
                     kabupaten=data_kab.name)
             else:
                 return Response().base(

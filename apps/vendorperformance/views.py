@@ -50,7 +50,11 @@ class VendorPerformanceAPI(ModelViewSet):
 
     def getAll(self, request, format=None):
         try:
-            vp = vendor.objects.order_by('-name')
+            buying_type = int(request.query_params.get('buying_type', -1))
+            if buying_type >= 0:
+                vp = vendor.objects.filter(buying_type=buying_type).order_by('-name')
+            else:
+                vp = vendor.objects.order_by('-name')
             serializer = VendorScoreSerializer(vp, many=True)
             return CustomResponse.ok(values=serializer.data)
         except Exception as e:

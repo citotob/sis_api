@@ -227,6 +227,7 @@ class site_offair_norel(Document):
     longitude = StringField(required=True, unique=True)
     longlat = PointField()
     nama = StringField(required=True)
+    tech_type = StringField()
     desa_kelurahan = StringField()
     kecamatan = StringField()
     kabupaten = StringField()
@@ -247,6 +248,7 @@ class site_offair_norel(Document):
                 'longitude': self.longitude,
                 'longlat': str(self.longlat),
                 'nama': self.nama,
+                'tech_type': self.tech_type,
                 'desa_kelurahan': self.desa_kelurahan,
                 'kecamatan': self.kecamatan,
                 'kabupaten': self.kabupaten,
@@ -264,6 +266,7 @@ class site_offair_norel(Document):
                 'longitude': self.longitude,
                 'longlat': str(self.longlat),
                 'nama': self.nama,
+                'tech_type': self.tech_type,
                 'desa_kelurahan': self.desa_kelurahan,
                 'kecamatan': self.kecamatan,
                 'kota': self.kota,
