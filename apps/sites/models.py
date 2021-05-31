@@ -170,6 +170,7 @@ class site_offair(Document):
     longlat = PointField()
     #rekomendasi_teknologi = ReferenceField(rekomendasi_teknologi)
     nama = StringField(required=True)
+    tech_type = StringField()
     desa_kelurahan = ReferenceField(desa)
     kecamatan = ReferenceField(kecamatan)
     kabupaten = ReferenceField(kabupaten)
@@ -192,6 +193,7 @@ class site_offair(Document):
                 'longitude': self.longitude,
                 'longlat': str(self.longlat),
                 'nama': self.nama,
+                'tech_type': self.tech_type,
                 'desa_kelurahan': self.desa_kelurahan.serialize(),
                 'kecamatan': self.kecamatan.serialize(),
                 'kabupaten': self.kabupaten.serialize(),
@@ -209,6 +211,7 @@ class site_offair(Document):
                 'longitude': self.longitude,
                 'longlat': str(self.longlat),
                 'nama': self.nama,
+                'tech_type': self.tech_type,
                 'desa_kelurahan': self.desa_kelurahan.serialize(),
                 'kecamatan': self.kecamatan.serialize(),
                 'kota': self.kota.serialize(),
@@ -303,6 +306,8 @@ class batch(Document):
     tanggal_selesai_kerja = DateTimeField(required=True, default=datetime.now)
     penyedia_undang = ListField(ReferenceField(vendor))
     penyedia_kerja = ListField(ReferenceField(vendor))
+    tech_type = StringField()
+    buying_type = IntField(default=0)
     status = ListField(required=True)
     price = FloatField(required=True, default=0)
     created_at = DateTimeField(required=True, default=datetime.now)
@@ -331,6 +336,8 @@ class batch(Document):
             # 'penyedia_undang': drf_serializers.ListField(child=self.penyedia_undang),
             # 'penyedia_kerja': drf_serializers.ListField(child=self.penyedia_kerja),
             'penyedia_kerja': penyedia_k,
+            'tech_type': self.tech_type,
+            'buying_type': self.buying_type,
             'status': self.status,
             'created_at': str(self.created_at),
             'updated_at': str(self.updated_at),

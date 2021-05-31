@@ -18,6 +18,7 @@ class vendor(Document):
     longitude = StringField(required=True)
     longlat = PointField()
     nilai = DynamicField()
+    buying_type = IntField(default=0)
     created_at = DateTimeField(
         default=datetime.utcnow() + timedelta(hours=7))
     updated_at = DateTimeField(
@@ -35,6 +36,7 @@ class vendor(Document):
             'teknologi': self.teknologi,
             'latitude': self.latitude,
             'longitude': self.longitude,
+            'buying_type': self.buying_type,
             'nilai': str(self.nilai),
         }
 
