@@ -813,11 +813,8 @@ def addsite(request):
 
             desaName = body_data.get('desa')
 
-            print(desaName)
-            print(kecamatans.id)
             desas = desa.objects.filter(
                 name=desaName, kecamatan=kecamatans.id).first()
-            print(desas)
             if not desas:
                 return Response().base(
                     success=False,
