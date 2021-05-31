@@ -813,8 +813,11 @@ def addsite(request):
 
             desaName = body_data.get('desa')
 
+            print(desaName)
+            print(kecamatans.id)
             desas = desa.objects.filter(
                 name=desaName, kecamatan=kecamatans.id).first()
+            print(desas)
             if not desas:
                 return Response().base(
                     success=False,
@@ -2290,7 +2293,7 @@ def getvendorcluster(request):
 
             if len(respData["recommendations"]) == 0:
                 for curVendor in listOdpVendor:
-                    if curVendor["count"] >= minKab:
+                    if curVendor["count"] >= minKab and curVendor["_id"]["vendor"] != "-":
                         data = vendor.objects.get(
                             id=curVendor["_id"]["vendor"])
                         respData["recommendations"].append({
