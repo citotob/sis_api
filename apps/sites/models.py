@@ -223,8 +223,8 @@ class site_offair(Document):
 
 class site_offair_norel(Document):
     unik_id = StringField(required=True, default='-')
-    latitude = StringField(required=True, unique=True)
-    longitude = StringField(required=True, unique=True)
+    latitude = StringField(required=True)
+    longitude = StringField(required=True)
     longlat = PointField()
     nama = StringField(required=True)
     tech_type = StringField()
@@ -238,7 +238,7 @@ class site_offair_norel(Document):
     updated_at = DateTimeField(required=True, default=datetime.now)
     status = ListField(required=True)
 
-    #meta = { 'allow_inheritance': True }
+    meta = { 'unique_together': ['latitude', 'longitude'] }
 
     def serialize(self):
         try:
