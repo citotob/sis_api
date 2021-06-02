@@ -277,7 +277,7 @@ class publicServiceAPI(ModelViewSet):
             }
             """
             executive = [x.email for x in UserInfo.objects.filter(
-                role=ObjectId('605d52de97836d5c195119a6'))]
+                role=ObjectId('5f73fe3428751d590d835267'))]
 
             subject = 'Laporan'
             text_content = ''
