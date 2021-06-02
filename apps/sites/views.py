@@ -1760,12 +1760,11 @@ def getoffairid(request):
                 status=404
             )
     except Exception as e:
-        # print(e)
-        return Response.badRequest(
-            values=[],
-            message=str(e)
+        return Response().base(
+            success=False,
+            message='Data tidak ada',
+            status=404
         )
-
 
 def getoffairbyid(request):
     try:
