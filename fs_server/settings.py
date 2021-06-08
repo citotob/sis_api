@@ -153,6 +153,7 @@ DATABASES = {'default': {
 MONGO_NAME = 'sis'
 #MONGO_DATABASE_HOST = 'mongodb://userSIS:usercaptive@165.22.58.39:27017/sis'
 MONGO_DATABASE_HOST = 'mongodb://userSIS:SISpassword2020#@116.66.206.230:27017/sis'
+# MONGO_DATABASE_HOST = 'mongodb://userSIS:SISpassword2020#@103.129.220.176:27017/sis'
 mongoengine.connect(MONGO_NAME, host=MONGO_DATABASE_HOST)
 
 # Password validation
