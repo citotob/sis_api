@@ -19,6 +19,8 @@ class vendor(Document):
     longlat = PointField()
     nilai = DynamicField()
     buying_type = IntField(default=0)
+    monthly_sla = FloatField()
+    yearly_sla = FloatField()
     created_at = DateTimeField(
         default=datetime.utcnow() + timedelta(hours=7))
     updated_at = DateTimeField(
@@ -37,6 +39,8 @@ class vendor(Document):
             'latitude': self.latitude,
             'longitude': self.longitude,
             'buying_type': self.buying_type,
+            'monthly_sla': self.monthly_sla,
+            'yearly_sla': self.yearly_sla,
             'nilai': str(self.nilai),
         }
 

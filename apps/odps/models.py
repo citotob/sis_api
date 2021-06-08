@@ -148,6 +148,8 @@ class Odp(Document):
     kota = ReferenceField(kota)
     provinsi = ReferenceField(provinsi)
     vendor = ReferenceField(vendor)
+    monthly_sla = DictField()
+    yearly_sla = FloatField()
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
 
