@@ -2279,8 +2279,8 @@ def getvendorcluster(request):
                         respData["recommendations"].append({
                             "vendor": data.name,
                             "teknologi": curVendor["_id"]["teknologi"],
-                            "sla_daily": data.sla_avg if hasattr(data, "sla_avg") else 0,
-                            "sla_monthly": data.sla_avg if hasattr(data, "sla_avg") else 0
+                            "monthly_sla": data.monthly_sla if hasattr(data, "monthly_sla") else 0,
+                            "yearly_sla": data.yearly_sla if hasattr(data, "yearly_sla") else 0
                         })
 
                         message += " Penyedia " + data.name + \
@@ -2295,8 +2295,8 @@ def getvendorcluster(request):
                         respData["recommendations"].append({
                             "vendor": data.name,
                             "teknologi": curVendor["_id"]["teknologi"],
-                            "sla_daily": data.sla_avg if hasattr(data, "sla_avg") else 0,
-                            "sla_monthly": data.sla_avg if hasattr(data, "sla_avg") else 0
+                            "monthly_sla": data.monthly_sla if hasattr(data, "monthly_sla") else 0,
+                            "yearly_sla": data.yearly_sla if hasattr(data, "yearly_sla") else 0
                         })
 
                         message += " Penyedia " + data.name + \
