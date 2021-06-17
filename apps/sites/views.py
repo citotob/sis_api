@@ -1886,7 +1886,7 @@ def calculatevendorscore(request):
                 #    continue
                 vendor_tek = dt_rfi.rekomendasi_teknologi
                 tek_score = 0
-                if smm_tek == "FO":
+                if vendor_tek == "FO":
                     tek_score = 1
                 elif smm_tek == vendor_tek:
                     tek_score = 1/2
