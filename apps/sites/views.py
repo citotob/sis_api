@@ -2279,6 +2279,7 @@ def getvendorcluster(request):
                         respData["recommendations"].append({
                             "vendor": data.name,
                             "teknologi": curVendor["_id"]["teknologi"],
+                            "sites": curVendor["count"],
                             "monthly_sla": data.monthly_sla if hasattr(data, "monthly_sla") else 0,
                             "yearly_sla": data.yearly_sla if hasattr(data, "yearly_sla") else 0
                         })
@@ -2295,6 +2296,7 @@ def getvendorcluster(request):
                         respData["recommendations"].append({
                             "vendor": data.name,
                             "teknologi": curVendor["_id"]["teknologi"],
+                            "sites": curVendor["count"],
                             "monthly_sla": data.monthly_sla if hasattr(data, "monthly_sla") else 0,
                             "yearly_sla": data.yearly_sla if hasattr(data, "yearly_sla") else 0
                         })
