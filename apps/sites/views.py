@@ -816,11 +816,13 @@ def addsite(request):
             desas = desa.objects.filter(
                 name=desaName, kecamatan=kecamatans.id).first()
             if not desas:
-                return Response().base(
-                    success=False,
-                    message='Desa tidak ada',
-                    status=404
-                )
+                desas = desa.objects.filter(
+                    kecamatan=kecamatans.id).first()
+                # return Response().base(
+                #     success=False,
+                #     message='Desa tidak ada',
+                #     status=404
+                # )
 
             longitude = body_data.get('longitude')
             latitude = body_data.get('latitude')
@@ -2125,15 +2127,16 @@ def getoffaircluster(request):
     try:
         reqKecamatan = request.GET.get('kecamatan')
         reqKabupaten = request.GET.get('kabupaten')
-        reqKota = request.GET.get('kota')
         reqTech = request.GET.get('tech_type', '')
 
-        data_kec = kecamatan.objects.get(
-            id=reqKecamatan) if reqKecamatan is not None else None
-        data_kota = kota.objects.get(
-            id=reqKota) if reqKota is not None else None
-        data_kab = kabupaten.objects.get(
-            id=reqKabupaten) if reqKabupaten is not None else None
+        data_kec = kecamatan.objects.filter(
+            id=reqKecamatan).first() if reqKecamatan is not None else None
+        data_kab = kabupaten.objects.filter(
+            id=reqKabupaten).first() if reqKabupaten is not None else None
+
+        if data_kab is None:
+            data_kota = kota.objects.filter(
+                id=reqKabupaten).first() if reqKabupaten is not None else None
             
         if len(reqTech) > 0:
             data = site_offair_norel.objects.filter(tech_type=reqTech)
@@ -2150,10 +2153,10 @@ def getoffaircluster(request):
             if reqKecamatan and data_kec:
                 data = data.filter(
                     kecamatan=data_kec.name)[start:end]
-            elif reqKota and data_kota:
+            elif data_kota:
                 data = data.filter(
                     kota=data_kota.name)[start:end]
-            elif reqKabupaten and data_kab:
+            elif data_kab:
                 data = data.filter(
                     kabupaten=data_kab.name)[start:end]
             else:
@@ -2166,9 +2169,9 @@ def getoffaircluster(request):
             if reqKecamatan and data_kec:
                 data = data.filter(
                     kecamatan=data_kec.name)
-            elif reqKota and data_kota:
+            elif data_kota:
                 data = data.filter(kota=data_kota.name)
-            elif reqKabupaten and data_kab:
+            elif data_kab:
                 data = data.filter(
                     kabupaten=data_kab.name)
             else:
