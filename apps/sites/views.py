@@ -2133,11 +2133,9 @@ def getoffaircluster(request):
             id=reqKecamatan).first() if reqKecamatan is not None else None
         data_kab = kabupaten.objects.filter(
             id=reqKabupaten).first() if reqKabupaten is not None else None
+        data_kota = kota.objects.filter(
+            id=reqKabupaten).first() if reqKabupaten is not None else None
 
-        if data_kab is None:
-            data_kota = kota.objects.filter(
-                id=reqKabupaten).first() if reqKabupaten is not None else None
-            
         if len(reqTech) > 0:
             data = site_offair_norel.objects.filter(tech_type=reqTech)
         else:
